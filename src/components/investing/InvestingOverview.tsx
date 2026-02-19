@@ -8,12 +8,19 @@ import { useCurrency } from "../shared/useCurrency";
 
 interface InvestingOverviewProps {
   onEditGoal: (goal: SavingGoal) => void;
+  isBudgetOpen: boolean;
+  onToggleBudget: () => void;
 }
 
-export default function InvestingOverview({ onEditGoal }: InvestingOverviewProps) {
+export default function InvestingOverview({
+  onEditGoal,
+  isBudgetOpen,
+  onToggleBudget,
+}: InvestingOverviewProps) {
   const { formatCurrency } = useCurrency();
   const goals = useFinanceStore((state) => state.savingGoals);
   const investments = useFinanceStore((state) => state.investments);
+  const deleteInvestment = useFinanceStore((state) => state.deleteInvestment);
 
   const { totalSaved, totalInvested } = useMemo(() => {
     const saved = goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
@@ -31,7 +38,20 @@ export default function InvestingOverview({ onEditGoal }: InvestingOverviewProps
             <p className="text-[11px] uppercase tracking-[0.14em] text-white/55 font-semibold">Investing Snapshot</p>
             <p className="text-2xl font-bold text-white">{formatCurrency(combinedTotal)}</p>
           </div>
-          <span className="text-xs text-[#9cf4e4] font-semibold">Total Managed</span>
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-xs text-[#9cf4e4] font-semibold">Total Managed</span>
+            <button
+              type="button"
+              onClick={onToggleBudget}
+              className={`h-6 px-2 rounded-full border text-[10px] font-semibold ${
+                isBudgetOpen
+                  ? "border-[#00C9A7]/60 bg-[#00C9A7]/18 text-[#bdfdee]"
+                  : "border-white/20 bg-white/[0.08] text-white/70"
+              }`}
+            >
+              Budget
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
@@ -87,7 +107,17 @@ export default function InvestingOverview({ onEditGoal }: InvestingOverviewProps
                     <p className="text-xs text-white/65">{item.category}</p>
                     <p className="text-[11px] text-white/45 mt-1">{item.date}</p>
                   </div>
-                  <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
+                  <div className="flex flex-col items-end gap-1">
+                    <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
+                    <button
+                      type="button"
+                      onClick={() => deleteInvestment(item.id)}
+                      className="size-7 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42] inline-flex items-center justify-center"
+                      title="Delete investment"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                    </button>
+                  </div>
                 </div>
                 {item.note && <p className="text-xs text-white/65 mt-2 truncate">{item.note}</p>}
               </article>

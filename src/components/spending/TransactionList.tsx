@@ -54,26 +54,26 @@ interface GroupedExpenses {
 }
 
 interface TransactionListProps {
+  query: string;
   onEditExpense: (expense: Expense) => void;
 }
 
-export default function TransactionList({ onEditExpense }: TransactionListProps) {
+export default function TransactionList({ query, onEditExpense }: TransactionListProps) {
   const { formatCurrency } = useCurrency();
-  const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const getRecurringExpenses = useFinanceStore((state) => state.recurringExpenses);
   const deleteExpense = useFinanceStore((state) => state.deleteExpense);
-  const currentMonth = new Date().toISOString().slice(0, 7);
 
   const recurring = getRecurringExpenses();
   const recurringMonthlyTotal = recurring.reduce((sum, item) => sum + item.amount, 0);
 
   const monthlyExpenses = useMemo(
-    () => expenses.filter((expense) => expense.date.slice(0, 7) === currentMonth),
-    [expenses, currentMonth],
+    () => expenses.filter((expense) => expense.date.slice(0, 7) === selectedMonth),
+    [expenses, selectedMonth],
   );
 
   const categories = useMemo(() => {
@@ -118,26 +118,15 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
   }, [filteredMonthlyExpenses]);
 
   return (
-    <section className="pt-4 pb-4 space-y-4">
-      <div className="px-5 space-y-2">
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-base">search</span>
-          <input
-            type="text"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search transactions..."
-            className="glass-input w-full h-10 pl-10 pr-3 text-sm text-[#f0f0ff]"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+    <section className="pt-2 pb-3 space-y-3">
+      <div className="px-4">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
           {categories.map((category) => (
             <button
               key={category}
               type="button"
               onClick={() => setActiveCategory(category)}
-              className={`h-8 px-3 rounded-full text-xs font-semibold whitespace-nowrap border ${
+              className={`h-7 px-2.5 rounded-full text-[11px] font-semibold whitespace-nowrap border ${
                 activeCategory === category
                   ? "bg-[#00C9A7]/45 border-white/30 text-white"
                   : "bg-white/10 border-white/20 text-white/65"
@@ -149,11 +138,11 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
         </div>
       </div>
 
-      <div className="px-5">
-        <div className="glass-card rounded-2xl p-4">
+      <div className="px-4">
+        <div className="glass-card rounded-2xl p-3">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-[#f0f0ff]">Recurring</h3>
-            <span className="text-xs font-semibold text-white/70">{formatCurrency(recurringMonthlyTotal)} / month</span>
+            <h3 className="text-xs font-bold text-[#f0f0ff]">Recurring</h3>
+            <span className="text-[11px] font-semibold text-white/70">{formatCurrency(recurringMonthlyTotal)} / month</span>
           </div>
 
           {recurring.length === 0 ? (
@@ -175,8 +164,8 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
       </div>
 
       {groups.length === 0 ? (
-        <section className="px-5 py-2">
-          <div className="glass-card rounded-2xl p-8 text-center">
+        <section className="px-4 py-1">
+          <div className="glass-card rounded-2xl p-6 text-center">
             <p className="text-sm font-medium text-white/80">No results</p>
             <p className="text-xs text-white/65 mt-1">Try a different search or category filter.</p>
           </div>
@@ -185,15 +174,15 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
         groups.map((group, groupIndex) => (
           <div key={group.date}>
             <div
-              className={`sticky top-0 bg-[#0a0a0f]/95 backdrop-blur-sm px-5 py-3 border-b border-[rgba(255,255,255,0.06)] z-10 flex justify-between items-center ${
+              className={`sticky top-0 bg-[#0a0a0f]/95 backdrop-blur-sm px-4 py-2 border-b border-[rgba(255,255,255,0.06)] z-10 flex justify-between items-center ${
                 groupIndex > 0 ? "border-t mt-2 border-[rgba(255,255,255,0.06)]" : ""
               }`}
             >
-              <h3 className="text-sm font-bold text-[#4a4a6a] uppercase tracking-wide">{group.label}</h3>
-              <span className="text-xs font-medium text-[#6b7280]">-{formatCurrency(group.total)}</span>
+              <h3 className="text-xs font-bold text-[#4a4a6a] uppercase tracking-wide">{group.label}</h3>
+              <span className="text-[11px] font-medium text-[#6b7280]">-{formatCurrency(group.total)}</span>
             </div>
 
-            <div className="px-5 py-2 space-y-4">
+            <div className="px-4 py-1.5 space-y-2.5">
               {group.items.map((item, index) => {
                 const colors = colorVariants[(groupIndex + index) % colorVariants.length];
                 const showConfirm = confirmDeleteId === item.id;

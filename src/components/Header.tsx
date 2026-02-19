@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useFinanceStore } from "./shared/store";
 import { CurrencyCode, TabKey } from "./shared/types";
 import { getCurrencySymbol, useCurrency } from "./shared/useCurrency";
@@ -18,6 +18,8 @@ const currencyOptions: CurrencyCode[] = ["USD", "INR", "EUR", "GBP", "JPY", "AED
 interface HeaderProps {
   activeTab: TabKey;
   setActiveTab: (tab: TabKey) => void;
+  spendingQuery: string;
+  onSpendingQueryChange: (value: string) => void;
 }
 
 const formatMonthLabel = (month: string) => {
@@ -26,25 +28,59 @@ const formatMonthLabel = (month: string) => {
   return date.toLocaleDateString("en-US", { month: "long" });
 };
 
-export default function Header({ activeTab, setActiveTab }: HeaderProps) {
+export default function Header({
+  activeTab,
+  setActiveTab,
+  spendingQuery,
+  onSpendingQueryChange,
+}: HeaderProps) {
   const { currency, currencySymbol } = useCurrency();
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
+  const setSelectedMonth = useFinanceStore((state) => state.setSelectedMonth);
   const setCurrency = useFinanceStore((state) => state.setCurrency);
 
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const monthInputRef = useRef<HTMLInputElement>(null);
 
   const monthLabel = useMemo(() => formatMonthLabel(selectedMonth), [selectedMonth]);
 
+  const openMonthPicker = () => {
+    const input = monthInputRef.current as HTMLInputElement & {
+      showPicker?: () => void;
+    };
+    if (!input) {
+      return;
+    }
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+    input.click();
+  };
+
   return (
-    <header className="flex-none px-4 pt-[calc(env(safe-area-inset-top)+8px)] pb-2 border-b border-white/10 bg-[#0a0a0f]/75 backdrop-blur-[24px] z-30">
-      <div className="flex items-center justify-between h-8">
-        <p className="text-[11px] uppercase tracking-[0.2em] text-white/45 font-semibold">{titleMap[activeTab]}</p>
+    <header className="flex-none px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5 border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-[22px] z-30">
+      <div className="flex items-center justify-between h-7">
+        <div className="flex items-center gap-1.5">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-white/45 font-semibold">{titleMap[activeTab]}</p>
+          {activeTab === "spending" && (
+            <button
+              type="button"
+              onClick={() => setShowSearch((value) => !value)}
+              className="h-6 w-6 rounded-full border border-white/20 bg-white/[0.08] text-white/80 inline-flex items-center justify-center"
+              title="Search transactions"
+            >
+              <span className="material-symbols-outlined text-[14px]">search</span>
+            </button>
+          )}
+        </div>
 
         <div className="relative flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setShowCurrencyMenu((value) => !value)}
-            className="h-7 min-w-9 px-2 rounded-full border border-white/20 bg-white/[0.08] text-[11px] font-semibold text-white"
+            className="h-6 min-w-8 px-1.5 rounded-full border border-white/20 bg-white/[0.08] text-[10px] font-semibold text-white"
           >
             {currencySymbol}
           </button>
@@ -72,22 +108,54 @@ export default function Header({ activeTab, setActiveTab }: HeaderProps) {
           <button
             type="button"
             onClick={() => setActiveTab("settings")}
-            className={`h-7 w-7 rounded-full border transition-colors ${
+            className={`h-6 w-6 rounded-full border transition-colors ${
               activeTab === "settings"
                 ? "border-[#00C9A7]/70 bg-[#00C9A7]/20 text-[#bbfff0]"
                 : "border-white/20 bg-white/[0.08] text-white/80"
             }`}
             title="Settings"
           >
-            <span className="material-symbols-outlined text-[15px] leading-none">settings</span>
+            <span className="material-symbols-outlined text-[13px] leading-none">settings</span>
           </button>
         </div>
       </div>
 
-      <div className="pt-2 pb-0.5 flex items-center justify-center">
-        <div className="h-9 min-w-44 px-6 rounded-2xl border border-white/30 bg-white/10 backdrop-blur-[20px] inline-flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.15)]">
-          <span className="text-lg font-semibold text-white/92">{monthLabel}</span>
+      {activeTab === "spending" && showSearch && (
+        <div className="pt-2">
+          <div className="relative">
+            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-white/55 text-[15px]">search</span>
+            <input
+              type="text"
+              value={spendingQuery}
+              onChange={(event) => onSpendingQueryChange(event.target.value)}
+              placeholder="Search transactions..."
+              className="glass-input w-full h-8 pl-8 pr-3 text-xs text-[#f0f0ff]"
+            />
+          </div>
         </div>
+      )}
+
+      <div className="pt-1.5 pb-0.5 flex items-center justify-center">
+        <button
+          type="button"
+          onClick={openMonthPicker}
+          className="h-8 min-w-36 px-5 rounded-xl border border-white/25 bg-white/[0.08] backdrop-blur-[18px] inline-flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.15)]"
+        >
+          <span className="text-base font-semibold text-white/92">{monthLabel}</span>
+        </button>
+        <input
+          ref={monthInputRef}
+          type="month"
+          value={selectedMonth}
+          onChange={(event) => {
+            if (event.target.value) {
+              setSelectedMonth(event.target.value);
+            }
+          }}
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden
+        />
       </div>
     </header>
   );

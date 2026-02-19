@@ -28,7 +28,6 @@ export default function GoalCard({ goal, onEditGoal }: GoalCardProps) {
 
   const [actionMode, setActionMode] = useState<"topup" | "withdraw" | null>(null);
   const [amountInput, setAmountInput] = useState("");
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const progress = goal.targetAmount > 0 ? Math.min((goal.savedAmount / goal.targetAmount) * 100, 100) : 0;
   const isComplete = progress >= 100;
@@ -88,7 +87,7 @@ export default function GoalCard({ goal, onEditGoal }: GoalCardProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setShowDeleteConfirm(true)}
+                onClick={() => deleteSavingGoal(goal.id)}
                 className="size-8 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42]"
               >
                 <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -166,25 +165,6 @@ export default function GoalCard({ goal, onEditGoal }: GoalCardProps) {
         </div>
       )}
 
-      {showDeleteConfirm && (
-        <div className="mt-3 pt-3 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-end gap-2 text-xs">
-          <span className="text-[#6b7280] mr-auto">Delete? </span>
-          <button
-            type="button"
-            onClick={() => deleteSavingGoal(goal.id)}
-            className="h-7 px-3 rounded-lg bg-[rgba(255,140,66,0.2)] text-[#FF8C42] font-semibold"
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(false)}
-            className="h-7 px-3 rounded-lg border border-[rgba(255,255,255,0.08)] text-[#6b7280]"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
     </article>
   );
 }

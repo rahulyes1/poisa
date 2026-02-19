@@ -27,6 +27,7 @@ type ActionTab = Exclude<TabKey, "settings" | "analytics">;
 
 export default function FinanceApp() {
   const [activeTab, setActiveTab] = useState<TabKey>("spending");
+  const [spendingQuery, setSpendingQuery] = useState("");
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
   const [isAddLendOpen, setIsAddLendOpen] = useState(false);
@@ -54,6 +55,9 @@ export default function FinanceApp() {
 
   const onTabChange = (tab: TabKey) => {
     setShowInvestingActions(false);
+    if (tab !== "spending") {
+      setSpendingQuery("");
+    }
     setActiveTab(tab);
   };
 
@@ -120,45 +124,36 @@ export default function FinanceApp() {
 
       <CurrencyPickerModal isOpen={!hasSelectedCurrency} onSelect={onCurrencySelected} />
 
-      <Header activeTab={activeTab} setActiveTab={onTabChange} />
+      <Header
+        activeTab={activeTab}
+        setActiveTab={onTabChange}
+        spendingQuery={spendingQuery}
+        onSpendingQueryChange={setSpendingQuery}
+      />
 
-      <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+136px)] sm:pb-24">
-        <div className="px-4 pt-3 flex items-center justify-end gap-2">
-          {activeTab === "spending" && (
-            <button
-              type="button"
-              onClick={() => setShowSpendingBudgetSetter((value) => !value)}
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-full border border-white/20 bg-white/[0.08] text-[11px] font-semibold text-[#dcfff7]"
-            >
-              <span className="material-symbols-outlined text-[15px]">tune</span>
-              Budget
-            </button>
-          )}
-
-          {activeTab === "investing" && (
-            <button
-              type="button"
-              onClick={() => setShowInvestingBudgetSetter((value) => !value)}
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-full border border-white/20 bg-white/[0.08] text-[11px] font-semibold text-[#dcfff7]"
-            >
-              <span className="material-symbols-outlined text-[15px]">savings</span>
-              Invest Budget
-            </button>
-          )}
-        </div>
-
+      <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+126px)] sm:pb-[calc(env(safe-area-inset-bottom)+112px)]">
         {activeTab === "spending" && (
           <>
+            <SpendingDashboard
+              isBudgetOpen={showSpendingBudgetSetter}
+              onToggleBudget={() => setShowSpendingBudgetSetter((value) => !value)}
+            />
             {showSpendingBudgetSetter && <BudgetSetter />}
-            <SpendingDashboard />
-            <TransactionList onEditExpense={setEditExpenseItem} />
+            <TransactionList
+              query={spendingQuery}
+              onEditExpense={setEditExpenseItem}
+            />
           </>
         )}
 
         {activeTab === "investing" && (
           <>
             {showInvestingBudgetSetter && <SavingsBudgetSetter />}
-            <InvestingOverview onEditGoal={setEditGoalItem} />
+            <InvestingOverview
+              onEditGoal={setEditGoalItem}
+              isBudgetOpen={showInvestingBudgetSetter}
+              onToggleBudget={() => setShowInvestingBudgetSetter((value) => !value)}
+            />
           </>
         )}
 

@@ -24,10 +24,10 @@ export default function BudgetSetter() {
   };
 
   return (
-    <section className="px-5 pt-2">
+    <section className="px-4 pt-1">
       <form
         onSubmit={onSubmit}
-        className="glass-card rounded-2xl p-3 flex items-end gap-3"
+        className="glass-card rounded-xl p-2.5 flex items-end gap-2"
       >
         <label className="flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-white/60 mb-1.5">
@@ -39,17 +39,17 @@ export default function BudgetSetter() {
             step="0.01"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            className="glass-input w-full px-3 py-2 text-sm text-[#f0f0ff]"
+            className="glass-input w-full px-2.5 py-1.5 text-xs text-[#f0f0ff]"
           />
         </label>
         <button
           type="submit"
-          className="h-9 px-4 rounded-xl bg-[#00C9A7] text-white text-sm font-semibold hover:bg-[#00C9A7]/90 transition-colors"
+          className="h-8 px-3 rounded-lg bg-[#00C9A7] text-white text-xs font-semibold hover:bg-[#00C9A7]/90 transition-colors"
         >
           Save
         </button>
       </form>
-      <p className="px-1 mt-2 text-xs text-white/70">
+      <p className="px-1 mt-1.5 text-[11px] text-white/70">
         Current budget: <span className="font-semibold">{formatCurrency(spendingBudget)}</span>
       </p>
     </section>
