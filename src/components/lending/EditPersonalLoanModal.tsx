@@ -34,9 +34,6 @@ export default function EditPersonalLoanModal({ isOpen, item, onClose }: EditPer
     typeof item?.outstandingAmount === "number" ? String(item.outstandingAmount) : "",
   );
   const [emiAmount, setEmiAmount] = useState(typeof item?.emiAmount === "number" ? String(item.emiAmount) : "");
-  const [emiDayOfMonth, setEmiDayOfMonth] = useState(
-    typeof item?.emiDayOfMonth === "number" ? String(item.emiDayOfMonth) : "",
-  );
   const [nextEmiDate, setNextEmiDate] = useState(item?.nextEmiDate ?? "");
   const [note, setNote] = useState(item?.note ?? "");
   const [closed, setClosed] = useState(item?.closed ?? false);
@@ -54,15 +51,10 @@ export default function EditPersonalLoanModal({ isOpen, item, onClose }: EditPer
     const parsedTotal = Number(totalLoanAmount);
     const parsedOutstanding = Number(outstandingAmount);
     const parsedEmiAmount = Number(emiAmount);
-    const parsedEmiDay = Number(emiDayOfMonth);
 
     const safeTotal = Number.isFinite(parsedTotal) && parsedTotal > 0 ? parsedTotal : undefined;
     const safeOutstanding = Number.isFinite(parsedOutstanding) && parsedOutstanding > 0 ? parsedOutstanding : undefined;
     const safeEmiAmount = Number.isFinite(parsedEmiAmount) && parsedEmiAmount > 0 ? parsedEmiAmount : undefined;
-    const safeEmiDay =
-      Number.isFinite(parsedEmiDay) && parsedEmiDay >= 1 && parsedEmiDay <= 31
-        ? Math.round(parsedEmiDay)
-        : undefined;
 
     updatePersonalLoan({
       ...item,
@@ -73,7 +65,7 @@ export default function EditPersonalLoanModal({ isOpen, item, onClose }: EditPer
       totalLoanAmount: safeTotal,
       outstandingAmount: safeOutstanding,
       emiAmount: safeEmiAmount,
-      emiDayOfMonth: safeEmiDay,
+      emiDayOfMonth: undefined,
       nextEmiDate: nextEmiDate || undefined,
       note: note.trim() || undefined,
       closed,
@@ -152,33 +144,21 @@ export default function EditPersonalLoanModal({ isOpen, item, onClose }: EditPer
             className="glass-input w-full px-3 py-2 text-sm text-[#f0f0ff]"
           />
 
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={emiAmount}
-              onChange={(event) => setEmiAmount(event.target.value)}
-              placeholder="EMI amount (optional)"
-              className="glass-input w-full px-3 py-2 text-sm text-[#f0f0ff]"
-            />
-            <input
-              type="number"
-              min="1"
-              max="31"
-              step="1"
-              value={emiDayOfMonth}
-              onChange={(event) => setEmiDayOfMonth(event.target.value)}
-              placeholder="EMI day (1-31)"
-              className="glass-input w-full px-3 py-2 text-sm text-[#f0f0ff]"
-            />
-          </div>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={emiAmount}
+            onChange={(event) => setEmiAmount(event.target.value)}
+            placeholder="EMI amount (optional)"
+            className="glass-input w-full px-3 py-2 text-sm text-[#f0f0ff]"
+          />
 
           <input
             type="date"
             value={nextEmiDate}
             onChange={(event) => setNextEmiDate(event.target.value)}
-            placeholder="Next EMI date (optional)"
+            placeholder="EMI date (optional)"
             className="glass-input w-full px-3 py-2 text-sm text-[#f0f0ff]"
           />
 
@@ -196,7 +176,7 @@ export default function EditPersonalLoanModal({ isOpen, item, onClose }: EditPer
               onChange={(event) => setClosed(event.target.checked)}
               className="size-4 border border-white/20 bg-transparent"
             />
-            Mark as closed
+            Mark as cleared totally
           </label>
 
           <button

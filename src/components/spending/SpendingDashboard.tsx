@@ -25,9 +25,7 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
   const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
   const getExpensesForWindow = useFinanceStore((state) => state.getExpensesForWindow);
   const getSpentForMonth = useFinanceStore((state) => state.getSpentForMonth);
-  const getBaseBudgetForMonth = useFinanceStore((state) => state.getBaseBudgetForMonth);
   const getEffectiveSpendingBudget = useFinanceStore((state) => state.getEffectiveSpendingBudget);
-  const getSpendingCarryIn = useFinanceStore((state) => state.getSpendingCarryIn);
   const getSpendingCarryOut = useFinanceStore((state) => state.getSpendingCarryOut);
   const categoryLimits = useFinanceStore((state) => state.categoryLimits);
   const setCategoryLimit = useFinanceStore((state) => state.setCategoryLimit);
@@ -43,9 +41,7 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
   );
 
   const selectedMonthSpent = getSpentForMonth(selectedMonth);
-  const baseBudget = getBaseBudgetForMonth(selectedMonth);
   const effectiveBudget = getEffectiveSpendingBudget(selectedMonth);
-  const carryIn = getSpendingCarryIn(selectedMonth);
   const carryOut = getSpendingCarryOut(selectedMonth);
 
   const remaining = effectiveBudget - selectedMonthSpent;
@@ -132,18 +128,9 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
           {formatCurrency(displayAmount)} {isOver ? "overspent" : "left"}
         </p>
 
-        <div className="mb-2 flex items-center flex-wrap gap-1.5 text-[10px]">
-          <span className="px-2 py-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#1a1a26] text-[#6b7280]">
-            Base: {formatCurrency(baseBudget)}
-          </span>
+        <div className="mb-2 flex items-center gap-1.5 text-[10px]">
           <span className="px-2 py-1 rounded-full border border-[rgba(0,201,167,0.2)] bg-[rgba(0,201,167,0.08)] text-[#8ef3df]">
-            Carry In: {formatCurrency(carryIn)}
-          </span>
-          <span className="px-2 py-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#1a1a26] text-[#6b7280]">
-            Carry Out: {formatCurrency(carryOut)}
-          </span>
-          <span className="px-2 py-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#1a1a26] text-[#6b7280]">
-            Window Spent: {formatCurrency(totalSpentInWindow)}
+            Carry Forward: {formatCurrency(carryOut)}
           </span>
         </div>
 

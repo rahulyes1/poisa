@@ -20,6 +20,7 @@ import SavingsBudgetSetter from "./savings/SavingsBudgetSetter";
 import SettingsPanel from "./settings/SettingsPanel";
 import CurrencyPickerModal from "./CurrencyPickerModal";
 import AddInvestmentModal from "./investment/AddInvestmentModal";
+import AddLifeInsuranceModal from "./investing/AddLifeInsuranceModal";
 import InvestingOverview from "./investing/InvestingOverview";
 import AnalyticsDashboard from "./analytics/AnalyticsDashboard";
 import { useFinanceStore } from "./shared/store";
@@ -35,6 +36,7 @@ export default function FinanceApp() {
   const [isAddLendOpen, setIsAddLendOpen] = useState(false);
   const [isAddPersonalLoanOpen, setIsAddPersonalLoanOpen] = useState(false);
   const [isAddInvestmentOpen, setIsAddInvestmentOpen] = useState(false);
+  const [isAddLifeInsuranceOpen, setIsAddLifeInsuranceOpen] = useState(false);
   const [editExpenseItem, setEditExpenseItem] = useState<Expense | null>(null);
   const [editGoalItem, setEditGoalItem] = useState<SavingGoal | null>(null);
   const [editLoanItem, setEditLoanItem] = useState<Loan | null>(null);
@@ -174,6 +176,7 @@ export default function FinanceApp() {
             {showInvestingBudgetSetter && <SavingsBudgetSetter />}
             <InvestingOverview
               onEditGoal={setEditGoalItem}
+              onAddLifeInsurance={() => setIsAddLifeInsuranceOpen(true)}
               isBudgetOpen={showInvestingBudgetSetter}
               onToggleBudget={() => setShowInvestingBudgetSetter((value) => !value)}
             />
@@ -211,6 +214,16 @@ export default function FinanceApp() {
             className="h-9 px-3 rounded-xl border border-white/20 bg-[#0f2f2a]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
           >
             Add Investment
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowInvestingActions(false);
+              setIsAddLifeInsuranceOpen(true);
+            }}
+            className="h-9 px-3 rounded-xl border border-white/20 bg-[#0f2f2a]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            Add Insurance
           </button>
         </div>
       )}
@@ -281,6 +294,7 @@ export default function FinanceApp() {
         onClose={() => setEditPersonalLoanItem(null)}
       />
       <AddInvestmentModal isOpen={isAddInvestmentOpen} onClose={() => setIsAddInvestmentOpen(false)} />
+      <AddLifeInsuranceModal isOpen={isAddLifeInsuranceOpen} onClose={() => setIsAddLifeInsuranceOpen(false)} />
     </div>
   );
 }

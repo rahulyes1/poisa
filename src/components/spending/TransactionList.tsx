@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Expense } from "../shared/types";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
+import AddRecurringTemplateModal from "./AddRecurringTemplateModal";
 
 const toDisplayDate = (date: string) => {
   const current = new Date();
@@ -61,14 +62,25 @@ interface TransactionListProps {
 export default function TransactionList({ query, onEditExpense }: TransactionListProps) {
   const { formatCurrency } = useCurrency();
   const [activeCategory, setActiveCategory] = useState("All");
+  const [isAddRecurringOpen, setIsAddRecurringOpen] = useState(false);
 
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const getRecurringExpenses = useFinanceStore((state) => state.recurringExpenses);
+  const recurringTemplates = useFinanceStore((state) => state.recurringTemplates);
+  const toggleRecurringTemplatePaid = useFinanceStore((state) => state.toggleRecurringTemplatePaid);
+  const deleteRecurringTemplate = useFinanceStore((state) => state.deleteRecurringTemplate);
   const deleteExpense = useFinanceStore((state) => state.deleteExpense);
 
   const recurring = getRecurringExpenses();
   const recurringMonthlyTotal = recurring.reduce((sum, item) => sum + item.amount, 0);
+  const tileMonthlyTotal = recurringTemplates.reduce((sum, template) => {
+    if (!template.active || !template.paidMonths.includes(selectedMonth)) {
+      return sum;
+    }
+    return sum + template.amount;
+  }, 0);
+  const recurringTotal = recurringMonthlyTotal + tileMonthlyTotal;
 
   const monthlyExpenses = useMemo(
     () => expenses.filter((expense) => expense.date.slice(0, 7) === selectedMonth),
@@ -138,23 +150,80 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
       </div>
 
       <div className="px-4">
-        <div className="glass-card rounded-xl p-2.5">
-          <div className="flex items-center justify-between mb-1.5">
+        <div className="glass-card rounded-xl p-2">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-[11px] font-bold text-[#f0f0ff]">Recurring</h3>
-            <span className="text-[10px] font-semibold text-white/70">{formatCurrency(recurringMonthlyTotal)} / month</span>
+            <span className="text-[10px] font-semibold text-white/70">{formatCurrency(recurringTotal)} / month</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 mb-1.5">
+            {recurringTemplates
+              .filter((template) => template.active)
+              .map((template) => {
+                const isDone = template.paidMonths.includes(selectedMonth);
+                const isPreset = template.id.startsWith("template-");
+
+                return (
+                  <div key={template.id} className="relative">
+                    {!isPreset && (
+                      <button
+                        type="button"
+                        onClick={() => deleteRecurringTemplate(template.id)}
+                        className="absolute -top-1 -right-1 size-4 rounded-full border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.15)] text-[#FF8C42] inline-flex items-center justify-center z-10"
+                        title="Delete recurring tile"
+                      >
+                        <span className="material-symbols-outlined text-[10px]">close</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => toggleRecurringTemplatePaid(template.id, selectedMonth)}
+                      className={`w-full h-full min-h-[80px] rounded-xl border p-2 text-left ${
+                        isDone
+                          ? "border-[#00C9A7]/55 bg-[#00C9A7]/20"
+                          : "border-white/20 bg-white/[0.05]"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <span className="material-symbols-outlined text-[14px] text-white/80">{template.icon || "receipt_long"}</span>
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                            isDone ? "bg-[#00C9A7]/30 text-[#bafced]" : "bg-white/10 text-white/65"
+                          }`}
+                        >
+                          {isDone ? "Done" : "Tap"}
+                        </span>
+                      </div>
+                      <p className="text-[10px] font-semibold text-[#f0f0ff] mt-1 whitespace-normal break-words leading-tight">
+                        {template.title}
+                      </p>
+                      <p className="text-[10px] text-white/70 mt-0.5">{formatCurrency(template.amount)}</p>
+                    </button>
+                  </div>
+                );
+              })}
+
+            <button
+              type="button"
+              onClick={() => setIsAddRecurringOpen(true)}
+              className="min-h-[80px] rounded-xl border border-dashed border-white/25 bg-white/[0.04] p-2 inline-flex flex-col items-center justify-center text-center"
+            >
+              <span className="material-symbols-outlined text-[15px] text-white/75">add</span>
+              <span className="text-[10px] font-semibold text-white/75 mt-1">Custom</span>
+            </button>
           </div>
 
           {recurring.length === 0 ? (
-            <p className="text-[11px] text-white/70">No recurring expenses yet.</p>
+            <p className="text-[10px] text-white/60">No manual recurring entries yet.</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {recurring.map((expense) => (
                 <div key={expense.id} className="flex items-center justify-between">
-                  <p className="text-[11px] text-[#6b7280] inline-flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[12px]">autorenew</span>
+                  <p className="text-[10px] text-[#6b7280] inline-flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[11px]">autorenew</span>
                     {expense.name}
                   </p>
-                  <p className="text-[11px] font-semibold text-[#f0f0ff]">{formatCurrency(expense.amount)}</p>
+                  <p className="text-[10px] font-semibold text-[#f0f0ff]">{formatCurrency(expense.amount)}</p>
                 </div>
               ))}
             </div>
@@ -186,26 +255,26 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                 const colors = colorVariants[(groupIndex + index) % colorVariants.length];
 
                 return (
-                  <div key={item.id} className="glass-card relative rounded-xl p-2.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`size-9 rounded-xl ${colors.bg} flex items-center justify-center shrink-0 ${colors.icon}`}>
-                        <span className="material-symbols-outlined text-[18px]">{item.icon || "receipt_long"}</span>
+                  <div key={item.id} className="glass-card relative rounded-xl p-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`size-8 rounded-lg ${colors.bg} flex items-center justify-center shrink-0 ${colors.icon}`}>
+                        <span className="material-symbols-outlined text-[16px]">{item.icon || "receipt_long"}</span>
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline gap-2 mb-px">
-                          <h4 className="text-sm font-semibold text-[#f0f0ff] truncate inline-flex items-center gap-1">
+                          <h4 className="text-[13px] font-semibold text-[#f0f0ff] truncate inline-flex items-center gap-1">
                             {item.name}
                             {item.recurring && <span className="material-symbols-outlined text-[13px] text-[#6b7280]">autorenew</span>}
                           </h4>
-                          <span className="text-sm font-bold text-[#f0f0ff]">-{formatCurrency(item.amount)}</span>
+                          <span className="text-[13px] font-bold text-[#f0f0ff]">-{formatCurrency(item.amount)}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <p className="text-[11px] font-medium text-white/70">{item.category}</p>
+                          <p className="text-[10px] font-medium text-white/70">{item.category}</p>
                           <div className={`size-1.5 rounded-full ${colors.dot}`} />
                         </div>
                         {item.note && (
-                          <p className="text-xs text-white/65 mt-1 whitespace-normal break-words leading-snug">
+                          <p className="text-[11px] text-white/65 mt-1 whitespace-normal break-words leading-snug">
                             {item.note}
                           </p>
                         )}
@@ -215,16 +284,16 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                         <button
                           type="button"
                           onClick={() => onEditExpense(item)}
-                          className="size-7 rounded-lg border border-white/20 bg-white/10 text-white/75"
+                          className="size-6 rounded-md border border-white/20 bg-white/10 text-white/75"
                         >
-                          <span className="material-symbols-outlined text-[14px]">edit</span>
+                          <span className="material-symbols-outlined text-[13px]">edit</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => deleteExpense(item.id)}
-                          className="size-7 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42]"
+                          className="size-6 rounded-md border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42]"
                         >
-                          <span className="material-symbols-outlined text-[14px]">delete</span>
+                          <span className="material-symbols-outlined text-[13px]">delete</span>
                         </button>
                       </div>
                     </div>
@@ -235,6 +304,8 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
           </div>
         ))
       )}
+
+      <AddRecurringTemplateModal isOpen={isAddRecurringOpen} onClose={() => setIsAddRecurringOpen(false)} />
     </section>
   );
 }

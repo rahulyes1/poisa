@@ -45,18 +45,29 @@ export default function Header({
 
   const monthLabel = useMemo(() => formatMonthLabel(selectedMonth), [selectedMonth]);
 
+  const onMonthSelected = (month: string) => {
+    if (!month) {
+      return;
+    }
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const nextMode = month === currentMonth ? "auto" : "manual";
+    setSelectedMonth(month, nextMode);
+  };
+
   const openMonthPicker = () => {
-    const input = monthInputRef.current as HTMLInputElement & {
-      showPicker?: () => void;
-    };
-    if (!input) {
+    const monthInput = monthInputRef.current;
+    if (!monthInput) {
       return;
     }
-    if (typeof input.showPicker === "function") {
-      input.showPicker();
+
+    const pickerInput = monthInput as HTMLInputElement & { showPicker?: () => void };
+    if (typeof pickerInput.showPicker === "function") {
+      pickerInput.showPicker();
       return;
     }
-    input.click();
+
+    monthInput.focus();
+    monthInput.click();
   };
 
   return (
@@ -136,28 +147,20 @@ export default function Header({
       )}
 
       <div className="pt-1.5 pb-0.5 flex items-center justify-center">
-        <button
-          type="button"
+        <div
+          className="relative h-8 min-w-36 px-5 rounded-xl border border-white/25 bg-white/[0.08] backdrop-blur-[18px] inline-flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.15)] cursor-pointer"
           onClick={openMonthPicker}
-          className="h-8 min-w-36 px-5 rounded-xl border border-white/25 bg-white/[0.08] backdrop-blur-[18px] inline-flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.15)]"
         >
           <span className="text-base font-semibold text-white/92">{monthLabel}</span>
-        </button>
-        <input
-          ref={monthInputRef}
-          type="month"
-          value={selectedMonth}
-          onChange={(event) => {
-            if (event.target.value) {
-              const currentMonth = new Date().toISOString().slice(0, 7);
-              const nextMode = event.target.value === currentMonth ? "auto" : "manual";
-              setSelectedMonth(event.target.value, nextMode);
-            }
-          }}
-          className="sr-only"
-          tabIndex={-1}
-          aria-hidden
-        />
+          <input
+            ref={monthInputRef}
+            type="month"
+            value={selectedMonth}
+            onChange={(event) => onMonthSelected(event.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            aria-label="Select month"
+          />
+        </div>
       </div>
     </header>
   );

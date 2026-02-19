@@ -9,6 +9,8 @@ export default function SavingsBudgetSetter() {
   const savingsBudget = useFinanceStore((state) => state.savingsBudget);
   const setSavingsBudget = useFinanceStore((state) => state.setSavingsBudget);
   const [value, setValue] = useState(savingsBudget.toString());
+  const parsedValue = Number(value.replace(/,/g, "").trim());
+  const canSave = Number.isFinite(parsedValue) && parsedValue >= 0;
 
   useEffect(() => {
     setValue(savingsBudget.toString());
@@ -16,11 +18,12 @@ export default function SavingsBudgetSetter() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
+    if (!canSave) {
       return;
     }
-    setSavingsBudget(parsed);
+    const normalized = Number(parsedValue.toFixed(2));
+    setSavingsBudget(normalized);
+    setValue(normalized.toString());
   };
 
   return (
@@ -44,7 +47,10 @@ export default function SavingsBudgetSetter() {
         </label>
         <button
           type="submit"
-          className="h-10 px-4 rounded-xl bg-[#00C9A7] text-white text-sm font-semibold hover:bg-[#00C9A7]/90 transition-colors"
+          disabled={!canSave}
+          className={`h-10 px-4 rounded-xl text-white text-sm font-semibold transition-colors ${
+            canSave ? "bg-[#00C9A7] hover:bg-[#00C9A7]/90" : "bg-white/15 text-white/50 cursor-not-allowed"
+          }`}
         >
           Save
         </button>

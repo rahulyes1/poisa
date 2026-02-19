@@ -14,6 +14,7 @@ export default function ExportButton() {
   const investments = useFinanceStore((state) => state.investments);
   const loans = useFinanceStore((state) => state.loans);
   const personalLoans = useFinanceStore((state) => state.personalLoans);
+  const lifeInsurances = useFinanceStore((state) => state.lifeInsurances);
   const adjustments = useFinanceStore((state) => state.adjustments);
   const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
   const spendingCarryForwardEnabled = useFinanceStore((state) => state.spendingCarryForwardEnabled);
@@ -52,6 +53,7 @@ export default function ExportButton() {
       investments,
       loans,
       personalLoans,
+      lifeInsurances,
       adjustments,
     };
 
