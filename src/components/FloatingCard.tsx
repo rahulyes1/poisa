@@ -1,4 +1,4 @@
-﻿import { useCurrency } from "./shared/useCurrency";
+import { useCurrency } from "./shared/useCurrency";
 
 interface FloatingCardProps {
   label: string;
@@ -12,24 +12,32 @@ export default function FloatingCard({ label, amount, buttonLabel, icon, onActio
   const { formatCurrency } = useCurrency();
 
   return (
-    <div className="absolute bottom-20 left-0 w-full px-5 pointer-events-none z-30">
-      <div className="glass-card flex justify-between items-center p-4 rounded-2xl pointer-events-auto">
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+76px)] right-4 z-40 pointer-events-none">
+      <div className="sm:hidden pointer-events-auto">
+        <button
+          type="button"
+          onClick={onAction}
+          className="size-14 rounded-full border border-white/25 bg-[#00C9A7] text-[#032720] shadow-[0_10px_24px_rgba(0,201,167,0.35)] flex items-center justify-center"
+          title={buttonLabel}
+        >
+          <span className="material-symbols-outlined text-[28px]">{icon}</span>
+        </button>
+      </div>
+
+      <div className="hidden sm:flex pointer-events-auto glass-card rounded-2xl p-3 min-w-[280px] items-center justify-between gap-3">
         <div>
-          <p className="text-xs text-white/65 font-medium uppercase tracking-wide">
-            {label}
-          </p>
-          <p className="text-xl font-bold text-[#f0f0ff]">{formatCurrency(amount)}</p>
+          <p className="text-[11px] text-white/65 font-medium uppercase tracking-wide">{label}</p>
+          <p className="text-lg font-bold text-[#f0f0ff]">{formatCurrency(amount)}</p>
         </div>
         <button
           type="button"
           onClick={onAction}
-          className="bg-[#7000FF] hover:bg-[#7000FF]/90 text-white rounded-2xl h-12 px-6 font-bold shadow-[0_0_20px_rgba(112,0,255,0.45)] flex items-center gap-2 transition-transform active:scale-95"
+          className="h-10 px-4 rounded-xl bg-[#00C9A7] text-[#032720] text-sm font-semibold shadow-[0_0_18px_rgba(0,201,167,0.3)] flex items-center gap-2"
         >
-          <span className="material-symbols-outlined">{icon}</span>
+          <span className="material-symbols-outlined text-[18px]">{icon}</span>
           <span>{buttonLabel}</span>
         </button>
       </div>
     </div>
   );
 }
-

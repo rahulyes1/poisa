@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -39,12 +39,12 @@ export default function SavingsBudgetSetter() {
             step="0.01"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
           />
         </label>
         <button
           type="submit"
-          className="h-10 px-4 rounded-xl bg-[#1313ec] text-white text-sm font-semibold hover:bg-[#1313ec]/90 transition-colors"
+          className="h-10 px-4 rounded-xl bg-[#00C9A7] text-white text-sm font-semibold hover:bg-[#00C9A7]/90 transition-colors"
         >
           Save
         </button>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { Expense } from "../shared/types";
@@ -139,7 +139,7 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
               onClick={() => setActiveCategory(category)}
               className={`h-8 px-3 rounded-full text-xs font-semibold whitespace-nowrap border ${
                 activeCategory === category
-                  ? "bg-[#7000FF]/45 border-white/30 text-white"
+                  ? "bg-[#00C9A7]/45 border-white/30 text-white"
                   : "bg-white/10 border-white/20 text-white/65"
               }`}
             >

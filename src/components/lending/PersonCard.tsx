@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { Loan } from "../shared/types";
@@ -29,7 +29,6 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
 
   const [showRepayInput, setShowRepayInput] = useState(false);
   const [repayAmount, setRepayAmount] = useState("");
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const initials = loan.personName
@@ -42,22 +41,23 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
   const isOverdue = Boolean(loan.dueDate && !loan.repaid && loan.dueDate < getCurrentMonth());
   const progress = loan.amount > 0 ? Math.min((loan.repaidAmount / loan.amount) * 100, 100) : 0;
   const remaining = Math.max(loan.amount - loan.repaidAmount, 0);
+  const showReason = Boolean(loan.reason && loan.reason.trim() && loan.reason.trim().toLowerCase() !== "loan");
 
   const remindMessage = useMemo(() => {
-    const duePart = loan.dueDate ? ` — due by ${loan.dueDate}` : "";
-    return `Hi ${loan.personName} ??, just a friendly reminder that you borrowed ${formatCurrency(loan.amount)} from me on ${loan.date}${duePart}. Please let me know when you're able to return it. Thanks!`;
+    const duePart = loan.dueDate ? ` - due by ${loan.dueDate}` : "";
+    return `Hi ${loan.personName}, just a friendly reminder that you borrowed ${formatCurrency(loan.amount)} from me on ${loan.date}${duePart}. Please let me know when you're able to return it. Thanks!`;
   }, [loan.amount, loan.date, loan.dueDate, loan.personName, formatCurrency]);
 
   return (
     <article
-      className={`p-3 rounded-2xl bg-[#1a1a26] border border-[rgba(255,255,255,0.06)] ${
+      className={`p-3 rounded-2xl bg-[#1a1a26]/70 border border-[rgba(255,255,255,0.14)] ${
         isOverdue ? "border-l-4 border-l-red-500" : ""
       }`}
     >
       <div className="flex items-start gap-3">
         <div
           className={`size-12 rounded-2xl flex items-center justify-center shrink-0 ${
-            isOverdue ? "bg-red-500/10 text-red-400" : "bg-vibrant-purple/12 text-vibrant-purple"
+            isOverdue ? "bg-red-500/10 text-red-400" : "bg-[#00C9A7]/14 text-[#9cf4e4]"
           }`}
         >
           <span className="text-lg font-bold">{initials || "?"}</span>
@@ -67,20 +67,20 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <h4 className="font-semibold text-[#f0f0ff] truncate">{loan.personName}</h4>
-              <p className="text-xs font-medium text-[#6b7280] truncate">{loan.reason}</p>
-              {loan.dueDate && <p className="text-xs text-[#6b7280] mt-0.5">Due: {toDueLabel(loan.dueDate)}</p>}
+              {showReason && <p className="text-xs font-medium text-[#8ba09c] truncate">{loan.reason}</p>}
+              {loan.dueDate && <p className="text-xs text-[#7f9591] mt-0.5">Due: {toDueLabel(loan.dueDate)}</p>}
             </div>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => onEditLoan(loan)}
-                className="size-8 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[#6b7280]"
+                className="size-8 rounded-lg border border-white/20 bg-white/[0.08] text-[#9eb5b1]"
               >
                 <span className="material-symbols-outlined text-[16px]">edit</span>
               </button>
               <button
                 type="button"
-                onClick={() => setShowDeleteConfirm(true)}
+                onClick={() => deleteLoan(loan.id)}
                 className="size-8 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42]"
               >
                 <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -88,12 +88,12 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
             </div>
           </div>
 
-          <div className="mt-2 h-2 rounded-full bg-[#111118] overflow-hidden">
-            <div className="h-full bg-[#1313ec] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${progress}%` }} />
+          <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-full bg-[#00C9A7] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${progress}%` }} />
           </div>
 
           <div className="mt-1 flex items-center justify-between gap-2">
-            <p className="text-xs text-[#6b7280]">
+            <p className="text-xs text-[#89a09c]">
               {formatCurrency(loan.repaidAmount)} of {formatCurrency(loan.amount)} repaid
             </p>
             {loan.repaid ? (
@@ -116,7 +116,7 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
             <button
               type="button"
               onClick={() => toggleLoanRepaid(loan.id)}
-              className="h-8 px-3 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-xs font-semibold text-[#6b7280]"
+              className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-[#c0d6d2]"
             >
               Mark Paid
             </button>
@@ -129,7 +129,7 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className="h-8 px-3 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-xs font-semibold text-[#6b7280] inline-flex items-center gap-1"
+                className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-[#c0d6d2] inline-flex items-center gap-1"
               >
                 <span className="material-symbols-outlined text-[14px]">send</span>
                 Remind
@@ -149,7 +149,7 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
                 value={repayAmount}
                 onChange={(event) => setRepayAmount(event.target.value)}
                 placeholder="Repayment"
-                className="h-9 flex-1 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] px-3 text-sm text-[#f0f0ff]"
+                className="glass-input h-9 flex-1 px-3 text-sm text-[#f0f0ff]"
               />
               <button
                 type="button"
@@ -162,29 +162,9 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
                   setRepayAmount("");
                   setShowRepayInput(false);
                 }}
-                className="h-9 px-3 rounded-lg bg-[#1313ec] text-white text-sm font-semibold"
+                className="h-9 px-3 rounded-lg bg-[#00C9A7] text-[#07241f] text-sm font-semibold"
               >
                 Add
-              </button>
-            </div>
-          )}
-
-          {showDeleteConfirm && (
-            <div className="mt-3 pt-3 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-end gap-2 text-xs">
-              <span className="text-[#6b7280] mr-auto">Delete? </span>
-              <button
-                type="button"
-                onClick={() => deleteLoan(loan.id)}
-                className="h-7 px-3 rounded-lg bg-[rgba(255,140,66,0.2)] text-[#FF8C42] font-semibold"
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                className="h-7 px-3 rounded-lg border border-[rgba(255,255,255,0.08)] text-[#6b7280]"
-              >
-                Cancel
               </button>
             </div>
           )}
@@ -193,4 +173,3 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
     </article>
   );
 }
-

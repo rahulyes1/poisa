@@ -1,4 +1,4 @@
-export type TabKey = "spending" | "savings" | "lending" | "investment" | "settings";
+export type TabKey = "spending" | "investing" | "lending" | "analytics" | "settings";
 
 export type CurrencyCode = "USD" | "INR" | "EUR" | "GBP" | "JPY" | "AED";
 

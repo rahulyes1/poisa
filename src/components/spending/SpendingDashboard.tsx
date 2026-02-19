@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -79,7 +79,7 @@ export default function SpendingDashboard() {
           </p>
         </div>
         <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mb-2">
-          <div className="h-full rounded-full bg-[#7000FF] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${percentUsed}%` }} />
+          <div className="h-full rounded-full bg-[#00C9A7] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${percentUsed}%` }} />
         </div>
         <p className="text-[11px] text-white/65 mb-3">{formatCurrency(budgetLeft)} left</p>
         <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Spending by category</h3>
@@ -133,7 +133,7 @@ export default function SpendingDashboard() {
                       <button
                         type="button"
                         onClick={() => onSaveLimit(category)}
-                        className="h-8 px-3 rounded-lg bg-[#7000FF] text-white text-xs font-semibold"
+                        className="h-8 px-3 rounded-lg bg-[#00C9A7] text-white text-xs font-semibold"
                       >
                         Save
                       </button>

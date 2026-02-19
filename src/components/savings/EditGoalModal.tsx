@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -65,7 +65,7 @@ export default function EditGoalModal({ isOpen, item, onClose }: EditGoalModalPr
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Goal name"
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
             required
           />
           <input
@@ -73,7 +73,7 @@ export default function EditGoalModal({ isOpen, item, onClose }: EditGoalModalPr
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             placeholder="Category"
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
             required
           />
           <input
@@ -83,7 +83,7 @@ export default function EditGoalModal({ isOpen, item, onClose }: EditGoalModalPr
             value={targetAmount}
             onChange={(event) => setTargetAmount(event.target.value)}
             placeholder="Target amount"
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
             required
           />
           <input
@@ -93,13 +93,13 @@ export default function EditGoalModal({ isOpen, item, onClose }: EditGoalModalPr
             value={savedAmount}
             onChange={(event) => setSavedAmount(event.target.value)}
             placeholder="Saved amount"
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
           />
           <input
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
             required
           />
           <input
@@ -107,12 +107,12 @@ export default function EditGoalModal({ isOpen, item, onClose }: EditGoalModalPr
             value={icon}
             onChange={(event) => setIcon(event.target.value)}
             placeholder="Material icon"
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
           />
 
           <button
             type="submit"
-            className="w-full mt-2 h-11 rounded-xl bg-[#1313ec] text-white text-sm font-semibold hover:bg-[#1313ec]/90 transition-colors"
+            className="w-full mt-2 h-11 rounded-xl bg-[#00C9A7] text-white text-sm font-semibold hover:bg-[#00C9A7]/90 transition-colors"
           >
             Save Changes
           </button>

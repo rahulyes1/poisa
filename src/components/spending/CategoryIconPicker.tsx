@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 const iconOptions = [
   "restaurant",
@@ -45,7 +45,7 @@ export default function CategoryIconPicker({ value, onChange }: CategoryIconPick
               onClick={() => onChange(icon)}
               className={`h-10 rounded-lg border transition-colors flex items-center justify-center ${
                 selected
-                  ? "border-[rgba(19,19,236,0.8)] bg-[rgba(19,19,236,0.2)] text-[#f0f0ff]"
+                  ? "border-[rgba(0,201,167,0.8)] bg-[rgba(0,201,167,0.2)] text-[#f0f0ff]"
                   : "border-[rgba(255,255,255,0.08)] bg-[#111118] text-[#6b7280]"
               }`}
               title={icon}

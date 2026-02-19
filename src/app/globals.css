@@ -1,10 +1,10 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 /* Class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary: #1313ec;
+  --color-primary: #00C9A7;
   --color-background-light: #0a0a0f;
   --color-background-dark: #0a0a0f;
   --color-vibrant-orange: #FF8C42;
@@ -13,6 +13,12 @@
   --color-vibrant-purple: #845EC2;
   --color-vibrant-yellow: #F9F871;
   --font-display: var(--font-inter), sans-serif;
+}
+
+:root {
+  --app-header-h: 78px;
+  --app-nav-h: 72px;
+  --app-fab-h: 56px;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -26,13 +32,26 @@
 }
 
 body {
-  min-height: max(884px, 100dvh);
+  margin: 0;
+  min-height: 100dvh;
   background:
-    radial-gradient(circle at 15% 15%, rgba(112, 0, 255, 0.28), transparent 42%),
-    radial-gradient(circle at 82% 18%, rgba(0, 209, 255, 0.24), transparent 46%),
-    radial-gradient(circle at 56% 90%, rgba(112, 0, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 12% 12%, rgba(0, 201, 167, 0.24), transparent 40%),
+    radial-gradient(circle at 84% 16%, rgba(0, 209, 255, 0.2), transparent 42%),
+    radial-gradient(circle at 60% 90%, rgba(0, 201, 167, 0.12), transparent 46%),
     #0a0a0f;
   color: #f0f0ff;
+}
+
+.app-texture {
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.05) 0.35px, transparent 0.35px),
+    linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.02) 0%,
+      rgba(255, 255, 255, 0.005) 100%
+    );
+  background-size: 4px 4px, 100% 100%;
+  opacity: 0.22;
 }
 
 .glass-card {

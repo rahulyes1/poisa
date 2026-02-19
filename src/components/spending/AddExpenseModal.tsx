@@ -167,7 +167,7 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
             Mark as recurring (monthly)
           </label>
 
-          <button type="submit" className="w-full mt-1 h-11 rounded-2xl bg-[#7000FF] hover:bg-[#7000FF]/90 text-white font-semibold shadow-[0_0_24px_rgba(112,0,255,0.45)]">
+          <button type="submit" className="w-full mt-1 h-11 rounded-2xl bg-[#00C9A7] hover:bg-[#00C9A7]/90 text-white font-semibold shadow-[0_0_24px_rgba(0,201,167,0.45)]">
             Add Expense
           </button>
         </form>

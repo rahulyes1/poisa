@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo } from "react";
 import {
@@ -18,7 +18,7 @@ import {
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
 
-const PIE_COLORS = ["#1313ec", "#00C9A7", "#FF8C42", "#FF2E93", "#845EC2", "#F9F871"];
+const PIE_COLORS = ["#00C9A7", "#00D1FF", "#FF8C42", "#FF2E93", "#845EC2", "#F9F871"];
 
 const toMonthShort = (month: string) => {
   const [year, monthNumber] = month.split("-").map(Number);
@@ -35,9 +35,12 @@ export default function AnalyticsDashboard() {
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const goals = useFinanceStore((state) => state.savingGoals);
+  const investments = useFinanceStore((state) => state.investments);
   const loans = useFinanceStore((state) => state.loans);
 
-  const totalSavings = goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
+  const totalGoalSavings = goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
+  const totalInvestments = investments.reduce((sum, item) => sum + item.amount, 0);
+  const totalSavings = totalGoalSavings + totalInvestments;
   const outstandingLoans = loans.filter((loan) => !loan.repaid).reduce((sum, loan) => sum + Math.max(loan.amount - loan.repaidAmount, 0), 0);
   const netPosition = totalSavings - outstandingLoans;
 
@@ -105,7 +108,7 @@ export default function AnalyticsDashboard() {
 
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between text-[#6b7280]">
-            <span>Total Savings</span>
+            <span>Total Investing</span>
             <span className="font-semibold text-[#00C9A7]">{formatCurrency(totalSavings)}</span>
           </div>
           <div className="flex items-center justify-between text-[#6b7280]">
@@ -140,7 +143,7 @@ export default function AnalyticsDashboard() {
                 contentStyle={{ backgroundColor: "#1a1a26", border: "1px solid rgba(255,255,255,0.06)", color: "#f0f0ff" }}
                 formatter={(value: number | string | undefined) => formatCurrency(Number(value ?? 0))}
               />
-              <Bar dataKey="amount" fill="#1313ec" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="amount" fill="#00C9A7" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

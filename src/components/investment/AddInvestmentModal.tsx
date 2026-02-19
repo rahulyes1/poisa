@@ -129,7 +129,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
             className="glass-input w-full px-3 py-2 text-sm text-white placeholder:text-white/50 min-h-20"
           />
 
-          <button type="submit" className="w-full h-11 rounded-2xl bg-[#7000FF] hover:bg-[#7000FF]/90 text-white font-semibold shadow-[0_0_24px_rgba(112,0,255,0.45)]">
+          <button type="submit" className="w-full h-11 rounded-2xl bg-[#00C9A7] hover:bg-[#00C9A7]/90 text-white font-semibold shadow-[0_0_24px_rgba(0,201,167,0.45)]">
             Add Investment
           </button>
         </form>

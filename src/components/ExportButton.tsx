@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useFinanceStore } from "./shared/store";
 import { useCurrency } from "./shared/useCurrency";
@@ -11,6 +11,7 @@ export default function ExportButton() {
   const monthlyBudgets = useFinanceStore((state) => state.monthlyBudgets);
   const expenses = useFinanceStore((state) => state.expenses);
   const savingGoals = useFinanceStore((state) => state.savingGoals);
+  const investments = useFinanceStore((state) => state.investments);
   const loans = useFinanceStore((state) => state.loans);
   const spendingBudget = useFinanceStore((state) => state.spendingBudget);
   const savingsBudget = useFinanceStore((state) => state.savingsBudget);
@@ -38,6 +39,7 @@ export default function ExportButton() {
       },
       expenses,
       savingGoals,
+      investments,
       loans,
     };
 
@@ -56,7 +58,7 @@ export default function ExportButton() {
     <button
       type="button"
       onClick={onExport}
-      className="inline-flex items-center gap-2 px-3 h-9 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#1a1a26] text-xs font-semibold text-[#f0f0ff] hover:border-[rgba(19,19,236,0.5)] transition-colors"
+      className="inline-flex items-center gap-2 px-3 h-9 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#1a1a26] text-xs font-semibold text-[#f0f0ff] hover:border-[rgba(0,201,167,0.5)] transition-colors"
     >
       <span className="material-symbols-outlined text-base">download</span>
       Export

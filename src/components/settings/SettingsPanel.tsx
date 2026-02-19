@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import ExportButton from "../ExportButton";
 import { CurrencyCode } from "../shared/types";
@@ -24,8 +24,8 @@ export default function SettingsPanel() {
               onClick={() => setCurrency(option)}
               className={`h-10 rounded-xl text-xs font-semibold border transition-colors ${
                 currency === option
-                  ? "border-[rgba(19,19,236,0.7)] bg-[#1313ec] text-white shadow-[0_0_14px_rgba(19,19,236,0.25)]"
-                  : "border-[rgba(255,255,255,0.06)] bg-[#1a1a26] text-[#6b7280] hover:border-[rgba(19,19,236,0.5)]"
+                  ? "border-[rgba(0,201,167,0.7)] bg-[#00C9A7] text-white shadow-[0_0_14px_rgba(0,201,167,0.25)]"
+                  : "border-[rgba(255,255,255,0.06)] bg-[#1a1a26] text-[#6b7280] hover:border-[rgba(0,201,167,0.5)]"
               }`}
             >
               {option}

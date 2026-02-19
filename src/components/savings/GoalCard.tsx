@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import confetti from "canvas-confetti";
@@ -159,7 +159,7 @@ export default function GoalCard({ goal, onEditGoal }: GoalCardProps) {
           <button
             type="button"
             onClick={onConfirmAction}
-            className="h-9 px-3 rounded-lg bg-[#1313ec] text-white text-sm font-semibold"
+            className="h-9 px-3 rounded-lg bg-[#00C9A7] text-white text-sm font-semibold"
           >
             Confirm
           </button>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -44,7 +44,7 @@ export default function BudgetSetter() {
         </label>
         <button
           type="submit"
-          className="h-9 px-4 rounded-xl bg-[#7000FF] text-white text-sm font-semibold hover:bg-[#7000FF]/90 transition-colors"
+          className="h-9 px-4 rounded-xl bg-[#00C9A7] text-white text-sm font-semibold hover:bg-[#00C9A7]/90 transition-colors"
         >
           Save
         </button>
