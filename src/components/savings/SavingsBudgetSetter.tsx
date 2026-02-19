@@ -9,6 +9,7 @@ export default function SavingsBudgetSetter() {
   const savingsBudget = useFinanceStore((state) => state.savingsBudget);
   const setSavingsBudget = useFinanceStore((state) => state.setSavingsBudget);
   const [value, setValue] = useState(savingsBudget.toString());
+  const [savedTick, setSavedTick] = useState(false);
   const parsedValue = Number(value.replace(/,/g, "").trim());
   const canSave = Number.isFinite(parsedValue) && parsedValue >= 0;
 
@@ -24,6 +25,8 @@ export default function SavingsBudgetSetter() {
     const normalized = Number(parsedValue.toFixed(2));
     setSavingsBudget(normalized);
     setValue(normalized.toString());
+    setSavedTick(true);
+    window.setTimeout(() => setSavedTick(false), 1200);
   };
 
   return (
@@ -57,6 +60,7 @@ export default function SavingsBudgetSetter() {
       </form>
       <p className="px-1 mt-2 text-xs text-[#6b7280]">
         Current savings budget: <span className="font-semibold">{formatCurrency(savingsBudget)}</span>
+        {savedTick && <span className="ml-2 text-[#00C9A7] font-semibold">Saved</span>}
       </p>
     </section>
   );

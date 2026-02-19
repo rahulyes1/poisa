@@ -2,10 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { useFinanceStore } from "../shared/store";
+import { RecurringTemplate } from "../shared/types";
 
 interface AddRecurringTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTemplate?: RecurringTemplate | null;
 }
 
 const iconOptions = [
@@ -17,13 +19,18 @@ const iconOptions = [
   "receipt_long",
 ];
 
-export default function AddRecurringTemplateModal({ isOpen, onClose }: AddRecurringTemplateModalProps) {
+export default function AddRecurringTemplateModal({
+  isOpen,
+  onClose,
+  initialTemplate = null,
+}: AddRecurringTemplateModalProps) {
   const addRecurringTemplate = useFinanceStore((state) => state.addRecurringTemplate);
+  const updateRecurringTemplate = useFinanceStore((state) => state.updateRecurringTemplate);
 
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [amount, setAmount] = useState("");
-  const [icon, setIcon] = useState("receipt_long");
+  const [title, setTitle] = useState(() => initialTemplate?.title ?? "");
+  const [category, setCategory] = useState(() => initialTemplate?.category ?? "");
+  const [amount, setAmount] = useState(() => (typeof initialTemplate?.amount === "number" ? String(initialTemplate.amount) : ""));
+  const [icon, setIcon] = useState(() => initialTemplate?.icon || "receipt_long");
 
   if (!isOpen) {
     return null;
@@ -36,13 +43,23 @@ export default function AddRecurringTemplateModal({ isOpen, onClose }: AddRecurr
       return;
     }
 
-    addRecurringTemplate({
-      title: title.trim(),
-      category: category.trim(),
-      amount: parsedAmount,
-      icon,
-      active: true,
-    });
+    if (initialTemplate) {
+      updateRecurringTemplate({
+        ...initialTemplate,
+        title: title.trim(),
+        category: category.trim(),
+        amount: parsedAmount,
+        icon,
+      });
+    } else {
+      addRecurringTemplate({
+        title: title.trim(),
+        category: category.trim(),
+        amount: parsedAmount,
+        icon,
+        active: true,
+      });
+    }
 
     setTitle("");
     setCategory("");
@@ -55,7 +72,9 @@ export default function AddRecurringTemplateModal({ isOpen, onClose }: AddRecurr
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
       <div className="w-full max-w-sm glass-card rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-[#f0f0ff]">Add Recurring Tile</h2>
+          <h2 className="text-lg font-bold text-[#f0f0ff]">
+            {initialTemplate ? "Edit Recurring Tile" : "Add Recurring Tile"}
+          </h2>
           <button type="button" onClick={onClose} className="size-8 rounded-full text-white/70 hover:bg-white/10">
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -110,11 +129,10 @@ export default function AddRecurringTemplateModal({ isOpen, onClose }: AddRecurr
             type="submit"
             className="w-full h-10 rounded-xl bg-[#00C9A7] text-[#07241f] text-sm font-semibold hover:bg-[#00C9A7]/90 transition-colors"
           >
-            Save Tile
+            {initialTemplate ? "Update Tile" : "Save Tile"}
           </button>
         </form>
       </div>
     </div>
   );
 }
-

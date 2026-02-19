@@ -144,7 +144,7 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
                   : "bg-[rgba(255,140,66,0.15)] text-[#FF8C42]"
               }`}
             >
-              {isPaidForMonth ? "Paid This Month" : "Unpaid This Month"}
+              {isPaidForMonth ? "Paid" : "Not Paid"}
             </button>
           )}
           {isClosed ? (
