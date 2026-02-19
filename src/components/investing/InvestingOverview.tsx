@@ -58,6 +58,10 @@ export default function InvestingOverview({
     const invested = scopedData.investments.reduce((sum, item) => sum + item.amount, 0);
     return { totalSaved: saved, totalInvested: invested };
   }, [scopedData.goals, scopedData.investments]);
+  const totalGoalTarget = useMemo(
+    () => scopedData.goals.reduce((sum, goal) => sum + goal.targetAmount, 0),
+    [scopedData.goals],
+  );
 
   const combinedTotal = totalSaved + totalInvested;
   const savingsRemaining = savingsBudget - totalSaved;
@@ -245,7 +249,13 @@ export default function InvestingOverview({
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-sm font-semibold text-white">Goals</h3>
-          <span className="text-xs text-white/55">{scopedData.goals.length}</span>
+          <span className="text-xs text-white/55">{scopedData.goals.length} total</span>
+        </div>
+        <div className="glass-card rounded-xl p-2.5 flex items-center justify-between">
+          <p className="text-[10px] uppercase tracking-wide text-white/55">Saved / Target</p>
+          <p className="text-xs font-semibold text-[#f0f0ff]">
+            {formatCurrency(totalSaved)} / {formatCurrency(totalGoalTarget)}
+          </p>
         </div>
 
         {scopedData.goals.length === 0 ? (
@@ -254,7 +264,7 @@ export default function InvestingOverview({
             <p className="text-xs text-white/60 mt-1">Use the add button to create your first savings goal.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
             {scopedData.goals.map((goal) => (
               <GoalCard key={goal.id} goal={goal} onEditGoal={onEditGoal} />
             ))}

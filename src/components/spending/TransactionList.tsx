@@ -165,38 +165,18 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                 const isPreset = template.id.startsWith("template-");
 
                 return (
-                  <div key={template.id} className="relative shrink-0 w-[106px]">
-                    <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setEditingTemplate(template)}
-                        className="size-4 rounded-full border border-white/30 bg-black/25 text-white/85 inline-flex items-center justify-center"
-                        title="Edit recurring tile"
-                      >
-                        <span className="material-symbols-outlined text-[9px]">edit</span>
-                      </button>
-                      {!isPreset && (
-                        <button
-                          type="button"
-                          onClick={() => deleteRecurringTemplate(template.id)}
-                          className="size-4 rounded-full border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.15)] text-[#FF8C42] inline-flex items-center justify-center"
-                          title="Delete recurring tile"
-                        >
-                          <span className="material-symbols-outlined text-[9px]">close</span>
-                        </button>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => toggleRecurringTemplatePaid(template.id, selectedMonth)}
-                      className={`w-full h-full min-h-[72px] rounded-lg border p-1.5 text-left ${
+                  <div key={template.id} className="shrink-0 w-[112px]">
+                    <div
+                      className={`min-h-[72px] rounded-lg border p-1.5 text-left ${
                         isDone
                           ? "border-[#00C9A7]/55 bg-[#00C9A7]/20"
                           : "border-white/20 bg-white/[0.05]"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-1">
-                        <span className="material-symbols-outlined text-[13px] text-white/80">{template.icon || "receipt_long"}</span>
+                        <span className="material-symbols-outlined text-[13px] text-white/80">
+                          {template.icon || "receipt_long"}
+                        </span>
                         <span
                           className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
                             isDone ? "bg-[#00C9A7]/30 text-[#bafced]" : "bg-white/10 text-white/65"
@@ -209,7 +189,37 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                         {template.title}
                       </p>
                       <p className="text-[10px] text-white/70 mt-0.5">{formatCurrency(template.amount)}</p>
-                    </button>
+                    </div>
+                    <div className="mt-1 grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleRecurringTemplatePaid(template.id, selectedMonth)}
+                        className={`h-6 rounded-md text-[10px] font-semibold ${
+                          isDone
+                            ? "border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42]"
+                            : "bg-[rgba(0,201,167,0.2)] text-[#c8fff5]"
+                        }`}
+                      >
+                        {isDone ? "Undo" : "Done"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingTemplate(template)}
+                        className="h-6 rounded-md border border-white/20 bg-white/[0.08] text-[10px] font-semibold text-white/85"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    {!isPreset && (
+                      <button
+                        type="button"
+                        onClick={() => deleteRecurringTemplate(template.id)}
+                        className="mt-1 h-5 w-full rounded-md border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.08)] text-[9px] font-semibold uppercase tracking-wide text-[#FF8C42]"
+                        title="Delete recurring tile"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
                 );
               })}

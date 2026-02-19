@@ -46,7 +46,8 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
   const expenses = useFinanceStore((state) => state.expenses);
   const deletePersonalLoan = useFinanceStore((state) => state.deletePersonalLoan);
   const addPersonalLoanPayment = useFinanceStore((state) => state.addPersonalLoanPayment);
-  const togglePersonalLoanEmiPaid = useFinanceStore((state) => state.togglePersonalLoanEmiPaid);
+  const markPersonalLoanEmiPaid = useFinanceStore((state) => state.markPersonalLoanEmiPaid);
+  const unmarkPersonalLoanEmiPaid = useFinanceStore((state) => state.unmarkPersonalLoanEmiPaid);
   const closePersonalLoan = useFinanceStore((state) => state.closePersonalLoan);
 
   const [showPaymentInput, setShowPaymentInput] = useState(false);
@@ -70,6 +71,16 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
   const dueMeta = getDueMeta(loan.nextEmiDate);
   const isDueSoon = !isClosed && dueMeta.isDueSoon;
   const isOverdue = !isClosed && dueMeta.isOverdue;
+  const resolvedEmiAmount = useMemo(() => {
+    const options = [loan.emiAmount, loan.outstandingAmount, loan.totalLoanAmount];
+    for (const value of options) {
+      const num = Number(value ?? 0);
+      if (Number.isFinite(num) && num > 0) {
+        return num;
+      }
+    }
+    return 0;
+  }, [loan.emiAmount, loan.outstandingAmount, loan.totalLoanAmount]);
   const isPaidForMonth = useMemo(
     () =>
       expenses.some(
@@ -81,6 +92,7 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
       ),
     [expenses, loan.id, selectedMonth],
   );
+  const canMarkPaid = !isClosed && resolvedEmiAmount > 0;
 
   return (
     <article
@@ -129,23 +141,43 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
         </div>
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-        <p className="text-[#7f9591]">
-          {loan.nextEmiDate ? `EMI Date: ${loan.nextEmiDate}` : "EMI Date: Not set"}
-        </p>
-        <div className="flex items-center gap-1">
+      <div className="mt-2 flex items-start justify-between gap-2 text-xs">
+        <div className="min-w-0">
+          <p className="text-[#7f9591]">
+            {loan.nextEmiDate ? `EMI Date: ${loan.nextEmiDate}` : "EMI Date: Not set"}
+          </p>
+          <p className="text-[10px] text-white/55 mt-0.5">Status for {selectedMonth}</p>
+          {!isClosed && !canMarkPaid && (
+            <p className="text-[10px] text-[#FF8C42] mt-0.5">Set EMI/amount in edit</p>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-1">
           {!isClosed && (
-            <button
-              type="button"
-              onClick={() => togglePersonalLoanEmiPaid(loan.id)}
-              className={`px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide text-[10px] ${
-                isPaidForMonth
-                  ? "bg-[rgba(0,201,167,0.15)] text-[#00C9A7]"
-                  : "bg-[rgba(255,140,66,0.15)] text-[#FF8C42]"
-              }`}
-            >
-              {isPaidForMonth ? "Paid" : "Not Paid"}
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => markPersonalLoanEmiPaid(loan.id)}
+                disabled={isPaidForMonth || !canMarkPaid}
+                className={`h-7 px-2.5 rounded-lg text-[10px] font-semibold uppercase tracking-wide ${
+                  isPaidForMonth
+                    ? "bg-[rgba(0,201,167,0.2)] text-[#00C9A7] cursor-default"
+                    : canMarkPaid
+                      ? "bg-[rgba(0,201,167,0.2)] text-[#00C9A7]"
+                      : "bg-white/10 text-white/45 cursor-not-allowed"
+                }`}
+              >
+                {isPaidForMonth ? "Paid" : "Mark Paid"}
+              </button>
+              {isPaidForMonth && (
+                <button
+                  type="button"
+                  onClick={() => unmarkPersonalLoanEmiPaid(loan.id)}
+                  className="h-7 px-2 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[10px] font-semibold uppercase tracking-wide text-[#FF8C42]"
+                >
+                  Undo
+                </button>
+              )}
+            </div>
           )}
           {isClosed ? (
             <span className="px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] font-semibold uppercase tracking-wide text-[10px]">
