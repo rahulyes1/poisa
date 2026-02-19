@@ -173,19 +173,10 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                           : "border-white/20 bg-white/[0.05]"
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-1">
-                        <span className="material-symbols-outlined text-[13px] text-white/80">
-                          {template.icon || "receipt_long"}
-                        </span>
-                        <span
-                          className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
-                            isDone ? "bg-[#00C9A7]/30 text-[#bafced]" : "bg-white/10 text-white/65"
-                          }`}
-                        >
-                          {isDone ? "Done" : "Tap"}
-                        </span>
-                      </div>
-                      <p className="text-[10px] font-semibold text-[#f0f0ff] mt-1 whitespace-normal break-words leading-tight pr-7">
+                      <span className="material-symbols-outlined text-[13px] text-white/80">
+                        {template.icon || "receipt_long"}
+                      </span>
+                      <p className="text-[10px] font-semibold text-[#f0f0ff] mt-1 whitespace-normal break-words leading-tight">
                         {template.title}
                       </p>
                       <p className="text-[10px] text-white/70 mt-0.5">{formatCurrency(template.amount)}</p>
