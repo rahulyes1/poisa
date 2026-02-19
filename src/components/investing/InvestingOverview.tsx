@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import GoalCard from "../savings/GoalCard";
@@ -12,23 +12,73 @@ interface InvestingOverviewProps {
   onToggleBudget: () => void;
 }
 
+const containsEmergency = (value: string) => value.toLowerCase().includes("emergency");
+
 export default function InvestingOverview({
   onEditGoal,
   isBudgetOpen,
   onToggleBudget,
 }: InvestingOverviewProps) {
   const { formatCurrency } = useCurrency();
+  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
+  const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
+  const savingsCarryForwardEnabled = useFinanceStore((state) => state.savingsCarryForwardEnabled);
+  const getWindowMonths = useFinanceStore((state) => state.getWindowMonths);
+  const getSpentForMonth = useFinanceStore((state) => state.getSpentForMonth);
   const goals = useFinanceStore((state) => state.savingGoals);
   const investments = useFinanceStore((state) => state.investments);
   const deleteInvestment = useFinanceStore((state) => state.deleteInvestment);
+  const adjustments = useFinanceStore((state) => state.adjustments);
+
+  const scopedData = useMemo(() => {
+    if (savingsCarryForwardEnabled) {
+      return {
+        goals,
+        investments,
+      };
+    }
+
+    const months = new Set(getWindowMonths(selectedMonth, dashboardWindow));
+
+    return {
+      goals: goals.filter((goal) => months.has(goal.date.slice(0, 7))),
+      investments: investments.filter((item) => months.has(item.date.slice(0, 7))),
+    };
+  }, [dashboardWindow, getWindowMonths, goals, investments, savingsCarryForwardEnabled, selectedMonth]);
 
   const { totalSaved, totalInvested } = useMemo(() => {
-    const saved = goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
-    const invested = investments.reduce((sum, item) => sum + item.amount, 0);
+    const saved = scopedData.goals.reduce((sum, goal) => sum + goal.savedAmount, 0);
+    const invested = scopedData.investments.reduce((sum, item) => sum + item.amount, 0);
     return { totalSaved: saved, totalInvested: invested };
-  }, [goals, investments]);
+  }, [scopedData.goals, scopedData.investments]);
 
   const combinedTotal = totalSaved + totalInvested;
+
+  const emergencyMeta = useMemo(() => {
+    const emergencyGoal =
+      scopedData.goals.find((goal) => goal.isEmergencyFund) ??
+      scopedData.goals.find((goal) => containsEmergency(goal.name) || containsEmergency(goal.category));
+
+    const rollingThreeMonths = getWindowMonths(selectedMonth, 3);
+    const averageExpense =
+      rollingThreeMonths.reduce((sum, month) => sum + getSpentForMonth(month), 0) /
+      Math.max(rollingThreeMonths.length, 1);
+
+    const baseline = adjustments.essentialMonthlyExpense > 0 ? adjustments.essentialMonthlyExpense : averageExpense;
+    const targetMonths = Math.max(adjustments.emergencyTargetMonths || 6, 1);
+    const savedAmount = emergencyGoal?.savedAmount ?? 0;
+    const monthsCovered = baseline > 0 ? savedAmount / baseline : 0;
+    const progress = baseline > 0 ? Math.min((monthsCovered / targetMonths) * 100, 100) : 0;
+
+    return {
+      emergencyGoal,
+      baseline,
+      targetMonths,
+      savedAmount,
+      monthsCovered,
+      progress,
+    };
+  }, [adjustments.emergencyTargetMonths, adjustments.essentialMonthlyExpense, getSpentForMonth, getWindowMonths, scopedData.goals, selectedMonth]);
 
   return (
     <section className="px-4 pt-3 pb-4 space-y-4">
@@ -64,22 +114,58 @@ export default function InvestingOverview({
             <p className="text-sm font-semibold text-white mt-0.5">{formatCurrency(totalInvested)}</p>
           </div>
         </div>
+
+        <p className="mt-2 text-[11px] text-white/60">
+          {savingsCarryForwardEnabled ? "Carry forward ON: all-time totals" : `Carry forward OFF: last ${dashboardWindow} month(s)`}
+        </p>
+      </div>
+
+      <div className="glass-card rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-white">Emergency Fund Tracker</h3>
+          <span className="text-xs text-[#6b7280]">Target: {emergencyMeta.targetMonths} months</span>
+        </div>
+
+        {emergencyMeta.emergencyGoal ? (
+          <>
+            <p className="text-xs text-[#6b7280] mb-1">
+              {emergencyMeta.emergencyGoal.name} - {formatCurrency(emergencyMeta.savedAmount)} saved
+            </p>
+            <p className="text-sm font-semibold text-[#f0f0ff] mb-2">
+              {emergencyMeta.monthsCovered.toFixed(1)} months covered
+            </p>
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[#00C9A7] drop-shadow-[0_0_4px_currentColor]"
+                style={{ width: `${emergencyMeta.progress}%` }}
+              />
+            </div>
+            <p className="text-[11px] text-[#6b7280] mt-2">
+              Baseline expense: {formatCurrency(emergencyMeta.baseline || 0)} / month
+            </p>
+            <p className="text-[11px] text-[#6b7280] mt-1">
+              {emergencyMeta.monthsCovered >= emergencyMeta.targetMonths ? "On track" : "Below target"}
+            </p>
+          </>
+        ) : (
+          <p className="text-sm text-[#6b7280]">Create a goal and mark it as Emergency Fund to track coverage.</p>
+        )}
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-sm font-semibold text-white">Goals</h3>
-          <span className="text-xs text-white/55">{goals.length}</span>
+          <span className="text-xs text-white/55">{scopedData.goals.length}</span>
         </div>
 
-        {goals.length === 0 ? (
+        {scopedData.goals.length === 0 ? (
           <div className="glass-card rounded-2xl p-6 text-center">
             <p className="text-sm text-white/80">No goals yet.</p>
             <p className="text-xs text-white/60 mt-1">Use the add button to create your first savings goal.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {goals.map((goal) => (
+            {scopedData.goals.map((goal) => (
               <GoalCard key={goal.id} goal={goal} onEditGoal={onEditGoal} />
             ))}
           </div>
@@ -89,17 +175,17 @@ export default function InvestingOverview({
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-sm font-semibold text-white">Investments</h3>
-          <span className="text-xs text-white/55">{investments.length}</span>
+          <span className="text-xs text-white/55">{scopedData.investments.length}</span>
         </div>
 
-        {investments.length === 0 ? (
+        {scopedData.investments.length === 0 ? (
           <div className="glass-card rounded-2xl p-6 text-center">
             <p className="text-sm text-white/80">No investments yet.</p>
             <p className="text-xs text-white/60 mt-1">Use the add button to add your first investment.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
-            {investments.map((item) => (
+            {scopedData.investments.map((item) => (
               <article key={item.id} className="glass-card rounded-2xl p-3.5">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -128,3 +214,4 @@ export default function InvestingOverview({
     </section>
   );
 }
+

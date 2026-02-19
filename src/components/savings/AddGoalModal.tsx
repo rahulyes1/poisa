@@ -19,6 +19,7 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
   const [savedAmount, setSavedAmount] = useState("");
   const [date, setDate] = useState(today());
   const [icon, setIcon] = useState("savings");
+  const [isEmergencyFund, setIsEmergencyFund] = useState(false);
 
   if (!isOpen) {
     return null;
@@ -39,6 +40,7 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
       savedAmount: Number.isFinite(parsedSaved) && parsedSaved > 0 ? parsedSaved : 0,
       date,
       icon: icon.trim() || "savings",
+      isEmergencyFund,
     });
 
     setName("");
@@ -47,6 +49,7 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
     setSavedAmount("");
     setDate(today());
     setIcon("savings");
+    setIsEmergencyFund(false);
     onClose();
   };
 
@@ -114,6 +117,15 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             placeholder="Material icon (optional)"
             className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
           />
+          <label className="flex items-center gap-2 text-sm text-[#c4d4d1]">
+            <input
+              type="checkbox"
+              checked={isEmergencyFund}
+              onChange={(event) => setIsEmergencyFund(event.target.checked)}
+              className="size-4 border border-white/20 bg-transparent"
+            />
+            Mark as Emergency Fund
+          </label>
 
           <button
             type="submit"

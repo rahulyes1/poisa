@@ -14,6 +14,8 @@ import EditGoalModal from "./savings/EditGoalModal";
 import LendingOverview from "./lending/LendingOverview";
 import AddLendModal from "./lending/AddLendModal";
 import EditLoanModal from "./lending/EditLoanModal";
+import AddPersonalLoanModal from "./lending/AddPersonalLoanModal";
+import EditPersonalLoanModal from "./lending/EditPersonalLoanModal";
 import SavingsBudgetSetter from "./savings/SavingsBudgetSetter";
 import SettingsPanel from "./settings/SettingsPanel";
 import CurrencyPickerModal from "./CurrencyPickerModal";
@@ -21,7 +23,7 @@ import AddInvestmentModal from "./investment/AddInvestmentModal";
 import InvestingOverview from "./investing/InvestingOverview";
 import AnalyticsDashboard from "./analytics/AnalyticsDashboard";
 import { useFinanceStore } from "./shared/store";
-import { CurrencyCode, Expense, Loan, SavingGoal, TabKey } from "./shared/types";
+import { CurrencyCode, Expense, Loan, PersonalLoan, SavingGoal, TabKey } from "./shared/types";
 
 type ActionTab = Exclude<TabKey, "settings" | "analytics">;
 
@@ -31,30 +33,51 @@ export default function FinanceApp() {
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
   const [isAddLendOpen, setIsAddLendOpen] = useState(false);
+  const [isAddPersonalLoanOpen, setIsAddPersonalLoanOpen] = useState(false);
   const [isAddInvestmentOpen, setIsAddInvestmentOpen] = useState(false);
   const [editExpenseItem, setEditExpenseItem] = useState<Expense | null>(null);
   const [editGoalItem, setEditGoalItem] = useState<SavingGoal | null>(null);
   const [editLoanItem, setEditLoanItem] = useState<Loan | null>(null);
+  const [editPersonalLoanItem, setEditPersonalLoanItem] = useState<PersonalLoan | null>(null);
   const [showSpendingBudgetSetter, setShowSpendingBudgetSetter] = useState(false);
   const [showInvestingBudgetSetter, setShowInvestingBudgetSetter] = useState(false);
   const [showInvestingActions, setShowInvestingActions] = useState(false);
+  const [showLendingActions, setShowLendingActions] = useState(false);
 
   const hasSelectedCurrency = useFinanceStore((state) => state.hasSelectedCurrency);
   const setCurrency = useFinanceStore((state) => state.setCurrency);
-  const setSelectedMonth = useFinanceStore((state) => state.setSelectedMonth);
+  const syncCurrentMonth = useFinanceStore((state) => state.syncCurrentMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const investments = useFinanceStore((state) => state.investments);
   const savingGoals = useFinanceStore((state) => state.savingGoals);
   const loans = useFinanceStore((state) => state.loans);
 
   useEffect(() => {
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    setSelectedMonth(currentMonth);
+    syncCurrentMonth();
     document.documentElement.classList.add("dark");
-  }, [setSelectedMonth]);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        syncCurrentMonth();
+      }
+    };
+
+    const onWindowFocus = () => {
+      syncCurrentMonth();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("focus", onWindowFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("focus", onWindowFocus);
+    };
+  }, [syncCurrentMonth]);
 
   const onTabChange = (tab: TabKey) => {
     setShowInvestingActions(false);
+    setShowLendingActions(false);
     if (tab !== "spending") {
       setSpendingQuery("");
     }
@@ -100,7 +123,7 @@ export default function FinanceApp() {
       return;
     }
     if (activeTab === "lending") {
-      setIsAddLendOpen(true);
+      setShowLendingActions((value) => !value);
     }
   };
 
@@ -157,7 +180,12 @@ export default function FinanceApp() {
           </>
         )}
 
-        {activeTab === "lending" && <LendingOverview onEditLoan={setEditLoanItem} />}
+        {activeTab === "lending" && (
+          <LendingOverview
+            onEditLoan={setEditLoanItem}
+            onEditPersonalLoan={setEditPersonalLoanItem}
+          />
+        )}
         {activeTab === "analytics" && <AnalyticsDashboard />}
         {activeTab === "settings" && <SettingsPanel />}
       </main>
@@ -183,6 +211,31 @@ export default function FinanceApp() {
             className="h-9 px-3 rounded-xl border border-white/20 bg-[#0f2f2a]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
           >
             Add Investment
+          </button>
+        </div>
+      )}
+
+      {showLendingActions && activeTab === "lending" && (
+        <div className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+146px)] z-40 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setShowLendingActions(false);
+              setIsAddLendOpen(true);
+            }}
+            className="h-9 px-3 rounded-xl border border-white/20 bg-[#0f2f2a]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            Lend to Someone
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowLendingActions(false);
+              setIsAddPersonalLoanOpen(true);
+            }}
+            className="h-9 px-3 rounded-xl border border-white/20 bg-[#0f2f2a]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            Add My Loan
           </button>
         </div>
       )}
@@ -219,6 +272,13 @@ export default function FinanceApp() {
         isOpen={Boolean(editLoanItem)}
         item={editLoanItem}
         onClose={() => setEditLoanItem(null)}
+      />
+      <AddPersonalLoanModal isOpen={isAddPersonalLoanOpen} onClose={() => setIsAddPersonalLoanOpen(false)} />
+      <EditPersonalLoanModal
+        key={editPersonalLoanItem?.id ?? "edit-personal-loan"}
+        isOpen={Boolean(editPersonalLoanItem)}
+        item={editPersonalLoanItem}
+        onClose={() => setEditPersonalLoanItem(null)}
       />
       <AddInvestmentModal isOpen={isAddInvestmentOpen} onClose={() => setIsAddInvestmentOpen(false)} />
     </div>

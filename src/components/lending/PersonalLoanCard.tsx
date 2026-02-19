@@ -1,0 +1,198 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { PersonalLoan } from "../shared/types";
+import { useFinanceStore } from "../shared/store";
+import { useCurrency } from "../shared/useCurrency";
+
+interface PersonalLoanCardProps {
+  loan: PersonalLoan;
+  onEditPersonalLoan: (loan: PersonalLoan) => void;
+}
+
+const loanTypeLabels: Record<PersonalLoan["loanType"], string> = {
+  home: "Home",
+  car: "Car",
+  personal: "Personal",
+  education: "Education",
+  credit_card: "Credit Card",
+  business: "Business",
+  other: "Other",
+};
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+const getDueMeta = (nextEmiDate?: string) => {
+  if (!nextEmiDate) {
+    return { isDueSoon: false, isOverdue: false, diffDays: null as number | null };
+  }
+
+  const now = new Date();
+  const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dueRaw = new Date(`${nextEmiDate}T00:00:00`);
+  const due = new Date(dueRaw.getFullYear(), dueRaw.getMonth(), dueRaw.getDate());
+  const diffDays = Math.floor((due.getTime() - base.getTime()) / (1000 * 60 * 60 * 24));
+
+  return {
+    diffDays,
+    isDueSoon: diffDays >= 0 && diffDays <= 3,
+    isOverdue: diffDays < 0,
+  };
+};
+
+export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalLoanCardProps) {
+  const { formatCurrency } = useCurrency();
+  const deletePersonalLoan = useFinanceStore((state) => state.deletePersonalLoan);
+  const addPersonalLoanPayment = useFinanceStore((state) => state.addPersonalLoanPayment);
+  const closePersonalLoan = useFinanceStore((state) => state.closePersonalLoan);
+
+  const [showPaymentInput, setShowPaymentInput] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(today());
+
+  const label = loan.loanType === "other" && loan.customTypeLabel?.trim()
+    ? loan.customTypeLabel.trim()
+    : loanTypeLabels[loan.loanType];
+
+  const outstanding = useMemo(() => {
+    const baseAmount =
+      typeof loan.outstandingAmount === "number" && loan.outstandingAmount > 0
+        ? loan.outstandingAmount
+        : loan.totalLoanAmount ?? 0;
+    const paid = loan.payments.reduce((sum, payment) => sum + payment.amount, 0);
+    return Math.max(baseAmount - paid, 0);
+  }, [loan.outstandingAmount, loan.payments, loan.totalLoanAmount]);
+
+  const isClosed = loan.closed || outstanding <= 0;
+  const dueMeta = getDueMeta(loan.nextEmiDate);
+  const isDueSoon = !isClosed && dueMeta.isDueSoon;
+  const isOverdue = !isClosed && dueMeta.isOverdue;
+
+  return (
+    <article
+      className={`p-3 rounded-2xl border bg-[#1a1a26]/70 ${
+        isOverdue
+          ? "border-red-500/50"
+          : isDueSoon
+            ? "border-[#FF8C42]/40"
+            : "border-[rgba(255,255,255,0.14)]"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h4 className="font-semibold text-[#f0f0ff] truncate">{loan.lenderName}</h4>
+          <p className="text-xs text-[#8ba09c]">{label}</p>
+          <p className="text-[11px] text-[#6b7280] mt-0.5">Started: {loan.startDate}</p>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => onEditPersonalLoan(loan)}
+            className="size-8 rounded-lg border border-white/20 bg-white/[0.08] text-[#9eb5b1]"
+          >
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => deletePersonalLoan(loan.id)}
+            className="size-8 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42]"
+          >
+            <span className="material-symbols-outlined text-[16px]">delete</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-lg border border-[rgba(255,255,255,0.12)] bg-white/[0.04] px-2.5 py-2">
+          <p className="text-[#6b7280] uppercase tracking-wide">Outstanding</p>
+          <p className="text-sm font-semibold text-[#f0f0ff] mt-0.5">{formatCurrency(outstanding)}</p>
+        </div>
+        <div className="rounded-lg border border-[rgba(255,255,255,0.12)] bg-white/[0.04] px-2.5 py-2">
+          <p className="text-[#6b7280] uppercase tracking-wide">Monthly EMI</p>
+          <p className="text-sm font-semibold text-[#f0f0ff] mt-0.5">
+            {loan.emiAmount ? formatCurrency(loan.emiAmount) : "--"}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between gap-2 text-xs">
+        <p className="text-[#7f9591]">
+          {loan.nextEmiDate ? `Next EMI: ${loan.nextEmiDate}` : "Next EMI: Not set"}
+        </p>
+        {isClosed ? (
+          <span className="px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] font-semibold uppercase tracking-wide">
+            Closed
+          </span>
+        ) : isOverdue ? (
+          <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold uppercase tracking-wide">
+            Overdue
+          </span>
+        ) : isDueSoon ? (
+          <span className="px-2 py-0.5 rounded-full bg-[rgba(255,140,66,0.15)] text-[#FF8C42] font-semibold uppercase tracking-wide">
+            Due Soon
+          </span>
+        ) : (
+          <span className="px-2 py-0.5 rounded-full bg-white/10 text-[#a6b8b4] font-semibold uppercase tracking-wide">
+            Active
+          </span>
+        )}
+      </div>
+
+      {loan.note && <p className="mt-2 text-xs text-[#6b7280] whitespace-normal break-words">{loan.note}</p>}
+
+      {!isClosed && (
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setShowPaymentInput((value) => !value)}
+            className="h-8 px-3 rounded-lg bg-[rgba(0,201,167,0.2)] text-[#00C9A7] text-xs font-semibold"
+          >
+            + Payment
+          </button>
+          <button
+            type="button"
+            onClick={() => closePersonalLoan(loan.id)}
+            className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-[#c0d6d2]"
+          >
+            Close Loan
+          </button>
+        </div>
+      )}
+
+      {showPaymentInput && !isClosed && (
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={paymentAmount}
+            onChange={(event) => setPaymentAmount(event.target.value)}
+            placeholder="Payment amount"
+            className="glass-input h-9 flex-1 px-3 text-sm text-[#f0f0ff]"
+          />
+          <input
+            type="date"
+            value={paymentDate}
+            onChange={(event) => setPaymentDate(event.target.value)}
+            className="glass-input h-9 px-2 text-xs text-[#f0f0ff] w-[132px]"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const amount = Number(paymentAmount);
+              if (!Number.isFinite(amount) || amount <= 0) {
+                return;
+              }
+              addPersonalLoanPayment(loan.id, amount, paymentDate);
+              setPaymentAmount("");
+              setShowPaymentInput(false);
+            }}
+            className="h-9 px-3 rounded-lg bg-[#00C9A7] text-[#07241f] text-sm font-semibold"
+          >
+            Add
+          </button>
+        </div>
+      )}
+    </article>
+  );
+}

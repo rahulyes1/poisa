@@ -1,18 +1,28 @@
-"use client";
+﻿"use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
 
+const formatMonthLabel = (month: string) => {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const date = new Date(year, (monthNumber || 1) - 1, 1);
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+};
+
 export default function BudgetSetter() {
   const { formatCurrency } = useCurrency();
-  const spendingBudget = useFinanceStore((state) => state.spendingBudget);
-  const setSpendingBudget = useFinanceStore((state) => state.setSpendingBudget);
-  const [value, setValue] = useState(spendingBudget.toString());
+  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
+  const getBaseBudgetForMonth = useFinanceStore((state) => state.getBaseBudgetForMonth);
+  const setMonthlyBudget = useFinanceStore((state) => state.setMonthlyBudget);
+
+  const currentBudget = getBaseBudgetForMonth(selectedMonth);
+  const monthLabel = useMemo(() => formatMonthLabel(selectedMonth), [selectedMonth]);
+  const [value, setValue] = useState(String(currentBudget));
 
   useEffect(() => {
-    setValue(spendingBudget.toString());
-  }, [spendingBudget]);
+    setValue(String(currentBudget));
+  }, [currentBudget]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,7 +30,7 @@ export default function BudgetSetter() {
     if (!Number.isFinite(nextValue) || nextValue <= 0) {
       return;
     }
-    setSpendingBudget(nextValue);
+    setMonthlyBudget(selectedMonth, nextValue);
   };
 
   return (
@@ -31,7 +41,7 @@ export default function BudgetSetter() {
       >
         <label className="flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-white/60 mb-1.5">
-            Monthly Budget
+            Budget for {monthLabel}
           </p>
           <input
             type="number"
@@ -50,7 +60,7 @@ export default function BudgetSetter() {
         </button>
       </form>
       <p className="px-1 mt-1.5 text-[11px] text-white/70">
-        Current budget: <span className="font-semibold">{formatCurrency(spendingBudget)}</span>
+        Current budget: <span className="font-semibold">{formatCurrency(currentBudget)}</span>
       </p>
     </section>
   );

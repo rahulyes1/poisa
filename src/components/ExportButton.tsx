@@ -13,6 +13,12 @@ export default function ExportButton() {
   const savingGoals = useFinanceStore((state) => state.savingGoals);
   const investments = useFinanceStore((state) => state.investments);
   const loans = useFinanceStore((state) => state.loans);
+  const personalLoans = useFinanceStore((state) => state.personalLoans);
+  const adjustments = useFinanceStore((state) => state.adjustments);
+  const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
+  const spendingCarryForwardEnabled = useFinanceStore((state) => state.spendingCarryForwardEnabled);
+  const savingsCarryForwardEnabled = useFinanceStore((state) => state.savingsCarryForwardEnabled);
+  const monthMode = useFinanceStore((state) => state.monthMode);
   const spendingBudget = useFinanceStore((state) => state.spendingBudget);
   const savingsBudget = useFinanceStore((state) => state.savingsBudget);
 
@@ -21,13 +27,17 @@ export default function ExportButton() {
     const totalSaved = savingGoals.reduce((sum, goal) => sum + goal.savedAmount, 0);
     const totalTarget = savingGoals.reduce((sum, goal) => sum + goal.targetAmount, 0);
     const totalLent = loans.reduce((sum, loan) => sum + loan.amount, 0);
-    const outstanding = loans.filter((loan) => !loan.repaid).reduce((sum, loan) => sum + loan.amount, 0);
+    const outstanding = loans.reduce((sum, loan) => sum + Math.max(loan.amount - loan.repaidAmount, 0), 0);
 
     const payload = {
       exportedAt: new Date().toISOString(),
       totals: {
         currency,
         selectedMonth,
+        monthMode,
+        dashboardWindow,
+        spendingCarryForwardEnabled,
+        savingsCarryForwardEnabled,
         selectedMonthBudget: monthlyBudgets[selectedMonth] ?? spendingBudget,
         spendingBudget,
         savingsBudget,
@@ -41,6 +51,8 @@ export default function ExportButton() {
       savingGoals,
       investments,
       loans,
+      personalLoans,
+      adjustments,
     };
 
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -9,38 +9,58 @@ interface SpendingDashboardProps {
   onToggleBudget: () => void;
 }
 
+const windowLabels: Record<number, string> = {
+  1: "This Month",
+  3: "Last 3 Months",
+  6: "Last 6 Months",
+  12: "Last 12 Months",
+};
+
 export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: SpendingDashboardProps) {
   const { formatCurrency } = useCurrency();
   const [editingLimitCategory, setEditingLimitCategory] = useState<string | null>(null);
   const [limitInput, setLimitInput] = useState("");
 
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
-  const expenses = useFinanceStore((state) => state.expenses);
-  const spendingBudget = useFinanceStore((state) => state.spendingBudget);
+  const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
+  const getExpensesForWindow = useFinanceStore((state) => state.getExpensesForWindow);
+  const getSpentForMonth = useFinanceStore((state) => state.getSpentForMonth);
+  const getBaseBudgetForMonth = useFinanceStore((state) => state.getBaseBudgetForMonth);
+  const getEffectiveSpendingBudget = useFinanceStore((state) => state.getEffectiveSpendingBudget);
+  const getSpendingCarryIn = useFinanceStore((state) => state.getSpendingCarryIn);
+  const getSpendingCarryOut = useFinanceStore((state) => state.getSpendingCarryOut);
   const categoryLimits = useFinanceStore((state) => state.categoryLimits);
   const setCategoryLimit = useFinanceStore((state) => state.setCategoryLimit);
 
-  const monthlyExpenses = useMemo(
-    () => expenses.filter((expense) => expense.date.slice(0, 7) === selectedMonth),
-    [expenses, selectedMonth],
+  const windowExpenses = useMemo(
+    () => getExpensesForWindow(selectedMonth, dashboardWindow),
+    [dashboardWindow, getExpensesForWindow, selectedMonth],
   );
 
-  const totalSpent = useMemo(
-    () => monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0),
-    [monthlyExpenses],
+  const totalSpentInWindow = useMemo(
+    () => windowExpenses.reduce((sum, expense) => sum + expense.amount, 0),
+    [windowExpenses],
   );
 
-  const budgetLeft = Math.max(spendingBudget - totalSpent, 0);
-  const percentUsed = spendingBudget > 0 ? Math.min((totalSpent / spendingBudget) * 100, 100) : 0;
+  const selectedMonthSpent = getSpentForMonth(selectedMonth);
+  const baseBudget = getBaseBudgetForMonth(selectedMonth);
+  const effectiveBudget = getEffectiveSpendingBudget(selectedMonth);
+  const carryIn = getSpendingCarryIn(selectedMonth);
+  const carryOut = getSpendingCarryOut(selectedMonth);
+
+  const remaining = effectiveBudget - selectedMonthSpent;
+  const isOver = remaining < 0;
+  const displayAmount = Math.abs(remaining);
+  const percentUsed = effectiveBudget > 0 ? Math.min((selectedMonthSpent / effectiveBudget) * 100, 100) : 0;
 
   const categoryTotals = useMemo(() => {
-    const byCategory = monthlyExpenses.reduce<Record<string, number>>((acc, expense) => {
+    const byCategory = windowExpenses.reduce<Record<string, number>>((acc, expense) => {
       acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
       return acc;
     }, {});
 
     return Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
-  }, [monthlyExpenses]);
+  }, [windowExpenses]);
 
   const overLimitCategories = useMemo(
     () =>
@@ -78,10 +98,12 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
 
       <div className="glass-card rounded-2xl p-3">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/65">This Month</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/65">
+            {windowLabels[dashboardWindow] ?? "This Month"}
+          </p>
           <div className="flex items-center gap-2">
             <p className="text-[11px] text-white/70">
-              {formatCurrency(totalSpent)} / {formatCurrency(spendingBudget)}
+              {formatCurrency(selectedMonthSpent)} / {formatCurrency(effectiveBudget)}
             </p>
             <button
               type="button"
@@ -100,11 +122,35 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
         <div className="h-1 rounded-full bg-white/10 overflow-hidden mb-1.5">
           <div className="h-full rounded-full bg-[#00C9A7] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${percentUsed}%` }} />
         </div>
-        <p className="text-[10px] text-white/65 mb-2">{formatCurrency(budgetLeft)} left</p>
+        <p
+          className={`text-sm font-semibold mb-2 ${
+            isOver
+              ? "text-[#FF8C42] drop-shadow-[0_0_8px_rgba(255,140,66,0.35)]"
+              : "text-[#00C9A7] drop-shadow-[0_0_8px_rgba(0,201,167,0.35)]"
+          }`}
+        >
+          {formatCurrency(displayAmount)} {isOver ? "overspent" : "left"}
+        </p>
+
+        <div className="mb-2 flex items-center flex-wrap gap-1.5 text-[10px]">
+          <span className="px-2 py-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#1a1a26] text-[#6b7280]">
+            Base: {formatCurrency(baseBudget)}
+          </span>
+          <span className="px-2 py-1 rounded-full border border-[rgba(0,201,167,0.2)] bg-[rgba(0,201,167,0.08)] text-[#8ef3df]">
+            Carry In: {formatCurrency(carryIn)}
+          </span>
+          <span className="px-2 py-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#1a1a26] text-[#6b7280]">
+            Carry Out: {formatCurrency(carryOut)}
+          </span>
+          <span className="px-2 py-1 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#1a1a26] text-[#6b7280]">
+            Window Spent: {formatCurrency(totalSpentInWindow)}
+          </span>
+        </div>
+
         <h3 className="text-xs font-bold text-[#f0f0ff] mb-2.5">Spending by category</h3>
 
         {categoryTotals.length === 0 ? (
-          <p className="text-xs text-white/70">No expenses yet for this month.</p>
+          <p className="text-xs text-white/70">No expenses yet for this period.</p>
         ) : (
           <div className="space-y-2">
             {categoryTotals.map(([category, amount]) => {
@@ -129,7 +175,7 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
                     <div className="h-1 rounded-full bg-white/10 overflow-hidden">
                       <div
                         className={`h-full rounded-full drop-shadow-[0_0_4px_currentColor] ${barColor}`}
-                        style={{ width: `${Math.max((amount / totalSpent) * 100, 4)}%` }}
+                        style={{ width: `${Math.max(totalSpentInWindow > 0 ? (amount / totalSpentInWindow) * 100 : 0, 4)}%` }}
                       />
                     </div>
                   </button>

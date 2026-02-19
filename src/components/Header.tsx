@@ -149,7 +149,9 @@ export default function Header({
           value={selectedMonth}
           onChange={(event) => {
             if (event.target.value) {
-              setSelectedMonth(event.target.value);
+              const currentMonth = new Date().toISOString().slice(0, 7);
+              const nextMode = event.target.value === currentMonth ? "auto" : "manual";
+              setSelectedMonth(event.target.value, nextMode);
             }
           }}
           className="sr-only"
