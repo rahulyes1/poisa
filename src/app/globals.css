@@ -1,12 +1,12 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /* Class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --color-primary: #1313ec;
-  --color-background-light: #f6f6f8;
-  --color-background-dark: #101022;
+  --color-background-light: #0a0a0f;
+  --color-background-dark: #0a0a0f;
   --color-vibrant-orange: #FF8C42;
   --color-vibrant-pink: #FF2E93;
   --color-vibrant-teal: #00C9A7;
@@ -27,4 +27,7 @@
 
 body {
   min-height: max(884px, 100dvh);
+  background: #0a0a0f;
+  color: #f0f0ff;
 }
+

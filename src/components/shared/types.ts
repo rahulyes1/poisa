@@ -1,4 +1,6 @@
-export type TabKey = "spending" | "savings" | "lending";
+﻿export type TabKey = "spending" | "savings" | "lending" | "analytics" | "settings";
+
+export type CurrencyCode = "USD" | "INR" | "EUR" | "GBP" | "JPY" | "AED";
 
 export interface Expense {
   id: string;
@@ -7,6 +9,7 @@ export interface Expense {
   amount: number;
   date: string;
   icon: string;
+  recurring: boolean;
 }
 
 export type NewExpense = Omit<Expense, "id">;
@@ -28,8 +31,11 @@ export interface Loan {
   personName: string;
   reason: string;
   amount: number;
+  repaidAmount: number;
   repaid: boolean;
   date: string;
+  dueDate?: string;
 }
 
 export type NewLoan = Omit<Loan, "id">;
+

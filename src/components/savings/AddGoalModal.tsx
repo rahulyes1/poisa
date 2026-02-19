@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -51,14 +51,14 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-[#15152a] rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Add Goal</h2>
+          <h2 className="text-lg font-bold text-[#f0f0ff]">Add Goal</h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+            className="p-2 rounded-full hover:bg-[#1a1a26] text-[#6b7280]"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -70,7 +70,7 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Goal name"
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
             required
           />
           <input
@@ -78,7 +78,7 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             placeholder="Category"
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
             required
           />
           <input
@@ -88,7 +88,7 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             value={targetAmount}
             onChange={(event) => setTargetAmount(event.target.value)}
             placeholder="Target amount"
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
             required
           />
           <input
@@ -98,13 +98,13 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             value={savedAmount}
             onChange={(event) => setSavedAmount(event.target.value)}
             placeholder="Initial saved amount"
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
           />
           <input
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
             required
           />
           <input
@@ -112,12 +112,12 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
             value={icon}
             onChange={(event) => setIcon(event.target.value)}
             placeholder="Material icon (optional)"
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
+            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
           />
 
           <button
             type="submit"
-            className="w-full mt-2 h-11 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+            className="w-full mt-2 h-11 rounded-xl bg-[#1313ec] text-white text-sm font-semibold hover:bg-[#1313ec]/90 transition-colors"
           >
             Add Goal
           </button>
@@ -126,3 +126,4 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
     </div>
   );
 }
+

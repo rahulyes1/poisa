@@ -1,13 +1,18 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import GoalCard from "./GoalCard";
 import { useFinanceStore } from "../shared/store";
+import { SavingGoal } from "../shared/types";
+import { useCurrency } from "../shared/useCurrency";
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+interface SavingsOverviewProps {
+  onEditGoal: (goal: SavingGoal) => void;
+}
 
-export default function SavingsOverview() {
+export default function SavingsOverview({ onEditGoal }: SavingsOverviewProps) {
+  const { formatCurrency } = useCurrency();
+  const savingsBudget = useFinanceStore((state) => state.savingsBudget);
   const goals = useFinanceStore((state) => state.savingGoals);
 
   const { totalSaved, totalTarget } = useMemo(() => {
@@ -25,38 +30,45 @@ export default function SavingsOverview() {
 
   return (
     <section className="px-5 pt-4 pb-4 space-y-4">
-      <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-slate-100 dark:border-slate-800 p-4">
+      <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
         <div className="flex items-end justify-between mb-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#4a4a6a]">
               Savings Progress
             </p>
-            <p className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(totalSaved)}</p>
+            <p className="text-xl font-bold text-[#f0f0ff]">{formatCurrency(totalSaved)}</p>
           </div>
           <p className="text-sm font-medium text-vibrant-teal">{Math.round(percent)}% reached</p>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+        <p className="text-xs text-[#6b7280] mb-2">
           {formatCurrency(totalSaved)} of {formatCurrency(totalTarget)} goal
         </p>
-        <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-          <div className="h-full rounded-full bg-vibrant-teal" style={{ width: `${percent}%` }} />
+        <div className="h-2.5 rounded-full bg-[#1a1a26] overflow-hidden">
+          <div
+            className="h-full rounded-full bg-vibrant-teal drop-shadow-[0_0_4px_currentColor]"
+            style={{ width: `${percent}%` }}
+          />
         </div>
+        <p className="mt-2 text-xs text-[#6b7280]">
+          Savings budget: <span className="font-semibold">{formatCurrency(savingsBudget)}</span>
+        </p>
       </div>
 
       {goals.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No savings goals yet.</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-8 text-center">
+          <p className="text-sm font-medium text-[#6b7280]">No savings goals yet.</p>
+          <p className="text-xs text-[#6b7280] mt-1">
             Use Add Goal to create your first savings target.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {goals.map((goal) => (
-            <GoalCard key={goal.id} goal={goal} />
+            <GoalCard key={goal.id} goal={goal} onEditGoal={onEditGoal} />
           ))}
         </div>
       )}
     </section>
   );
 }
+

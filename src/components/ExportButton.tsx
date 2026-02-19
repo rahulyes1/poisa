@@ -1,14 +1,19 @@
-"use client";
+﻿"use client";
 
 import { useFinanceStore } from "./shared/store";
+import { useCurrency } from "./shared/useCurrency";
 
 const formatDate = () => new Date().toISOString().slice(0, 10);
 
 export default function ExportButton() {
+  const { currency } = useCurrency();
+  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
+  const monthlyBudgets = useFinanceStore((state) => state.monthlyBudgets);
   const expenses = useFinanceStore((state) => state.expenses);
   const savingGoals = useFinanceStore((state) => state.savingGoals);
   const loans = useFinanceStore((state) => state.loans);
   const spendingBudget = useFinanceStore((state) => state.spendingBudget);
+  const savingsBudget = useFinanceStore((state) => state.savingsBudget);
 
   const onExport = () => {
     const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
@@ -20,7 +25,11 @@ export default function ExportButton() {
     const payload = {
       exportedAt: new Date().toISOString(),
       totals: {
+        currency,
+        selectedMonth,
+        selectedMonthBudget: monthlyBudgets[selectedMonth] ?? spendingBudget,
         spendingBudget,
+        savingsBudget,
         totalSpent,
         totalSaved,
         totalTarget,
@@ -47,10 +56,11 @@ export default function ExportButton() {
     <button
       type="button"
       onClick={onExport}
-      className="inline-flex items-center gap-2 px-3 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-[#15152a]/60 backdrop-blur-sm text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-[#15152a] transition-colors"
+      className="inline-flex items-center gap-2 px-3 h-9 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#1a1a26] text-xs font-semibold text-[#f0f0ff] hover:border-[rgba(19,19,236,0.5)] transition-colors"
     >
       <span className="material-symbols-outlined text-base">download</span>
       Export
     </button>
   );
 }
+

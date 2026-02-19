@@ -2,26 +2,26 @@
 
 import { FormEvent, useState } from "react";
 import { useFinanceStore } from "../shared/store";
+import { Expense } from "../shared/types";
 import CategoryIconPicker from "./CategoryIconPicker";
 
-interface AddExpenseModalProps {
+interface EditExpenseModalProps {
   isOpen: boolean;
+  item: Expense | null;
   onClose: () => void;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
+export default function EditExpenseModal({ isOpen, item, onClose }: EditExpenseModalProps) {
+  const updateExpense = useFinanceStore((state) => state.updateExpense);
 
-export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
-  const addExpense = useFinanceStore((state) => state.addExpense);
+  const [name, setName] = useState(item?.name ?? "");
+  const [category, setCategory] = useState(item?.category ?? "General");
+  const [amount, setAmount] = useState(item ? String(item.amount) : "");
+  const [date, setDate] = useState(item?.date ?? "");
+  const [icon, setIcon] = useState(item?.icon || "receipt_long");
+  const [recurring, setRecurring] = useState(item?.recurring ?? false);
 
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("General");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(today());
-  const [icon, setIcon] = useState("receipt_long");
-  const [recurring, setRecurring] = useState(false);
-
-  if (!isOpen) {
+  if (!isOpen || !item) {
     return null;
   }
 
@@ -32,7 +32,8 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
       return;
     }
 
-    addExpense({
+    updateExpense({
+      ...item,
       name: name.trim(),
       category: category.trim(),
       amount: parsedAmount,
@@ -41,12 +42,6 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
       recurring,
     });
 
-    setName("");
-    setCategory("General");
-    setAmount("");
-    setDate(today());
-    setIcon("receipt_long");
-    setRecurring(false);
     onClose();
   };
 
@@ -54,7 +49,7 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-[#f0f0ff]">Add Expense</h2>
+          <h2 className="text-lg font-bold text-[#f0f0ff]">Edit Expense</h2>
           <button
             type="button"
             onClick={onClose}
@@ -98,6 +93,7 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
             className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
             required
           />
+
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[#4a4a6a] mb-2">Category Icon</p>
             <CategoryIconPicker value={icon} onChange={setIcon} />
@@ -117,7 +113,7 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
             type="submit"
             className="w-full mt-2 h-11 rounded-xl bg-[#1313ec] text-white text-sm font-semibold hover:bg-[#1313ec]/90 transition-colors"
           >
-            Add Expense
+            Save Changes
           </button>
         </form>
       </div>

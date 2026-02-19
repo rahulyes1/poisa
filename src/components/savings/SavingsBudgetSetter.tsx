@@ -4,26 +4,23 @@ import { FormEvent, useEffect, useState } from "react";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
 
-export default function BudgetSetter() {
+export default function SavingsBudgetSetter() {
   const { formatCurrency } = useCurrency();
-  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
-  const spendingBudget = useFinanceStore((state) => state.spendingBudget);
-  const monthlyBudgets = useFinanceStore((state) => state.monthlyBudgets);
-  const setMonthlyBudget = useFinanceStore((state) => state.setMonthlyBudget);
-  const monthBudget = monthlyBudgets[selectedMonth] ?? spendingBudget;
-  const [value, setValue] = useState(monthBudget.toString());
+  const savingsBudget = useFinanceStore((state) => state.savingsBudget);
+  const setSavingsBudget = useFinanceStore((state) => state.setSavingsBudget);
+  const [value, setValue] = useState(savingsBudget.toString());
 
   useEffect(() => {
-    setValue(monthBudget.toString());
-  }, [monthBudget]);
+    setValue(savingsBudget.toString());
+  }, [savingsBudget]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextValue = Number(value);
-    if (!Number.isFinite(nextValue) || nextValue <= 0) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
       return;
     }
-    setMonthlyBudget(selectedMonth, nextValue);
+    setSavingsBudget(parsed);
   };
 
   return (
@@ -34,7 +31,7 @@ export default function BudgetSetter() {
       >
         <label className="flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#4a4a6a] mb-2">
-            Monthly Budget
+            Savings Budget
           </p>
           <input
             type="number"
@@ -53,7 +50,7 @@ export default function BudgetSetter() {
         </button>
       </form>
       <p className="px-1 mt-2 text-xs text-[#6b7280]">
-        Current budget: <span className="font-semibold">{formatCurrency(monthBudget)}</span>
+        Current savings budget: <span className="font-semibold">{formatCurrency(savingsBudget)}</span>
       </p>
     </section>
   );

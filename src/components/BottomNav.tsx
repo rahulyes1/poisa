@@ -1,18 +1,19 @@
-"use client";
+﻿"use client";
 
 import { TabKey } from "./shared/types";
 
 interface NavItem {
-  id: TabKey | "home";
+  id: TabKey;
   label: string;
   icon: string;
 }
 
 const navItems: NavItem[] = [
-  { id: "home", label: "Home", icon: "home" },
   { id: "spending", label: "Spending", icon: "receipt_long" },
   { id: "savings", label: "Savings", icon: "savings" },
   { id: "lending", label: "Lending", icon: "handshake" },
+  { id: "analytics", label: "Analytics", icon: "bar_chart" },
+  { id: "settings", label: "Settings", icon: "settings" },
 ];
 
 interface BottomNavProps {
@@ -22,22 +23,22 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   return (
-    <nav className="flex-none bg-white dark:bg-[#15152a] border-t border-slate-100 dark:border-slate-800 px-6 pb-6 pt-3 z-40">
+    <nav className="flex-none bg-[#0a0a0f] border-t border-[rgba(255,255,255,0.06)] px-6 pb-6 pt-3 z-40">
       <div className="flex justify-between items-center">
         {navItems.map((item) => {
           const isActive = item.id === activeTab;
           return (
             <button
               key={item.id}
-              onClick={() => item.id !== "home" && setActiveTab(item.id as TabKey)}
+              onClick={() => setActiveTab(item.id)}
               className={`flex flex-col items-center justify-center gap-1 transition-colors ${
                 isActive
-                  ? "text-primary"
-                  : "text-slate-400 hover:text-primary dark:hover:text-primary"
+                  ? "text-[#1313ec]"
+                  : "text-[#3d3d5c] hover:text-[#f0f0ff]"
               }`}
             >
               {isActive ? (
-                <div className="bg-primary/10 dark:bg-primary/20 p-1.5 rounded-xl">
+                <div className="bg-[rgba(19,19,236,0.2)] p-1.5 rounded-full">
                   <span className="material-symbols-outlined text-[24px]">{item.icon}</span>
                 </div>
               ) : (
@@ -55,3 +56,4 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
     </nav>
   );
 }
+

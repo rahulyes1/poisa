@@ -1,15 +1,18 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import PersonCard from "./PersonCard";
 import { useFinanceStore } from "../shared/store";
+import { Loan } from "../shared/types";
+import { useCurrency } from "../shared/useCurrency";
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+interface LendingOverviewProps {
+  onEditLoan: (loan: Loan) => void;
+}
 
-export default function LendingOverview() {
+export default function LendingOverview({ onEditLoan }: LendingOverviewProps) {
+  const { formatCurrency } = useCurrency();
   const loans = useFinanceStore((state) => state.loans);
-  const toggleLoanRepaid = useFinanceStore((state) => state.toggleLoanRepaid);
 
   const { totalLent, outstanding, paidBack } = useMemo(() => {
     return loans.reduce(
@@ -18,7 +21,7 @@ export default function LendingOverview() {
         if (loan.repaid) {
           acc.paidBack += loan.amount;
         } else {
-          acc.outstanding += loan.amount;
+          acc.outstanding += Math.max(loan.amount - loan.repaidAmount, 0);
         }
         return acc;
       },
@@ -31,35 +34,36 @@ export default function LendingOverview() {
 
   return (
     <section className="px-5 pt-4 pb-4 space-y-4">
-      <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-slate-100 dark:border-slate-800 p-4">
+      <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
         <div className="flex items-end justify-between mb-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#4a4a6a]">
               Net Lending Balance
             </p>
-            <p className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(outstanding)}</p>
+            <p className="text-xl font-bold text-[#f0f0ff]">{formatCurrency(outstanding)}</p>
           </div>
           <p className="text-sm font-medium text-vibrant-orange">{pendingCount} pending</p>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-[#6b7280]">
           {formatCurrency(paidBack)} paid back of {formatCurrency(totalLent)} lent
         </p>
       </div>
 
       {sortedLoans.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No loans yet.</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-8 text-center">
+          <p className="text-sm font-medium text-[#6b7280]">No loans yet.</p>
+          <p className="text-xs text-[#6b7280] mt-1">
             Use Lend Money to track who owes you.
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-slate-100 dark:border-slate-800 p-4 space-y-3">
+        <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4 space-y-3">
           {sortedLoans.map((loan) => (
-            <PersonCard key={loan.id} loan={loan} onTogglePaid={toggleLoanRepaid} />
+            <PersonCard key={loan.id} loan={loan} onEditLoan={onEditLoan} />
           ))}
         </div>
       )}
     </section>
   );
 }
+
