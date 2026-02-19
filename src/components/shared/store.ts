@@ -2,20 +2,33 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { CurrencyCode, Expense, Loan, NewExpense, NewLoan, NewSavingGoal, SavingGoal } from "./types";
+import {
+  CurrencyCode,
+  Expense,
+  Investment,
+  Loan,
+  NewExpense,
+  NewInvestment,
+  NewLoan,
+  NewSavingGoal,
+  SavingGoal,
+} from "./types";
 
 interface FinanceStoreState {
   currency: CurrencyCode;
+  hasSelectedCurrency: boolean;
   selectedMonth: string;
   spendingBudget: number;
   monthlyBudgets: Record<string, number>;
   savingsBudget: number;
   categoryLimits: Record<string, number>;
   expenses: Expense[];
+  investments: Investment[];
   savingGoals: SavingGoal[];
   loans: Loan[];
   recurringExpenses: () => Expense[];
   setCurrency: (currency: CurrencyCode) => void;
+  setHasSelectedCurrency: (value: boolean) => void;
   setSelectedMonth: (month: string) => void;
   setSpendingBudget: (amount: number) => void;
   setMonthlyBudget: (month: string, amount: number) => void;
@@ -24,6 +37,9 @@ interface FinanceStoreState {
   addExpense: (expense: NewExpense) => void;
   updateExpense: (expense: Expense) => void;
   deleteExpense: (id: string) => void;
+  addInvestment: (item: NewInvestment) => void;
+  updateInvestment: (item: Investment) => void;
+  deleteInvestment: (id: string) => void;
   addSavingGoal: (goal: NewSavingGoal) => void;
   updateSavingGoal: (goal: SavingGoal) => void;
   deleteSavingGoal: (id: string) => void;
@@ -54,6 +70,7 @@ const initialExpenses: Expense[] = [
     amount: 12.5,
     date: "2026-02-19",
     icon: "fastfood",
+    note: "Lunch combo",
     recurring: false,
   },
   {
@@ -63,6 +80,7 @@ const initialExpenses: Expense[] = [
     amount: 24,
     date: "2026-02-19",
     icon: "local_taxi",
+    note: "Office to home",
     recurring: false,
   },
   {
@@ -72,6 +90,7 @@ const initialExpenses: Expense[] = [
     amount: 140,
     date: "2026-02-18",
     icon: "lightbulb",
+    note: "Monthly utility bill",
     recurring: true,
   },
   {
@@ -81,6 +100,7 @@ const initialExpenses: Expense[] = [
     amount: 89.99,
     date: "2026-02-18",
     icon: "shopping_bag",
+    note: "Weekend shopping",
     recurring: false,
   },
   {
@@ -90,6 +110,7 @@ const initialExpenses: Expense[] = [
     amount: 56,
     date: "2026-02-18",
     icon: "shopping_cart",
+    note: "Weekly groceries",
     recurring: false,
   },
   {
@@ -99,7 +120,27 @@ const initialExpenses: Expense[] = [
     amount: 15,
     date: "2026-02-17",
     icon: "subscriptions",
+    note: "Monthly streaming subscription",
     recurring: true,
+  },
+];
+
+const initialInvestments: Investment[] = [
+  {
+    id: "inv-1",
+    title: "SIP - Index Fund",
+    category: "Mutual Fund",
+    amount: 250,
+    date: "2026-02-05",
+    note: "Monthly auto-invest",
+  },
+  {
+    id: "inv-2",
+    title: "BTC Buy",
+    category: "Crypto",
+    amount: 120,
+    date: "2026-02-12",
+    note: "Small allocation",
   },
 ];
 
@@ -180,16 +221,19 @@ export const useFinanceStore = create<FinanceStoreState>()(
   persist(
     (set, get) => ({
       currency: "USD",
+      hasSelectedCurrency: false,
       selectedMonth: getCurrentMonth(),
       spendingBudget: 3000,
       monthlyBudgets: {},
       savingsBudget: 1000,
       categoryLimits: {},
       expenses: initialExpenses,
+      investments: initialInvestments,
       savingGoals: initialSavingGoals,
       loans: initialLoans,
       recurringExpenses: () => get().expenses.filter((expense) => expense.recurring),
-      setCurrency: (currency) => set({ currency }),
+      setCurrency: (currency) => set({ currency, hasSelectedCurrency: true }),
+      setHasSelectedCurrency: (value) => set({ hasSelectedCurrency: value }),
       setSelectedMonth: (month) => set({ selectedMonth: month }),
       setSpendingBudget: (amount) => set({ spendingBudget: amount }),
       setMonthlyBudget: (month, amount) =>
@@ -209,7 +253,15 @@ export const useFinanceStore = create<FinanceStoreState>()(
         })),
       addExpense: (expense) =>
         set((state) => ({
-          expenses: [{ ...expense, recurring: expense.recurring ?? false, id: generateId() }, ...state.expenses],
+          expenses: [
+            {
+              ...expense,
+              note: expense.note ?? "",
+              recurring: expense.recurring ?? false,
+              id: generateId(),
+            },
+            ...state.expenses,
+          ],
         })),
       updateExpense: (expense) =>
         set((state) => ({
@@ -218,6 +270,18 @@ export const useFinanceStore = create<FinanceStoreState>()(
       deleteExpense: (id) =>
         set((state) => ({
           expenses: state.expenses.filter((expense) => expense.id !== id),
+        })),
+      addInvestment: (item) =>
+        set((state) => ({
+          investments: [{ ...item, id: generateId() }, ...state.investments],
+        })),
+      updateInvestment: (item) =>
+        set((state) => ({
+          investments: state.investments.map((existing) => (existing.id === item.id ? item : existing)),
+        })),
+      deleteInvestment: (id) =>
+        set((state) => ({
+          investments: state.investments.filter((item) => item.id !== id),
         })),
       addSavingGoal: (goal) =>
         set((state) => ({

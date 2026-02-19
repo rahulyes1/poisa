@@ -6,16 +6,13 @@ import { useCurrency } from "../shared/useCurrency";
 
 export default function BudgetSetter() {
   const { formatCurrency } = useCurrency();
-  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const spendingBudget = useFinanceStore((state) => state.spendingBudget);
-  const monthlyBudgets = useFinanceStore((state) => state.monthlyBudgets);
-  const setMonthlyBudget = useFinanceStore((state) => state.setMonthlyBudget);
-  const monthBudget = monthlyBudgets[selectedMonth] ?? spendingBudget;
-  const [value, setValue] = useState(monthBudget.toString());
+  const setSpendingBudget = useFinanceStore((state) => state.setSpendingBudget);
+  const [value, setValue] = useState(spendingBudget.toString());
 
   useEffect(() => {
-    setValue(monthBudget.toString());
-  }, [monthBudget]);
+    setValue(spendingBudget.toString());
+  }, [spendingBudget]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,17 +20,17 @@ export default function BudgetSetter() {
     if (!Number.isFinite(nextValue) || nextValue <= 0) {
       return;
     }
-    setMonthlyBudget(selectedMonth, nextValue);
+    setSpendingBudget(nextValue);
   };
 
   return (
-    <section className="px-5 pt-4">
+    <section className="px-5 pt-2">
       <form
         onSubmit={onSubmit}
-        className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4 flex items-end gap-3"
+        className="glass-card rounded-2xl p-3 flex items-end gap-3"
       >
         <label className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#4a4a6a] mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/60 mb-1.5">
             Monthly Budget
           </p>
           <input
@@ -42,18 +39,18 @@ export default function BudgetSetter() {
             step="0.01"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(19,19,236,0.5)] focus:ring-0"
+            className="glass-input w-full px-3 py-2 text-sm text-[#f0f0ff]"
           />
         </label>
         <button
           type="submit"
-          className="h-10 px-4 rounded-xl bg-[#1313ec] text-white text-sm font-semibold hover:bg-[#1313ec]/90 transition-colors"
+          className="h-9 px-4 rounded-xl bg-[#7000FF] text-white text-sm font-semibold hover:bg-[#7000FF]/90 transition-colors"
         >
           Save
         </button>
       </form>
-      <p className="px-1 mt-2 text-xs text-[#6b7280]">
-        Current budget: <span className="font-semibold">{formatCurrency(monthBudget)}</span>
+      <p className="px-1 mt-2 text-xs text-white/70">
+        Current budget: <span className="font-semibold">{formatCurrency(spendingBudget)}</span>
       </p>
     </section>
   );

@@ -63,17 +63,17 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
   const [activeCategory, setActiveCategory] = useState("All");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const getRecurringExpenses = useFinanceStore((state) => state.recurringExpenses);
   const deleteExpense = useFinanceStore((state) => state.deleteExpense);
+  const currentMonth = new Date().toISOString().slice(0, 7);
 
   const recurring = getRecurringExpenses();
   const recurringMonthlyTotal = recurring.reduce((sum, item) => sum + item.amount, 0);
 
   const monthlyExpenses = useMemo(
-    () => expenses.filter((expense) => expense.date.slice(0, 7) === selectedMonth),
-    [expenses, selectedMonth],
+    () => expenses.filter((expense) => expense.date.slice(0, 7) === currentMonth),
+    [expenses, currentMonth],
   );
 
   const categories = useMemo(() => {
@@ -121,13 +121,13 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
     <section className="pt-4 pb-4 space-y-4">
       <div className="px-5 space-y-2">
         <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280] text-base">search</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-base">search</span>
           <input
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search transactions..."
-            className="w-full h-10 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] pl-10 pr-3 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c]"
+            className="glass-input w-full h-10 pl-10 pr-3 text-sm text-[#f0f0ff]"
           />
         </div>
 
@@ -139,8 +139,8 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
               onClick={() => setActiveCategory(category)}
               className={`h-8 px-3 rounded-full text-xs font-semibold whitespace-nowrap border ${
                 activeCategory === category
-                  ? "bg-[#1313ec] border-[#1313ec] text-white"
-                  : "bg-[#1a1a26] border-[rgba(255,255,255,0.08)] text-[#6b7280]"
+                  ? "bg-[#7000FF]/45 border-white/30 text-white"
+                  : "bg-white/10 border-white/20 text-white/65"
               }`}
             >
               {category}
@@ -150,14 +150,14 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
       </div>
 
       <div className="px-5">
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
+        <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-[#f0f0ff]">Recurring</h3>
-            <span className="text-xs font-semibold text-[#6b7280]">{formatCurrency(recurringMonthlyTotal)} / month</span>
+            <span className="text-xs font-semibold text-white/70">{formatCurrency(recurringMonthlyTotal)} / month</span>
           </div>
 
           {recurring.length === 0 ? (
-            <p className="text-xs text-[#6b7280]">No recurring expenses yet.</p>
+            <p className="text-xs text-white/70">No recurring expenses yet.</p>
           ) : (
             <div className="space-y-2">
               {recurring.map((expense) => (
@@ -176,9 +176,9 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
 
       {groups.length === 0 ? (
         <section className="px-5 py-2">
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-8 text-center">
-            <p className="text-sm font-medium text-[#6b7280]">No results</p>
-            <p className="text-xs text-[#6b7280] mt-1">Try a different search or category filter.</p>
+          <div className="glass-card rounded-2xl p-8 text-center">
+            <p className="text-sm font-medium text-white/80">No results</p>
+            <p className="text-xs text-white/65 mt-1">Try a different search or category filter.</p>
           </div>
         </section>
       ) : (
@@ -199,7 +199,7 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
                 const showConfirm = confirmDeleteId === item.id;
 
                 return (
-                  <div key={item.id} className="relative rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-3">
+                  <div key={item.id} className="glass-card relative rounded-2xl p-3">
                     <div className="flex items-center gap-3">
                       <div className={`size-11 rounded-2xl ${colors.bg} flex items-center justify-center shrink-0 ${colors.icon}`}>
                         <span className="material-symbols-outlined">{item.icon || "receipt_long"}</span>
@@ -214,16 +214,17 @@ export default function TransactionList({ onEditExpense }: TransactionListProps)
                           <span className="font-bold text-[#f0f0ff]">-{formatCurrency(item.amount)}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <p className="text-xs font-medium text-[#6b7280]">{item.category}</p>
+                          <p className="text-xs font-medium text-white/70">{item.category}</p>
                           <div className={`size-1.5 rounded-full ${colors.dot}`} />
                         </div>
+                        {item.note && <p className="text-xs text-white/65 mt-1 truncate">{item.note}</p>}
                       </div>
 
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={() => onEditExpense(item)}
-                          className="size-8 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-[#6b7280]"
+                          className="size-8 rounded-lg border border-white/20 bg-white/10 text-white/75"
                         >
                           <span className="material-symbols-outlined text-[16px]">edit</span>
                         </button>

@@ -9,16 +9,15 @@ export default function SpendingDashboard() {
   const [editingLimitCategory, setEditingLimitCategory] = useState<string | null>(null);
   const [limitInput, setLimitInput] = useState("");
 
-  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const spendingBudget = useFinanceStore((state) => state.spendingBudget);
-  const monthlyBudgets = useFinanceStore((state) => state.monthlyBudgets);
   const categoryLimits = useFinanceStore((state) => state.categoryLimits);
   const setCategoryLimit = useFinanceStore((state) => state.setCategoryLimit);
+  const currentMonth = new Date().toISOString().slice(0, 7);
 
   const monthlyExpenses = useMemo(
-    () => expenses.filter((expense) => expense.date.slice(0, 7) === selectedMonth),
-    [expenses, selectedMonth],
+    () => expenses.filter((expense) => expense.date.slice(0, 7) === currentMonth),
+    [expenses, currentMonth],
   );
 
   const totalSpent = useMemo(
@@ -26,9 +25,8 @@ export default function SpendingDashboard() {
     [monthlyExpenses],
   );
 
-  const monthBudget = monthlyBudgets[selectedMonth] ?? spendingBudget;
-  const budgetLeft = Math.max(monthBudget - totalSpent, 0);
-  const percentUsed = monthBudget > 0 ? Math.min((totalSpent / monthBudget) * 100, 100) : 0;
+  const budgetLeft = Math.max(spendingBudget - totalSpent, 0);
+  const percentUsed = spendingBudget > 0 ? Math.min((totalSpent / spendingBudget) * 100, 100) : 0;
 
   const categoryTotals = useMemo(() => {
     const byCategory = monthlyExpenses.reduce<Record<string, number>>((acc, expense) => {
@@ -73,34 +71,27 @@ export default function SpendingDashboard() {
         </div>
       )}
 
-      <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
-        <div className="flex items-end justify-between mb-2">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#4a4a6a]">Monthly Spending</p>
-            <p className="text-xl font-bold text-[#f0f0ff]">{formatCurrency(totalSpent)}</p>
-          </div>
-          <p className="text-sm font-medium text-[#6b7280]">{formatCurrency(budgetLeft)} left</p>
+      <div className="glass-card rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/65">This Month</p>
+          <p className="text-xs text-white/70">
+            {formatCurrency(totalSpent)} / {formatCurrency(spendingBudget)}
+          </p>
         </div>
-
-        <div className="h-2.5 rounded-full bg-[#1a1a26] overflow-hidden">
-          <div
-            className="h-full rounded-full bg-[#1313ec] drop-shadow-[0_0_4px_currentColor]"
-            style={{ width: `${percentUsed}%` }}
-          />
+        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mb-2">
+          <div className="h-full rounded-full bg-[#7000FF] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${percentUsed}%` }} />
         </div>
-      </div>
-
-      <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.06)] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
+        <p className="text-[11px] text-white/65 mb-3">{formatCurrency(budgetLeft)} left</p>
         <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Spending by category</h3>
 
         {categoryTotals.length === 0 ? (
-          <p className="text-sm text-[#6b7280]">No expenses yet for this month.</p>
+          <p className="text-sm text-white/70">No expenses yet for this month.</p>
         ) : (
           <div className="space-y-3">
             {categoryTotals.map(([category, amount]) => {
               const limit = categoryLimits[category];
               const isOverLimit = typeof limit === "number" && amount > limit;
-              const barColor = isOverLimit ? "bg-vibrant-orange" : "bg-[#1313ec]";
+              const barColor = isOverLimit ? "bg-vibrant-orange" : "bg-[#00D1FF]";
 
               return (
                 <div key={category}>
@@ -114,9 +105,9 @@ export default function SpendingDashboard() {
                         {category}
                         {isOverLimit && <span className="material-symbols-outlined text-[14px] text-vibrant-orange">warning</span>}
                       </p>
-                      <p className="text-xs font-medium text-[#6b7280]">{formatCurrency(amount)}</p>
+                      <p className="text-xs font-medium text-white/70">{formatCurrency(amount)}</p>
                     </div>
-                    <div className="h-2 rounded-full bg-[#1a1a26] overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div
                         className={`h-full rounded-full drop-shadow-[0_0_4px_currentColor] ${barColor}`}
                         style={{ width: `${Math.max((amount / totalSpent) * 100, 4)}%` }}
@@ -125,24 +116,24 @@ export default function SpendingDashboard() {
                   </button>
 
                   {typeof limit === "number" && (
-                    <p className="text-[11px] text-[#6b7280] mt-1">Limit: {formatCurrency(limit)}</p>
+                    <p className="text-[11px] text-white/65 mt-1">Limit: {formatCurrency(limit)}</p>
                   )}
 
                   {editingLimitCategory === category && (
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="text-xs text-[#6b7280]">Set limit:</span>
+                      <span className="text-xs text-white/70">Set limit:</span>
                       <input
                         type="number"
                         min="1"
                         step="0.01"
                         value={limitInput}
                         onChange={(event) => setLimitInput(event.target.value)}
-                        className="h-8 flex-1 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-2 text-xs text-[#f0f0ff]"
+                        className="glass-input h-8 flex-1 px-2 text-xs text-[#f0f0ff]"
                       />
                       <button
                         type="button"
                         onClick={() => onSaveLimit(category)}
-                        className="h-8 px-3 rounded-lg bg-[#1313ec] text-white text-xs font-semibold"
+                        className="h-8 px-3 rounded-lg bg-[#7000FF] text-white text-xs font-semibold"
                       >
                         Save
                       </button>

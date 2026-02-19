@@ -28,10 +28,10 @@ export default function CurrencyPickerModal({ isOpen, onSelect }: CurrencyPicker
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm flex items-center justify-center p-5">
-      <div className="w-full max-w-md rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-5">
+    <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md flex items-center justify-center p-5">
+      <div className="w-full max-w-md glass-card rounded-3xl p-5">
         <h2 className="text-xl font-bold text-[#f0f0ff] mb-1">Choose Your Currency</h2>
-        <p className="text-sm text-[#6b7280] mb-4">Select once to start using the app.</p>
+        <p className="text-sm text-white/70 mb-4">Select your currency to start.</p>
 
         <div className="space-y-2">
           {currencyOptions.map((option) => (
@@ -39,11 +39,11 @@ export default function CurrencyPickerModal({ isOpen, onSelect }: CurrencyPicker
               key={option.code}
               type="button"
               onClick={() => onSelect(option.code)}
-              className="w-full rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#1a1a26] px-4 py-3 text-left hover:border-[rgba(19,19,236,0.5)] transition-colors"
+              className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left hover:border-cyan-300/60 transition-colors"
             >
               <div className="flex items-center justify-between">
                 <p className="font-semibold text-[#f0f0ff]">{option.label}</p>
-                <span className="text-sm text-[#6b7280]">
+                <span className="text-sm text-white/70">
                   {option.code} {option.symbol}
                 </span>
               </div>

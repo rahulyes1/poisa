@@ -12,8 +12,7 @@ const navItems: NavItem[] = [
   { id: "spending", label: "Spending", icon: "receipt_long" },
   { id: "savings", label: "Savings", icon: "savings" },
   { id: "lending", label: "Lending", icon: "handshake" },
-  { id: "analytics", label: "Analytics", icon: "bar_chart" },
-  { id: "settings", label: "Settings", icon: "settings" },
+  { id: "investment", label: "Investment", icon: "trending_up" },
 ];
 
 interface BottomNavProps {
@@ -23,7 +22,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   return (
-    <nav className="flex-none bg-[#0a0a0f] border-t border-[rgba(255,255,255,0.06)] px-6 pb-6 pt-3 z-40">
+    <nav className="flex-none bg-white/10 backdrop-blur-[30px] border-t border-white/20 px-6 pb-6 pt-3 z-40">
       <div className="flex justify-between items-center">
         {navItems.map((item) => {
           const isActive = item.id === activeTab;
@@ -33,12 +32,12 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
               onClick={() => setActiveTab(item.id)}
               className={`flex flex-col items-center justify-center gap-1 transition-colors ${
                 isActive
-                  ? "text-[#1313ec]"
-                  : "text-[#3d3d5c] hover:text-[#f0f0ff]"
+                  ? "text-cyan-200"
+                  : "text-white/60 hover:text-white"
               }`}
             >
               {isActive ? (
-                <div className="bg-[rgba(19,19,236,0.2)] p-1.5 rounded-full">
+                <div className="bg-[#7000FF]/35 p-1.5 rounded-full border border-white/20">
                   <span className="material-symbols-outlined text-[24px]">{item.icon}</span>
                 </div>
               ) : (
