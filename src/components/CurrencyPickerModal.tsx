@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { CurrencyCode } from "./shared/types";
 
@@ -6,15 +6,16 @@ interface CurrencyOption {
   code: CurrencyCode;
   label: string;
   symbol: string;
+  flag: string;
 }
 
 const currencyOptions: CurrencyOption[] = [
-  { code: "USD", label: "US Dollar", symbol: "$" },
-  { code: "INR", label: "Indian Rupee", symbol: "Rs" },
-  { code: "EUR", label: "Euro", symbol: "EUR" },
-  { code: "GBP", label: "British Pound", symbol: "GBP" },
-  { code: "JPY", label: "Japanese Yen", symbol: "JPY" },
-  { code: "AED", label: "UAE Dirham", symbol: "AED" },
+  { code: "USD", label: "US Dollar",       symbol: "$",  flag: "🇺🇸" },
+  { code: "INR", label: "Indian Rupee",    symbol: "₹",  flag: "🇮🇳" },
+  { code: "EUR", label: "Euro",            symbol: "€",  flag: "🇪🇺" },
+  { code: "GBP", label: "British Pound",   symbol: "£",  flag: "🇬🇧" },
+  { code: "JPY", label: "Japanese Yen",    symbol: "¥",  flag: "🇯🇵" },
+  { code: "AED", label: "UAE Dirham",      symbol: "د.إ", flag: "🇦🇪" },
 ];
 
 interface CurrencyPickerModalProps {
@@ -28,25 +29,36 @@ export default function CurrencyPickerModal({ isOpen, onSelect }: CurrencyPicker
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md flex items-center justify-center p-5">
-      <div className="w-full max-w-md glass-card rounded-3xl p-5">
-        <h2 className="text-xl font-bold text-[#f0f0ff] mb-1">Choose Your Currency</h2>
-        <p className="text-sm text-white/70 mb-4">Select your currency to start.</p>
+    <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-md flex items-center justify-center p-5">
+      <div className="w-full max-w-sm glass-card rounded-3xl p-6">
+        {/* Header */}
+        <div className="text-center mb-5">
+          <p className="text-3xl mb-2">💰</p>
+          <h2 className="text-xl font-black text-[#F1F5F9]">Choose Currency</h2>
+          <p className="text-sm text-[#94A3B8] mt-1">Select your default currency to get started</p>
+        </div>
 
-        <div className="space-y-2">
+        {/* Currency cards grid */}
+        <div className="grid grid-cols-2 gap-2.5">
           {currencyOptions.map((option) => (
             <button
               key={option.code}
               type="button"
               onClick={() => onSelect(option.code)}
-              className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left hover:border-cyan-300/60 transition-colors"
+              className="group rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left
+                         hover:border-[#4F46E5]/60 hover:bg-[#4F46E5]/10
+                         active:scale-95 transition-all duration-150"
+              style={{ borderRadius: "14px" }}
             >
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-[#f0f0ff]">{option.label}</p>
-                <span className="text-sm text-white/70">
-                  {option.code} {option.symbol}
-                </span>
-              </div>
+              <p className="text-2xl mb-1">{option.flag}</p>
+              <p
+                className="text-2xl font-black leading-none mb-1.5"
+                style={{ color: "#818CF8" }}
+              >
+                {option.symbol}
+              </p>
+              <p className="text-[11px] font-bold text-[#F1F5F9] leading-tight">{option.label}</p>
+              <p className="text-[10px] font-semibold text-[#64748B] mt-0.5">{option.code}</p>
             </button>
           ))}
         </div>
@@ -54,4 +66,3 @@ export default function CurrencyPickerModal({ isOpen, onSelect }: CurrencyPicker
     </div>
   );
 }
-

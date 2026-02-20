@@ -8,6 +8,8 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -18,7 +20,7 @@ import {
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
 
-const PIE_COLORS = ["#00C9A7", "#00D1FF", "#FF8C42", "#FF2E93", "#845EC2", "#F9F871"];
+const PIE_COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#F43F5E", "#8B5CF6", "#06B6D4", "#EC4899", "#F97316"];
 
 type AnalyticsSegment = "overview" | "spending" | "investing";
 
@@ -107,9 +109,11 @@ export default function AnalyticsDashboard() {
 
   const tooltipStyles = {
     contentStyle: {
-      backgroundColor: "#1a1a26",
-      border: "1px solid rgba(255,255,255,0.06)",
-      color: "#f0f0ff",
+      backgroundColor: "#1E293B",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: "12px",
+      color: "#F1F5F9",
+      fontSize: "12px",
     },
   };
 
@@ -326,18 +330,19 @@ export default function AnalyticsDashboard() {
   const totalGoalsCount = scopedGoals.length;
 
   return (
-    <section className="px-5 pt-4 pb-6 space-y-4">
-      <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2">
+    <section className="px-4 pt-4 pb-6 space-y-4">
+      {/* Segment selector */}
+      <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-2">
         <div className="grid grid-cols-3 gap-1.5">
           {(["overview", "spending", "investing"] as AnalyticsSegment[]).map((segment) => (
             <button
               key={segment}
               type="button"
               onClick={() => setActiveAnalyticsSegment(segment)}
-              className={`h-8 rounded-lg text-[11px] font-semibold uppercase tracking-wide ${
+              className={`h-8 rounded-xl text-[11px] font-semibold uppercase tracking-wide active:scale-95 transition-all ${
                 activeAnalyticsSegment === segment
-                  ? "bg-[rgba(0,201,167,0.2)] border border-[rgba(0,201,167,0.55)] text-[#c9fff3]"
-                  : "bg-white/[0.04] border border-[rgba(255,255,255,0.08)] text-white/70"
+                  ? "bg-[#4F46E5]/20 border border-[#4F46E5]/50 text-[#A5B4FC]"
+                  : "bg-white/[0.04] border border-white/08 text-white/55"
               }`}
             >
               {segment}
@@ -349,116 +354,128 @@ export default function AnalyticsDashboard() {
       {activeAnalyticsSegment === "overview" && (
         <>
           <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2.5">
-              <p className="text-[#6b7280] uppercase tracking-wide">Total Invested</p>
-              <p className="text-sm font-semibold text-[#00C9A7] mt-0.5">{formatCurrency(investingAssets)}</p>
+            <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-3">
+              <p className="text-[#64748B] uppercase tracking-wide text-[10px]">Invested</p>
+              <p className="text-sm font-bold text-[#10B981] mt-1">{formatCurrency(investingAssets)}</p>
             </div>
-            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2.5">
-              <p className="text-[#6b7280] uppercase tracking-wide">EMI Liability</p>
-              <p className="text-sm font-semibold text-[#FF8C42] mt-0.5">{formatCurrency(emiLiabilityMonthly)}</p>
+            <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-3">
+              <p className="text-[#64748B] uppercase tracking-wide text-[10px]">EMI / mo</p>
+              <p className="text-sm font-bold text-[#F59E0B] mt-1">{formatCurrency(emiLiabilityMonthly)}</p>
             </div>
-            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2.5">
-              <p className="text-[#6b7280] uppercase tracking-wide">This Month Spend</p>
-              <p className="text-sm font-semibold text-[#f0f0ff] mt-0.5">{formatCurrency(thisMonthSpend)}</p>
+            <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-3">
+              <p className="text-[#64748B] uppercase tracking-wide text-[10px]">Spent</p>
+              <p className="text-sm font-bold text-[#F1F5F9] mt-1">{formatCurrency(thisMonthSpend)}</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Net Worth Snapshot</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between text-[#6b7280]">
+          <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Net Worth Snapshot</h3>
+            <div className="space-y-2.5 text-sm">
+              <div className="flex items-center justify-between text-[#64748B]">
                 <span>Investing Assets</span>
-                <span className="font-semibold text-[#00C9A7]">{formatCurrency(investingAssets)}</span>
+                <span className="font-semibold text-[#10B981]">{formatCurrency(investingAssets)}</span>
               </div>
-              <div className="flex items-center justify-between text-[#6b7280]">
+              <div className="flex items-center justify-between text-[#64748B]">
                 <span>Money Lent (Receivable)</span>
-                <span className="font-semibold text-[#00C9A7]">{formatCurrency(moneyLentReceivable)}</span>
+                <span className="font-semibold text-[#10B981]">{formatCurrency(moneyLentReceivable)}</span>
               </div>
-              <div className="flex items-center justify-between text-[#6b7280]">
+              <div className="flex items-center justify-between text-[#64748B]">
                 <span>Loan Liabilities</span>
-                <span className="font-semibold text-[#FF8C42]">-{formatCurrency(personalLoanLiabilities)}</span>
+                <span className="font-semibold text-[#F43F5E]">-{formatCurrency(personalLoanLiabilities)}</span>
               </div>
-              <div className="flex items-center justify-between text-[#6b7280]">
+              <div className="flex items-center justify-between text-[#64748B]">
                 <span>Manual Adjustments</span>
-                <span className="font-semibold text-[#f0f0ff]">
+                <span className="font-semibold text-[#F1F5F9]">
                   +{formatCurrency(adjustments.manualAssets)} / -{formatCurrency(adjustments.manualLiabilities)}
                 </span>
               </div>
-              <div className="h-px bg-[rgba(255,255,255,0.06)]" />
+              <div className="h-px bg-white/06" />
               <div className="flex items-center justify-between">
-                <span className="text-[#6b7280]">Net Position</span>
-                <span className={`text-xl font-bold ${netPosition >= 0 ? "text-[#00C9A7]" : "text-[#FF8C42]"}`}>
+                <span className="text-[#64748B]">Net Position</span>
+                <span className={`text-xl font-black ${netPosition >= 0 ? "text-[#10B981]" : "text-[#F43F5E]"}`}>
                   {formatCurrency(netPosition)}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Net Worth Over Time</h3>
+          <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Net Worth Over Time</h3>
             {netWorthTrend.length < 2 ? (
-              <p className="text-sm text-[#6b7280]">Add more financial data to see your net worth trend.</p>
+              <div className="text-center py-4">
+                <p className="text-2xl mb-1">📈</p>
+                <p className="text-sm text-[#64748B]">Add more financial data to see your net worth trend.</p>
+              </div>
             ) : (
               <div className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={netWorthTrend}>
                     <defs>
                       <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#00C9A7" stopOpacity={0.25} />
-                        <stop offset="100%" stopColor="#00C9A7" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#4F46E5" stopOpacity={0.30} />
+                        <stop offset="100%" stopColor="#4F46E5" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis dataKey="label" stroke="#6b7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} />
+                    <XAxis dataKey="label" stroke="#64748B" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                    <YAxis stroke="#64748B" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} tick={{ fontSize: 10 }} />
                     <Tooltip {...tooltipStyles} formatter={(v: number | string | undefined) => formatCurrency(Number(v ?? 0))} />
-                    <Area type="monotone" dataKey="value" stroke="#00C9A7" fill="url(#netWorthGradient)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="value" stroke="#4F46E5" fill="url(#netWorthGradient)" strokeWidth={2.5} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             )}
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Emergency Readiness</h3>
+          <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Emergency Readiness</h3>
             {emergencyMeta.emergencyGoal ? (
               <>
-                <p className="text-xs text-[#6b7280] mb-1">Goal: {emergencyMeta.emergencyGoal.name}</p>
-                <p className="text-sm font-semibold text-[#f0f0ff] mb-2">
+                <p className="text-xs text-[#64748B] mb-1">Goal: {emergencyMeta.emergencyGoal.name}</p>
+                <p className="text-sm font-semibold text-[#F1F5F9] mb-2">
                   {emergencyMeta.monthsCovered.toFixed(1)} / {emergencyMeta.targetMonths} months covered
                 </p>
                 <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div className="h-full rounded-full bg-[#00C9A7] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${emergencyMeta.progress}%` }} />
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${emergencyMeta.progress}%`,
+                      background: "linear-gradient(90deg, #10B981, #34D399)",
+                    }}
+                  />
                 </div>
-                <p className="text-[11px] text-[#6b7280] mt-2">Baseline: {formatCurrency(emergencyMeta.baseline || 0)} / month</p>
+                <p className="text-[11px] text-[#64748B] mt-2">Baseline: {formatCurrency(emergencyMeta.baseline || 0)} / month</p>
               </>
             ) : (
-              <p className="text-sm text-[#6b7280]">Create an emergency goal to track readiness.</p>
+              <div className="text-center py-3">
+                <p className="text-xl mb-1">🛡️</p>
+                <p className="text-sm text-[#64748B]">Create an emergency goal to track readiness.</p>
+              </div>
             )}
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <button type="button" onClick={() => setShowManualValues((v) => !v)} className="w-full flex items-center justify-between text-left">
-              <h3 className="text-sm font-bold text-[#f0f0ff]">Manual Values</h3>
-              <span className="material-symbols-outlined text-white/70 text-[18px]">{showManualValues ? "expand_less" : "expand_more"}</span>
+          <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-4">
+            <button type="button" onClick={() => setShowManualValues((v) => !v)} className="w-full flex items-center justify-between text-left active:scale-[0.99] transition-transform">
+              <h3 className="text-sm font-bold text-[#F1F5F9]">Manual Values</h3>
+              <span className="material-symbols-outlined text-[#94A3B8] text-[18px]">{showManualValues ? "expand_less" : "expand_more"}</span>
             </button>
             {showManualValues && (
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <label className="block">
-                  <p className="text-[11px] text-[#6b7280] mb-1">Manual Assets</p>
-                  <input type="number" min="0" step="0.01" value={adjustments.manualAssets} onChange={(e) => setManualAssets(Number(e.target.value || 0))} className="glass-input w-full h-9 px-2 text-xs text-[#f0f0ff]" />
+                  <p className="text-[11px] text-[#64748B] mb-1">Manual Assets</p>
+                  <input type="number" min="0" step="0.01" value={adjustments.manualAssets} onChange={(e) => setManualAssets(Number(e.target.value || 0))} className="glass-input w-full h-9 px-2 text-xs text-[#F1F5F9]" />
                 </label>
                 <label className="block">
-                  <p className="text-[11px] text-[#6b7280] mb-1">Manual Liabilities</p>
-                  <input type="number" min="0" step="0.01" value={adjustments.manualLiabilities} onChange={(e) => setManualLiabilities(Number(e.target.value || 0))} className="glass-input w-full h-9 px-2 text-xs text-[#f0f0ff]" />
+                  <p className="text-[11px] text-[#64748B] mb-1">Manual Liabilities</p>
+                  <input type="number" min="0" step="0.01" value={adjustments.manualLiabilities} onChange={(e) => setManualLiabilities(Number(e.target.value || 0))} className="glass-input w-full h-9 px-2 text-xs text-[#F1F5F9]" />
                 </label>
                 <label className="block">
-                  <p className="text-[11px] text-[#6b7280] mb-1">Essential Expense / Month</p>
-                  <input type="number" min="0" step="0.01" value={adjustments.essentialMonthlyExpense} onChange={(e) => setEssentialMonthlyExpense(Number(e.target.value || 0))} className="glass-input w-full h-9 px-2 text-xs text-[#f0f0ff]" />
+                  <p className="text-[11px] text-[#64748B] mb-1">Essential Expense / Month</p>
+                  <input type="number" min="0" step="0.01" value={adjustments.essentialMonthlyExpense} onChange={(e) => setEssentialMonthlyExpense(Number(e.target.value || 0))} className="glass-input w-full h-9 px-2 text-xs text-[#F1F5F9]" />
                 </label>
                 <label className="block">
-                  <p className="text-[11px] text-[#6b7280] mb-1">Emergency Target (months)</p>
-                  <input type="number" min="1" step="1" value={adjustments.emergencyTargetMonths} onChange={(e) => setEmergencyTargetMonths(Number(e.target.value || 6))} className="glass-input w-full h-9 px-2 text-xs text-[#f0f0ff]" />
+                  <p className="text-[11px] text-[#64748B] mb-1">Emergency Target (months)</p>
+                  <input type="number" min="1" step="1" value={adjustments.emergencyTargetMonths} onChange={(e) => setEmergencyTargetMonths(Number(e.target.value || 6))} className="glass-input w-full h-9 px-2 text-xs text-[#F1F5F9]" />
                 </label>
               </div>
             )}
@@ -468,37 +485,65 @@ export default function AnalyticsDashboard() {
 
       {activeAnalyticsSegment === "spending" && (
         <>
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Monthly Spending</h3>
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Monthly Spending Trend</h3>
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlySpending}>
+                <LineChart data={monthlySpending}>
+                  <defs>
+                    <linearGradient id="spendLineGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#4F46E5" />
+                      <stop offset="100%" stopColor="#818CF8" />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="label" stroke="#6b7280" tickLine={false} axisLine={false} />
-                  <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} />
+                  <XAxis dataKey="label" stroke="#64748B" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                  <YAxis stroke="#64748B" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} tick={{ fontSize: 10 }} />
                   <Tooltip {...tooltipStyles} formatter={(v: number | string | undefined) => formatCurrency(Number(v ?? 0))} />
-                  <Bar dataKey="amount" fill="#00C9A7" radius={[8, 8, 0, 0]} />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="url(#spendLineGradient)"
+                    strokeWidth={2.5}
+                    dot={{ r: 4, fill: "#4F46E5", strokeWidth: 2, stroke: "#F1F5F9" }}
+                    activeDot={{ r: 6, fill: "#818CF8", stroke: "#F1F5F9", strokeWidth: 2 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Spending by Category</h3>
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Spending by Category</h3>
             {categoryBreakdown.rows.length === 0 ? (
-              <p className="text-sm text-[#6b7280]">No spending data for this month.</p>
+              <div className="text-center py-6">
+                <p className="text-2xl mb-1">📊</p>
+                <p className="text-sm text-[#64748B]">No spending data for this month.</p>
+              </div>
             ) : (
               <>
-                <div className="h-[220px] w-full">
+                <div className="h-[230px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={categoryBreakdown.rows} dataKey="amount" nameKey="category" innerRadius={60} outerRadius={90} cx="50%" cy="50%">
+                      <Pie
+                        data={categoryBreakdown.rows}
+                        dataKey="amount"
+                        nameKey="category"
+                        innerRadius={65}
+                        outerRadius={95}
+                        paddingAngle={4}
+                        cx="50%"
+                        cy="50%"
+                      >
                         {categoryBreakdown.rows.map((entry) => (
-                          <Cell key={entry.category} fill={entry.color} />
+                          <Cell key={entry.category} fill={entry.color} strokeWidth={0} />
                         ))}
                       </Pie>
                       <Tooltip {...tooltipStyles} formatter={(v: number | string | undefined) => formatCurrency(Number(v ?? 0))} />
-                      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#f0f0ff" fontSize="12" fontWeight="700">
+                      <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" fill="#94A3B8" fontSize="10">
+                        Total
+                      </text>
+                      <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle" fill="#F1F5F9" fontSize="13" fontWeight="800">
                         {formatCurrency(categoryBreakdown.total)}
                       </text>
                     </PieChart>
@@ -506,10 +551,10 @@ export default function AnalyticsDashboard() {
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {categoryBreakdown.rows.map((row) => (
-                    <div key={row.category} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-xs text-[#6b7280]">
+                    <div key={row.category} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#0F172A] text-xs text-[#94A3B8]">
                       <span className="size-2 rounded-full" style={{ backgroundColor: row.color }} />
                       <span>{row.category}</span>
-                      <span className="text-[#f0f0ff] font-semibold">{Math.round(row.percentage)}%</span>
+                      <span className="text-[#F1F5F9] font-semibold">{Math.round(row.percentage)}%</span>
                     </div>
                   ))}
                 </div>
@@ -522,71 +567,89 @@ export default function AnalyticsDashboard() {
       {activeAnalyticsSegment === "investing" && (
         <>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2.5">
-              <p className="text-[#6b7280] uppercase tracking-wide">Goal Savings</p>
-              <p className="text-sm font-semibold text-[#00C9A7] mt-0.5">{formatCurrency(goalSavingsTotal)}</p>
+            <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-3">
+              <p className="text-[#64748B] uppercase tracking-wide text-[10px]">Goal Savings</p>
+              <p className="text-sm font-bold text-[#10B981] mt-1">{formatCurrency(goalSavingsTotal)}</p>
             </div>
-            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2.5">
-              <p className="text-[#6b7280] uppercase tracking-wide">Investments</p>
-              <p className="text-sm font-semibold text-[#00D1FF] mt-0.5">{formatCurrency(investmentsTotal)}</p>
+            <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-3">
+              <p className="text-[#64748B] uppercase tracking-wide text-[10px]">Investments</p>
+              <p className="text-sm font-bold text-[#818CF8] mt-1">{formatCurrency(investmentsTotal)}</p>
             </div>
-            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2.5">
-              <p className="text-[#6b7280] uppercase tracking-wide">Combined Total</p>
-              <p className="text-sm font-semibold text-[#f0f0ff] mt-0.5">{formatCurrency(investingAssets)}</p>
+            <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-3">
+              <p className="text-[#64748B] uppercase tracking-wide text-[10px]">Combined Total</p>
+              <p className="text-sm font-bold text-[#F1F5F9] mt-1">{formatCurrency(investingAssets)}</p>
             </div>
-            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-2.5">
-              <p className="text-[#6b7280] uppercase tracking-wide">Insurance / Month</p>
-              <p className="text-sm font-semibold text-[#FF8C42] mt-0.5">{formatCurrency(lifeInsuranceMonthlyCommitment)}</p>
+            <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-3">
+              <p className="text-[#64748B] uppercase tracking-wide text-[10px]">Insurance / Month</p>
+              <p className="text-sm font-bold text-[#F59E0B] mt-1">{formatCurrency(lifeInsuranceMonthlyCommitment)}</p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Monthly Investment Contributions</h3>
+          <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Monthly Investment Contributions</h3>
             {monthlyInvestmentContributions.every((row) => row.total <= 0) ? (
-              <p className="text-sm text-[#6b7280]">No investment data in this window.</p>
+              <div className="text-center py-4">
+                <p className="text-2xl mb-1">💼</p>
+                <p className="text-sm text-[#64748B]">No investment data in this window.</p>
+              </div>
             ) : (
               <div className="h-[220px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyInvestmentContributions}>
                     <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis dataKey="label" stroke="#6b7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} />
+                    <XAxis dataKey="label" stroke="#64748B" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                    <YAxis stroke="#64748B" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} tick={{ fontSize: 10 }} />
                     <Tooltip {...tooltipStyles} formatter={(v: number | string | undefined) => formatCurrency(Number(v ?? 0))} />
-                    <Bar dataKey="investments" fill="#00D1FF" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="goals" fill="#00C9A7" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="investments" fill="#818CF8" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="goals" fill="#10B981" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Goal Progress Distribution</h3>
+          <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Goal Progress Distribution</h3>
             {goalProgressDistribution.length === 0 ? (
-              <p className="text-sm text-[#6b7280]">Add goals to view progress distribution.</p>
+              <div className="text-center py-4">
+                <p className="text-2xl mb-1">🎯</p>
+                <p className="text-sm text-[#64748B]">Add goals to view progress distribution.</p>
+              </div>
             ) : (
               <>
-                <div className="h-[220px] w-full">
+                <div className="h-[230px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={goalProgressDistribution} dataKey="count" nameKey="label" innerRadius={60} outerRadius={90} cx="50%" cy="50%">
+                      <Pie
+                        data={goalProgressDistribution}
+                        dataKey="count"
+                        nameKey="label"
+                        innerRadius={65}
+                        outerRadius={95}
+                        paddingAngle={4}
+                        cx="50%"
+                        cy="50%"
+                      >
                         {goalProgressDistribution.map((entry) => (
-                          <Cell key={entry.label} fill={entry.color} />
+                          <Cell key={entry.label} fill={entry.color} strokeWidth={0} />
                         ))}
                       </Pie>
                       <Tooltip {...tooltipStyles} formatter={(v: number | string | undefined) => `${Number(v ?? 0)} goals`} />
-                      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="#f0f0ff" fontSize="12" fontWeight="700">
-                        {totalGoalsCount} goals
+                      <text x="50%" y="46%" textAnchor="middle" dominantBaseline="middle" fill="#94A3B8" fontSize="10">
+                        Goals
+                      </text>
+                      <text x="50%" y="55%" textAnchor="middle" dominantBaseline="middle" fill="#F1F5F9" fontSize="16" fontWeight="800">
+                        {totalGoalsCount}
                       </text>
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {goalProgressDistribution.map((row) => (
-                    <div key={row.label} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-xs text-[#6b7280]">
+                    <div key={row.label} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/08 bg-[#0F172A] text-xs text-[#94A3B8]">
                       <span className="size-2 rounded-full" style={{ backgroundColor: row.color }} />
                       <span>{row.label}</span>
-                      <span className="text-[#f0f0ff] font-semibold">{row.count}</span>
+                      <span className="text-[#F1F5F9] font-semibold">{row.count}</span>
                     </div>
                   ))}
                 </div>
@@ -594,25 +657,28 @@ export default function AnalyticsDashboard() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] p-4">
-            <h3 className="text-sm font-bold text-[#f0f0ff] mb-3">Savings Growth</h3>
+          <div className="rounded-2xl border border-white/08 bg-[#1E293B] p-4">
+            <h3 className="text-sm font-bold text-[#F1F5F9] mb-3">Savings Growth</h3>
             {savingsGrowth.length < 2 ? (
-              <p className="text-sm text-[#6b7280]">Add goals/investments to view trend.</p>
+              <div className="text-center py-4">
+                <p className="text-2xl mb-1">📊</p>
+                <p className="text-sm text-[#64748B]">Add goals/investments to view trend.</p>
+              </div>
             ) : (
               <div className="h-[180px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={savingsGrowth}>
                     <defs>
                       <linearGradient id="savingsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#00C9A7" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#00C9A7" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#10B981" stopOpacity={0.30} />
+                        <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis dataKey="label" stroke="#6b7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6b7280" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} />
+                    <XAxis dataKey="label" stroke="#64748B" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                    <YAxis stroke="#64748B" tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(Number(v))} tick={{ fontSize: 10 }} />
                     <Tooltip {...tooltipStyles} formatter={(v: number | string | undefined) => formatCurrency(Number(v ?? 0))} />
-                    <Area type="monotone" dataKey="value" stroke="#00C9A7" fill="url(#savingsGradient)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="value" stroke="#10B981" fill="url(#savingsGradient)" strokeWidth={2.5} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

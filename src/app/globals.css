@@ -4,81 +4,164 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary: #00C9A7;
-  --color-background-light: #0a0a0f;
-  --color-background-dark: #0a0a0f;
-  --color-vibrant-orange: #FF8C42;
-  --color-vibrant-pink: #FF2E93;
-  --color-vibrant-teal: #00C9A7;
-  --color-vibrant-purple: #845EC2;
+  /* Updated primary to Indigo */
+  --color-primary: #4F46E5;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #F43F5E;
+
+  /* Keep vibrant accents for charts/categories */
+  --color-vibrant-orange: #F59E0B;
+  --color-vibrant-pink: #F43F5E;
+  --color-vibrant-teal: #10B981;
+  --color-vibrant-purple: #8B5CF6;
   --color-vibrant-yellow: #F9F871;
+
   --font-display: var(--font-inter), sans-serif;
 }
 
+/* ─── CSS Custom Properties ─────────────────────────────────── */
 :root {
-  --app-header-h: 78px;
+  /* Spacing */
+  --app-header-h: 82px;
   --app-nav-h: 72px;
   --app-fab-h: 56px;
+
+  /* Color system – dark (always-dark design) */
+  --clr-bg: #0F172A;
+  --clr-bg-elevated: #1E293B;
+  --clr-card: #1E293B;
+  --clr-card-border: rgba(255, 255, 255, 0.08);
+  --clr-text-primary: #F1F5F9;
+  --clr-text-secondary: #94A3B8;
+  --clr-text-muted: #64748B;
+
+  --clr-primary: #4F46E5;
+  --clr-primary-light: #818CF8;
+  --clr-primary-glow: rgba(79, 70, 229, 0.25);
+
+  --clr-success: #10B981;
+  --clr-warning: #F59E0B;
+  --clr-danger: #F43F5E;
+
+  /* Category border colors */
+  --cat-rent: #3B82F6;
+  --cat-ott: #8B5CF6;
+  --cat-electricity: #F59E0B;
+  --cat-food: #F97316;
+  --cat-transport: #06B6D4;
+  --cat-health: #10B981;
+  --cat-shopping: #EC4899;
+  --cat-entertainment: #7C3AED;
+  --cat-education: #0EA5E9;
+  --cat-other: #94A3B8;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+/* ─── Scrollbar ─────────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-/* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
+/* ─── Body ──────────────────────────────────────────────────── */
 body {
   margin: 0;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 12% 12%, rgba(0, 201, 167, 0.24), transparent 40%),
-    radial-gradient(circle at 84% 16%, rgba(0, 209, 255, 0.2), transparent 42%),
-    radial-gradient(circle at 60% 90%, rgba(0, 201, 167, 0.12), transparent 46%),
-    #0a0a0f;
-  color: #f0f0ff;
+    radial-gradient(circle at 12% 12%, rgba(79, 70, 229, 0.22), transparent 40%),
+    radial-gradient(circle at 84% 16%, rgba(129, 140, 248, 0.18), transparent 42%),
+    radial-gradient(circle at 60% 90%, rgba(79, 70, 229, 0.10), transparent 46%),
+    #0F172A;
+  color: #F1F5F9;
 }
 
+/* ─── Glass Card ────────────────────────────────────────────── */
+.glass-card {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(
+    160deg,
+    rgba(30, 41, 59, 0.85) 0%,
+    rgba(15, 23, 42, 0.70) 100%
+  );
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  backdrop-filter: blur(24px);
+}
+
+/* ─── Glass Input ───────────────────────────────────────────── */
+.glass-input {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.glass-input::placeholder {
+  color: rgba(241, 245, 249, 0.40);
+}
+
+.glass-input:focus {
+  border-color: rgba(79, 70, 229, 0.60);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+/* ─── Texture overlay ───────────────────────────────────────── */
 .app-texture {
   background-image:
-    radial-gradient(rgba(255, 255, 255, 0.05) 0.35px, transparent 0.35px),
+    radial-gradient(rgba(255, 255, 255, 0.04) 0.35px, transparent 0.35px),
     linear-gradient(
       120deg,
-      rgba(255, 255, 255, 0.02) 0%,
-      rgba(255, 255, 255, 0.005) 100%
+      rgba(255, 255, 255, 0.015) 0%,
+      rgba(255, 255, 255, 0.004) 100%
     );
   background-size: 4px 4px, 100% 100%;
   opacity: 0.22;
 }
 
-.glass-card {
-  border: 1px solid rgba(255, 255, 255, 0.22);
+/* ─── Category left-border colors ──────────────────────────── */
+.category-border-rent        { border-left: 3px solid #3B82F6; }
+.category-border-ott         { border-left: 3px solid #8B5CF6; }
+.category-border-subscription{ border-left: 3px solid #8B5CF6; }
+.category-border-electricity { border-left: 3px solid #F59E0B; }
+.category-border-utilities   { border-left: 3px solid #F59E0B; }
+.category-border-food        { border-left: 3px solid #F97316; }
+.category-border-groceries   { border-left: 3px solid #84CC16; }
+.category-border-transport   { border-left: 3px solid #06B6D4; }
+.category-border-health      { border-left: 3px solid #10B981; }
+.category-border-shopping    { border-left: 3px solid #EC4899; }
+.category-border-entertainment{ border-left: 3px solid #7C3AED; }
+.category-border-education   { border-left: 3px solid #0EA5E9; }
+.category-border-bills       { border-left: 3px solid #F59E0B; }
+.category-border-travel      { border-left: 3px solid #06B6D4; }
+.category-border-other       { border-left: 3px solid #64748B; }
+
+/* ─── Shimmer / Skeleton ────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton {
+  border-radius: 8px;
   background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.06) 100%
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.05) 75%
   );
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.04),
-    0 12px 36px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(30px);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
-.glass-input {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  outline: none;
+/* ─── Button press scale ────────────────────────────────────── */
+.btn-press {
+  transition: transform 0.1s ease;
 }
-
-.glass-input::placeholder {
-  color: rgba(240, 240, 255, 0.55);
+.btn-press:active {
+  transform: scale(0.95);
 }
-
-.glass-input:focus {
-  border-color: rgba(0, 209, 255, 0.6);
-}
-

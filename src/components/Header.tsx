@@ -5,14 +5,6 @@ import { useFinanceStore } from "./shared/store";
 import { CurrencyCode, TabKey } from "./shared/types";
 import { getCurrencySymbol, useCurrency } from "./shared/useCurrency";
 
-const titleMap: Record<TabKey, string> = {
-  spending: "Spending",
-  investing: "Investing",
-  lending: "Lending",
-  analytics: "Analytics",
-  settings: "Settings",
-};
-
 const currencyOptions: CurrencyCode[] = ["USD", "INR", "EUR", "GBP", "JPY", "AED"];
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -88,15 +80,26 @@ export default function Header({
 
   return (
     <>
-      <header className="flex-none px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5 border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-[22px] z-30">
-        <div className="flex items-center justify-between h-7">
-          <div className="flex items-center gap-1.5">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-white/45 font-semibold">{titleMap[activeTab]}</p>
+      <header className="flex-none px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5 border-b border-white/10 bg-[#0F172A]/85 backdrop-blur-[22px] z-30">
+        <div className="flex items-center justify-between h-8">
+          {/* Poisa Logo */}
+          <div className="flex items-center gap-2">
+            <span
+              className="text-xl font-black tracking-tight"
+              style={{
+                background: "linear-gradient(135deg, #818CF8 0%, #4F46E5 60%, #6D28D9 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Poisa
+            </span>
             {activeTab === "spending" && (
               <button
                 type="button"
                 onClick={() => setShowSearch((value) => !value)}
-                className="h-6 w-6 rounded-full border border-white/20 bg-white/[0.08] text-white/80 inline-flex items-center justify-center"
+                className="h-6 w-6 rounded-full border border-white/20 bg-white/[0.08] text-white/80 inline-flex items-center justify-center active:scale-95 transition-transform"
                 title="Search transactions"
               >
                 <span className="material-symbols-outlined text-[14px]">search</span>
@@ -108,13 +111,13 @@ export default function Header({
             <button
               type="button"
               onClick={() => setShowCurrencyMenu((value) => !value)}
-              className="h-6 min-w-8 px-1.5 rounded-full border border-white/20 bg-white/[0.08] text-[10px] font-semibold text-white"
+              className="h-6 min-w-8 px-1.5 rounded-full border border-white/20 bg-white/[0.08] text-[10px] font-semibold text-white active:scale-95 transition-transform"
             >
               {currencySymbol}
             </button>
 
             {showCurrencyMenu && (
-              <div className="absolute right-8 top-8 w-32 rounded-xl border border-white/20 bg-[#0f1b20]/95 backdrop-blur-[22px] shadow-[0_16px_34px_rgba(0,0,0,0.45)] overflow-hidden z-20">
+              <div className="absolute right-8 top-8 w-32 rounded-xl border border-white/20 bg-[#0F172A]/95 backdrop-blur-[22px] shadow-[0_16px_34px_rgba(0,0,0,0.45)] overflow-hidden z-20">
                 {currencyOptions.map((option) => (
                   <button
                     key={option}
@@ -123,8 +126,8 @@ export default function Header({
                       setCurrency(option);
                       setShowCurrencyMenu(false);
                     }}
-                    className={`w-full px-3 py-2 text-left text-xs font-semibold transition-colors ${
-                      currency === option ? "bg-[#00C9A7]/26 text-[#ccfff3]" : "text-white/90 hover:bg-white/[0.08]"
+                    className={`w-full px-3 py-2 text-left text-xs font-semibold transition-colors active:scale-95 ${
+                      currency === option ? "bg-[#4F46E5]/26 text-[#c7d2fe]" : "text-white/90 hover:bg-white/[0.08]"
                     }`}
                   >
                     {getCurrencySymbol(option)} {option}
@@ -136,9 +139,9 @@ export default function Header({
             <button
               type="button"
               onClick={() => setActiveTab("settings")}
-              className={`h-6 w-6 rounded-full border transition-colors ${
+              className={`h-6 w-6 rounded-full border transition-colors active:scale-95 ${
                 activeTab === "settings"
-                  ? "border-[#00C9A7]/70 bg-[#00C9A7]/20 text-[#bbfff0]"
+                  ? "border-[#4F46E5]/70 bg-[#4F46E5]/20 text-[#c7d2fe]"
                   : "border-white/20 bg-white/[0.08] text-white/80"
               }`}
               title="Settings"
@@ -166,7 +169,7 @@ export default function Header({
         <div className="pt-1.5 pb-0.5 flex items-center justify-center">
           <button
             type="button"
-            className="h-8 min-w-40 px-5 rounded-xl border border-white/25 bg-white/[0.08] backdrop-blur-[18px] inline-flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.15)]"
+            className="h-8 min-w-40 px-5 rounded-xl border border-white/25 bg-white/[0.08] backdrop-blur-[18px] inline-flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.15)] active:scale-95 transition-transform"
             onClick={openMonthPicker}
           >
             <span className="text-sm font-semibold text-white/92">{monthLabel}</span>
@@ -186,7 +189,7 @@ export default function Header({
                 className="glass-input h-9 px-2 text-xs text-[#f0f0ff] bg-transparent"
               >
                 {monthNames.map((name, index) => (
-                  <option key={name} value={index} className="bg-[#10112a] text-[#f0f0ff]">
+                  <option key={name} value={index} className="bg-[#0F172A] text-[#f0f0ff]">
                     {name}
                   </option>
                 ))}
@@ -197,7 +200,7 @@ export default function Header({
                 className="glass-input h-9 px-2 text-xs text-[#f0f0ff] bg-transparent"
               >
                 {yearOptions.map((year) => (
-                  <option key={year} value={year} className="bg-[#10112a] text-[#f0f0ff]">
+                  <option key={year} value={year} className="bg-[#0F172A] text-[#f0f0ff]">
                     {year}
                   </option>
                 ))}
@@ -208,14 +211,14 @@ export default function Header({
               <button
                 type="button"
                 onClick={() => setShowMonthPicker(false)}
-                className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-white/80"
+                className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-white/80 active:scale-95 transition-transform"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={applyMonthPicker}
-                className="h-8 px-3 rounded-lg bg-[#00C9A7] text-[#07241f] text-xs font-semibold"
+                className="h-8 px-3 rounded-lg bg-[#4F46E5] text-white text-xs font-semibold active:scale-95 transition-transform"
               >
                 Apply
               </button>
@@ -226,4 +229,3 @@ export default function Header({
     </>
   );
 }
-

@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Finance Tracker",
-  description: "Track your spending, savings, and lending",
+  title: "Poisa",
+  description: "Your personal finance companion — spending, savings, and lending.",
 };
 
 export default function RootLayout({

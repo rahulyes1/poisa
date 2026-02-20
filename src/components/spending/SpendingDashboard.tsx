@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -15,6 +15,14 @@ const windowLabels: Record<number, string> = {
   6: "Last 6 Months",
   12: "Last 12 Months",
 };
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Good Morning 👋";
+  if (hour >= 12 && hour < 17) return "Good Afternoon 👋";
+  if (hour >= 17 && hour < 21) return "Good Evening 👋";
+  return "Good Night 👋";
+}
 
 export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: SpendingDashboardProps) {
   const { formatCurrency } = useCurrency();
@@ -84,15 +92,32 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
   };
 
   return (
-    <section className="px-4 pt-2 space-y-3">
+    <section className="px-4 pt-3 space-y-3">
+      {/* Greeting */}
+      <p className="text-base font-semibold text-white/70">{getGreeting()}</p>
+
+      {/* Hero: Total Spent for selected month */}
+      <div className="glass-card rounded-2xl p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-white/45 mb-1">Total Spent</p>
+        <p
+          className="font-extrabold leading-none mb-1"
+          style={{ fontSize: "2.5rem", color: isOver ? "#F43F5E" : "#f0f0ff" }}
+        >
+          {formatCurrency(selectedMonthSpent)}
+        </p>
+        <p className={`text-sm font-semibold ${isOver ? "text-[#F43F5E]" : "text-[#10B981]"}`}>
+          {formatCurrency(displayAmount)} {isOver ? "over budget" : "remaining"}
+        </p>
+      </div>
+
       {overLimitCategories.length > 0 && (
-        <div className="rounded-xl border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] px-3 py-2 text-[#FF8C42] text-xs font-semibold flex items-center gap-1.5">
+        <div className="rounded-xl border border-[rgba(244,63,94,0.35)] bg-[rgba(244,63,94,0.10)] px-3 py-2 text-[#F43F5E] text-xs font-semibold flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px]">warning</span>
           {overLimitCategories.length} categories over limit
         </div>
       )}
 
-      <div className="glass-card rounded-2xl p-3">
+      <div className="glass-card rounded-2xl p-5">
         <div className="flex items-center justify-between mb-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-white/65">
             {windowLabels[dashboardWindow] ?? "This Month"}
@@ -104,9 +129,9 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
             <button
               type="button"
               onClick={onToggleBudget}
-              className={`size-6 rounded-full border text-[11px] inline-flex items-center justify-center ${
+              className={`size-6 rounded-full border text-[11px] inline-flex items-center justify-center active:scale-95 transition-transform ${
                 isBudgetOpen
-                  ? "border-[#00C9A7]/60 bg-[#00C9A7]/18 text-[#bdfdee]"
+                  ? "border-[#4F46E5]/60 bg-[#4F46E5]/18 text-[#c7d2fe]"
                   : "border-white/20 bg-white/[0.08] text-white/70"
               }`}
               title="Budget"
@@ -115,21 +140,19 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
             </button>
           </div>
         </div>
-        <div className="h-1 rounded-full bg-white/10 overflow-hidden mb-1.5">
-          <div className="h-full rounded-full bg-[#00C9A7] drop-shadow-[0_0_4px_currentColor]" style={{ width: `${percentUsed}%` }} />
+        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mb-1.5">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${percentUsed}%`,
+              background: isOver
+                ? "linear-gradient(90deg, #F43F5E, #FB7185)"
+                : "linear-gradient(90deg, #4F46E5, #818CF8)",
+            }}
+          />
         </div>
-        <p
-          className={`text-sm font-semibold mb-2 ${
-            isOver
-              ? "text-[#FF8C42] drop-shadow-[0_0_8px_rgba(255,140,66,0.35)]"
-              : "text-[#00C9A7] drop-shadow-[0_0_8px_rgba(0,201,167,0.35)]"
-          }`}
-        >
-          {formatCurrency(displayAmount)} {isOver ? "overspent" : "left"}
-        </p>
-
         <div className="mb-2 flex items-center gap-1.5 text-[10px]">
-          <span className="px-2 py-1 rounded-full border border-[rgba(0,201,167,0.2)] bg-[rgba(0,201,167,0.08)] text-[#8ef3df]">
+          <span className="px-2 py-1 rounded-full border border-[rgba(79,70,229,0.2)] bg-[rgba(79,70,229,0.08)] text-[#a5b4fc]">
             Carry Forward: {formatCurrency(carryOut)}
           </span>
         </div>
@@ -137,31 +160,37 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
         <h3 className="text-xs font-bold text-[#f0f0ff] mb-2.5">Spending by category</h3>
 
         {categoryTotals.length === 0 ? (
-          <p className="text-xs text-white/70">No expenses yet for this period.</p>
+          <div className="text-center py-4">
+            <p className="text-2xl mb-1">📊</p>
+            <p className="text-xs font-semibold text-white/60">No data yet</p>
+            <p className="text-[10px] text-white/40 mt-0.5">Add expenses to see your breakdown</p>
+          </div>
         ) : (
           <div className="space-y-2">
             {categoryTotals.map(([category, amount]) => {
               const limit = categoryLimits[category];
               const isOverLimit = typeof limit === "number" && amount > limit;
-              const barColor = isOverLimit ? "bg-vibrant-orange" : "bg-[#00D1FF]";
+              const barColor = isOverLimit
+                ? "bg-[#F43F5E]"
+                : "bg-[#4F46E5]";
 
               return (
                 <div key={category}>
                   <button
                     type="button"
                     onClick={() => onStartLimitEdit(category)}
-                    className="w-full text-left"
+                    className="w-full text-left active:scale-[0.99] transition-transform"
                   >
                     <div className="flex items-center justify-between mb-0.5">
                       <p className="text-[11px] font-semibold text-[#7a8f8b] inline-flex items-center gap-1">
                         {category}
-                        {isOverLimit && <span className="material-symbols-outlined text-[13px] text-vibrant-orange">warning</span>}
+                        {isOverLimit && <span className="material-symbols-outlined text-[13px] text-[#F43F5E]">warning</span>}
                       </p>
                       <p className="text-[11px] font-medium text-white/70">{formatCurrency(amount)}</p>
                     </div>
                     <div className="h-1 rounded-full bg-white/10 overflow-hidden">
                       <div
-                        className={`h-full rounded-full drop-shadow-[0_0_4px_currentColor] ${barColor}`}
+                        className={`h-full rounded-full ${barColor}`}
                         style={{ width: `${Math.max(totalSpentInWindow > 0 ? (amount / totalSpentInWindow) * 100 : 0, 4)}%` }}
                       />
                     </div>
@@ -185,7 +214,7 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
                       <button
                         type="button"
                         onClick={() => onSaveLimit(category)}
-                        className="h-7 px-2.5 rounded-lg bg-[#00C9A7] text-white text-[11px] font-semibold"
+                        className="h-7 px-2.5 rounded-lg bg-[#4F46E5] text-white text-[11px] font-semibold active:scale-95 transition-transform"
                       >
                         Save
                       </button>
@@ -200,4 +229,3 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
     </section>
   );
 }
-

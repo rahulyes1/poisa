@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
 import FloatingCard from "./FloatingCard";
@@ -139,11 +140,11 @@ export default function FinanceApp() {
   };
 
   return (
-    <div className="bg-[#0a0a0f] font-display text-[#f0f0ff] antialiased min-h-[100dvh] overflow-hidden flex flex-col relative">
+    <div className="bg-[#0F172A] font-display text-[#F1F5F9] antialiased min-h-[100dvh] overflow-hidden flex flex-col relative">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -left-20 size-64 rounded-full bg-[#00C9A7]/20 blur-[90px]" />
-        <div className="absolute top-1/3 -right-24 size-72 rounded-full bg-[#00D1FF]/20 blur-[110px]" />
-        <div className="absolute bottom-0 left-1/4 size-64 rounded-full bg-[#00C9A7]/15 blur-[96px]" />
+        <div className="absolute -top-24 -left-20 size-64 rounded-full bg-[#4F46E5]/18 blur-[90px]" />
+        <div className="absolute top-1/3 -right-24 size-72 rounded-full bg-[#818CF8]/14 blur-[110px]" />
+        <div className="absolute bottom-0 left-1/4 size-64 rounded-full bg-[#6D28D9]/12 blur-[96px]" />
         <div className="app-texture absolute inset-0" />
       </div>
 
@@ -157,40 +158,50 @@ export default function FinanceApp() {
       />
 
       <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+126px)] sm:pb-[calc(env(safe-area-inset-bottom)+112px)]">
-        {activeTab === "spending" && (
-          <>
-            <SpendingDashboard
-              isBudgetOpen={showSpendingBudgetSetter}
-              onToggleBudget={() => setShowSpendingBudgetSetter((value) => !value)}
-            />
-            {showSpendingBudgetSetter && <BudgetSetter />}
-            <TransactionList
-              query={spendingQuery}
-              onEditExpense={setEditExpenseItem}
-            />
-          </>
-        )}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+          >
+            {activeTab === "spending" && (
+              <>
+                <SpendingDashboard
+                  isBudgetOpen={showSpendingBudgetSetter}
+                  onToggleBudget={() => setShowSpendingBudgetSetter((value) => !value)}
+                />
+                {showSpendingBudgetSetter && <BudgetSetter />}
+                <TransactionList
+                  query={spendingQuery}
+                  onEditExpense={setEditExpenseItem}
+                />
+              </>
+            )}
 
-        {activeTab === "investing" && (
-          <>
-            {showInvestingBudgetSetter && <SavingsBudgetSetter />}
-            <InvestingOverview
-              onEditGoal={setEditGoalItem}
-              onAddLifeInsurance={() => setIsAddLifeInsuranceOpen(true)}
-              isBudgetOpen={showInvestingBudgetSetter}
-              onToggleBudget={() => setShowInvestingBudgetSetter((value) => !value)}
-            />
-          </>
-        )}
+            {activeTab === "investing" && (
+              <>
+                {showInvestingBudgetSetter && <SavingsBudgetSetter />}
+                <InvestingOverview
+                  onEditGoal={setEditGoalItem}
+                  onAddLifeInsurance={() => setIsAddLifeInsuranceOpen(true)}
+                  isBudgetOpen={showInvestingBudgetSetter}
+                  onToggleBudget={() => setShowInvestingBudgetSetter((value) => !value)}
+                />
+              </>
+            )}
 
-        {activeTab === "lending" && (
-          <LendingOverview
-            onEditLoan={setEditLoanItem}
-            onEditPersonalLoan={setEditPersonalLoanItem}
-          />
-        )}
-        {activeTab === "analytics" && <AnalyticsDashboard />}
-        {activeTab === "settings" && <SettingsPanel />}
+            {activeTab === "lending" && (
+              <LendingOverview
+                onEditLoan={setEditLoanItem}
+                onEditPersonalLoan={setEditPersonalLoanItem}
+              />
+            )}
+            {activeTab === "analytics" && <AnalyticsDashboard />}
+            {activeTab === "settings" && <SettingsPanel />}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {showInvestingActions && activeTab === "investing" && (
