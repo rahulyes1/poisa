@@ -103,6 +103,76 @@ export default function LendingOverview({ onEditLoan, onEditPersonalLoan }: Lend
               </div>
             </div>
           </div>
+
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Money Lent Preview</h3>
+              <button
+                type="button"
+                onClick={() => setActiveSegment("money_lent")}
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+              >
+                View All
+              </button>
+            </div>
+            {sortedLoans.slice(0, 3).length === 0 ? (
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-[11px] text-[#94A3B8]">
+                No entries yet.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {sortedLoans.slice(0, 3).map((loan) => (
+                  <article key={loan.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-[#f0f0ff]">{loan.personName}</p>
+                        <p className="text-[11px] text-[#94A3B8]">{loan.reason}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-[#f0f0ff]">{formatCurrency(Math.max(loan.amount - loan.repaidAmount, 0))}</p>
+                        <p className="text-[10px] text-[#94A3B8]">{loan.repaid ? "Repaid" : "Pending"}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">My Loans Preview</h3>
+              <button
+                type="button"
+                onClick={() => setActiveSegment("my_loans")}
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+              >
+                View All
+              </button>
+            </div>
+            {sortedPersonalLoans.slice(0, 3).length === 0 ? (
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-[11px] text-[#94A3B8]">
+                No entries yet.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {sortedPersonalLoans.slice(0, 3).map((loan) => (
+                  <article key={loan.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-[#f0f0ff]">{loan.lenderName}</p>
+                        <p className="text-[11px] text-[#94A3B8]">{loan.customTypeLabel || loan.loanType.replace("_", " ")}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-[#FF8C42]">{formatCurrency(loan.emiAmount ?? 0)}</p>
+                        <p className="text-[10px] text-[#94A3B8]">{loan.closed ? "Closed" : "Active"}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       )}
 

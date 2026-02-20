@@ -87,6 +87,14 @@ const todoCategoryOptions = [
   "Other",
 ];
 
+const todoQuickPresets: Array<{ title: string; category: string; defaultAmount: number }> = [
+  { title: "Rent", category: "Rent", defaultAmount: 12000 },
+  { title: "Electricity Bill", category: "Utilities", defaultAmount: 1800 },
+  { title: "Life Insurance", category: "Bills & Recharge", defaultAmount: 0 },
+  { title: "SIP", category: "Recurring Expenses", defaultAmount: 0 },
+  { title: "Parents Insurance", category: "Bills & Recharge", defaultAmount: 0 },
+];
+
 interface GroupedExpenses {
   date: string;
   label: string;
@@ -186,28 +194,49 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
     [activeTodos, selectedMonth, spendingTodoDoneMonths],
   );
 
+  const applyTodoFormValues = (values: { title: string; category: string; defaultAmount: number; note?: string }) => {
+    setTodoTitle(values.title);
+    if (todoCategoryOptions.includes(values.category)) {
+      setTodoCategorySelection(values.category);
+      setTodoCustomCategory("");
+    } else {
+      setTodoCategorySelection("__custom__");
+      setTodoCustomCategory(values.category);
+    }
+    setTodoAmount(String(values.defaultAmount));
+    setTodoNote(values.note ?? "");
+  };
+
   const startTodoCreate = () => {
     setEditingTodo(null);
-    setTodoTitle("");
-    setTodoCategorySelection(todoCategoryOptions[0]);
-    setTodoCustomCategory("");
-    setTodoAmount("0");
-    setTodoNote("");
+    applyTodoFormValues({
+      title: "",
+      category: todoCategoryOptions[0],
+      defaultAmount: 0,
+      note: "",
+    });
+    setIsTodoFormOpen(true);
+  };
+
+  const startTodoCreateFromPreset = (preset: { title: string; category: string; defaultAmount: number }) => {
+    setEditingTodo(null);
+    applyTodoFormValues({
+      title: preset.title,
+      category: preset.category,
+      defaultAmount: preset.defaultAmount,
+      note: "",
+    });
     setIsTodoFormOpen(true);
   };
 
   const startTodoEdit = (todo: SpendingTodo) => {
     setEditingTodo(todo);
-    setTodoTitle(todo.title);
-    if (todoCategoryOptions.includes(todo.category)) {
-      setTodoCategorySelection(todo.category);
-      setTodoCustomCategory("");
-    } else {
-      setTodoCategorySelection("__custom__");
-      setTodoCustomCategory(todo.category);
-    }
-    setTodoAmount(String(todo.defaultAmount));
-    setTodoNote(todo.note ?? "");
+    applyTodoFormValues({
+      title: todo.title,
+      category: todo.category,
+      defaultAmount: todo.defaultAmount,
+      note: todo.note,
+    });
     setIsTodoFormOpen(true);
   };
 
@@ -475,6 +504,21 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
               </button>
             </div>
 
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
+              {todoQuickPresets.map((preset) => (
+                <button
+                  key={preset.title}
+                  type="button"
+                  onClick={() => startTodoCreateFromPreset(preset)}
+                  className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#94A3B8] whitespace-nowrap active:scale-95 transition-transform"
+                  title={`Use ${preset.title} preset`}
+                  aria-label={`Use ${preset.title} preset`}
+                >
+                  {preset.title}
+                </button>
+              ))}
+            </div>
+
             {isTodoFormOpen && (
               <form onSubmit={onSubmitTodo} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5 space-y-2">
                 <input
@@ -560,37 +604,37 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                     return (
                       <div key={todo.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
                         <div className="flex items-start justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => toggleSpendingTodoDone(todo.id, selectedMonth)}
-                            className="flex-1 text-left"
-                          >
+                          <div className="flex-1 text-left">
                             <p className={`text-xs font-semibold ${todo.active ? "text-[#F1F5F9]" : "text-[#94A3B8]"}`}>
                               {todo.title}
                             </p>
                             <p className="text-[10px] text-[#94A3B8] mt-0.5">{todo.category}</p>
                             {todo.defaultAmount > 0 && <p className="text-[10px] text-[#F1F5F9] mt-0.5">{formatCurrency(todo.defaultAmount)}</p>}
                             {todo.note && <p className="text-[10px] text-[#64748B] mt-0.5">{todo.note}</p>}
-                          </button>
+                          </div>
 
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
                               onClick={() => toggleSpendingTodoDone(todo.id, selectedMonth)}
-                              className={`h-6 px-2 rounded-full text-[9px] font-bold border ${
+                              className={`size-6 rounded-full border inline-flex items-center justify-center active:scale-95 transition-transform ${
                                 isDone
                                   ? "bg-[#00C9A7]/20 border-[#00C9A7]/40 text-[#00C9A7]"
                                   : "bg-[#111118] border-[rgba(255,255,255,0.08)] text-[#94A3B8]"
                               }`}
+                              title={isDone ? "Mark as pending" : "Mark as done"}
+                              aria-label={isDone ? "Mark as pending" : "Mark as done"}
                             >
-                              {isDone ? "Done" : "Todo"}
+                              <span className="material-symbols-outlined text-[13px]">{isDone ? "check_circle" : "radio_button_unchecked"}</span>
                             </button>
                             <button
                               type="button"
                               onClick={() => startTodoEdit(todo)}
-                              className="h-6 px-2 rounded-full border border-[#4F46E5]/35 bg-[#4F46E5]/10 text-[#73EFD9]"
+                              className="size-6 rounded-full border border-[#4F46E5]/35 bg-[#4F46E5]/10 text-[#73EFD9] inline-flex items-center justify-center active:scale-95 transition-transform"
+                              title="Edit to-do"
+                              aria-label="Edit to-do"
                             >
-                              Edit
+                              <span className="material-symbols-outlined text-[13px]">edit</span>
                             </button>
                             <button
                               type="button"
@@ -611,9 +655,11 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                             <button
                               type="button"
                               onClick={() => deleteSpendingTodo(todo.id)}
-                              className="h-6 px-2 rounded-full border border-[#F43F5E]/30 bg-[#F43F5E]/10 text-[#F43F5E]"
+                              className="size-6 rounded-full border border-[#F43F5E]/30 bg-[#F43F5E]/10 text-[#F43F5E] inline-flex items-center justify-center active:scale-95 transition-transform"
+                              title="Delete to-do"
+                              aria-label="Delete to-do"
                             >
-                              Del
+                              <span className="material-symbols-outlined text-[13px]">delete</span>
                             </button>
                           </div>
                         </div>

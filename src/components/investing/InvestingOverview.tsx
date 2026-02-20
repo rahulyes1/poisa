@@ -98,6 +98,9 @@ export default function InvestingOverview({
   }, [adjustments.emergencyTargetMonths, adjustments.essentialMonthlyExpense, getSpentForMonth, getWindowMonths, scopedData.goals, selectedMonth]);
 
   const sortedInsurances = [...lifeInsurances].sort((a, b) => b.dueDate.localeCompare(a.dueDate));
+  const insurancePreview = sortedInsurances.slice(0, 3);
+  const goalsPreview = scopedData.goals.slice(0, 3);
+  const investmentsPreview = [...scopedData.investments].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const paidInsuranceIdsForMonth = useMemo(
     () =>
       new Set(
@@ -205,6 +208,111 @@ export default function InvestingOverview({
               </>
             ) : (
               <p className="text-sm text-[#6b7280]">Create a goal and mark it as Emergency Fund to track coverage.</p>
+            )}
+          </div>
+
+          <div className="glass-card rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Insurance Preview</h3>
+              <button
+                type="button"
+                onClick={() => setActiveSegment("insurance")}
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+              >
+                View All
+              </button>
+            </div>
+            {insurancePreview.length === 0 ? (
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-white/60">
+                No entries yet.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {insurancePreview.map((item) => (
+                  <article key={item.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-white">{item.providerName}</p>
+                        <p className="text-[11px] text-white/60">{item.planName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-[#9cf4e4]">{formatCurrency(item.monthlyAmount)}</p>
+                        <p className="text-[10px] text-white/45">{item.dueDate}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="glass-card rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Goals Preview</h3>
+              <button
+                type="button"
+                onClick={() => setActiveSegment("goals")}
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+              >
+                View All
+              </button>
+            </div>
+            {goalsPreview.length === 0 ? (
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-white/60">
+                No entries yet.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {goalsPreview.map((goal) => (
+                  <article key={goal.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-white">{goal.name}</p>
+                        <p className="text-[11px] text-white/60">{goal.category}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-[#f0f0ff]">{formatCurrency(goal.savedAmount)}</p>
+                        <p className="text-[10px] text-white/45">of {formatCurrency(goal.targetAmount)}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="glass-card rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Investments Preview</h3>
+              <button
+                type="button"
+                onClick={() => setActiveSegment("investments")}
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+              >
+                View All
+              </button>
+            </div>
+            {investmentsPreview.length === 0 ? (
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-white/60">
+                No entries yet.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {investmentsPreview.map((item) => (
+                  <article key={item.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-white">{item.title}</p>
+                        <p className="text-[11px] text-white/60">{item.category}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
+                        <p className="text-[10px] text-white/45">{item.date}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
             )}
           </div>
         </>
