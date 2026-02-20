@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useFinanceStore } from "../shared/store";
@@ -31,6 +31,9 @@ export default function BudgetSetter() {
       return;
     }
     setMonthlyBudget(selectedMonth, nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("poisa:spending-budget-saved"));
+    }
   };
 
   return (
@@ -54,7 +57,7 @@ export default function BudgetSetter() {
         </label>
         <button
           type="submit"
-          className="h-8 px-3 rounded-lg bg-[#00C9A7] text-white text-xs font-semibold hover:bg-[#00C9A7]/90 transition-colors"
+          className="h-8 px-3 rounded-lg bg-[#00C9A7] text-[#07241f] text-xs font-semibold hover:bg-[#00C9A7]/90 transition-colors"
         >
           Save
         </button>
@@ -65,4 +68,5 @@ export default function BudgetSetter() {
     </section>
   );
 }
+
 

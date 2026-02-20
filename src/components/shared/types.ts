@@ -120,3 +120,14 @@ export interface RecurringTemplate {
 export type NewRecurringTemplate = Omit<RecurringTemplate, "id" | "paidMonths"> & {
   paidMonths?: string[];
 };
+
+export interface SpendingTodo {
+  id: string;
+  title: string;
+  category: string;
+  defaultAmount: number;
+  note?: string;
+  active: boolean;
+}
+
+export type NewSpendingTodo = Omit<SpendingTodo, "id">;

@@ -10,14 +10,30 @@ interface AddRecurringTemplateModalProps {
   initialTemplate?: RecurringTemplate | null;
 }
 
-const iconOptions = [
-  "subscriptions",
-  "home",
-  "electric_bolt",
-  "wifi",
-  "phone_android",
-  "receipt_long",
+const recurringCategoryOptions = [
+  "Rent",
+  "Utilities",
+  "Subscription",
+  "Bills & Recharge",
+  "EMI Expenses",
+  "Life Insurance",
+  "SIP",
+  "Parents Insurance",
+  "Recurring Expenses",
+  "Other",
 ];
+
+const resolveIconFromCategory = (category: string) => {
+  const key = category.toLowerCase().trim();
+  if (key.includes("rent")) return "home";
+  if (key.includes("utilit") || key.includes("electric")) return "electric_bolt";
+  if (key.includes("subscription") || key.includes("ott") || key.includes("stream")) return "subscriptions";
+  if (key.includes("emi") || key.includes("loan")) return "credit_card";
+  if (key.includes("insurance")) return "shield";
+  if (key.includes("sip") || key.includes("invest")) return "trending_up";
+  if (key.includes("recharge") || key.includes("bill")) return "receipt_long";
+  return "receipt_long";
+};
 
 export default function AddRecurringTemplateModal({
   isOpen,
@@ -28,9 +44,21 @@ export default function AddRecurringTemplateModal({
   const updateRecurringTemplate = useFinanceStore((state) => state.updateRecurringTemplate);
 
   const [title, setTitle] = useState(() => initialTemplate?.title ?? "");
-  const [category, setCategory] = useState(() => initialTemplate?.category ?? "");
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const initialCategory = initialTemplate?.category ?? "";
+    if (initialCategory && recurringCategoryOptions.includes(initialCategory)) {
+      return initialCategory;
+    }
+    return initialCategory ? "__custom__" : recurringCategoryOptions[0];
+  });
+  const [customCategory, setCustomCategory] = useState(() => {
+    const initialCategory = initialTemplate?.category ?? "";
+    if (!initialCategory || recurringCategoryOptions.includes(initialCategory)) {
+      return "";
+    }
+    return initialCategory;
+  });
   const [amount, setAmount] = useState(() => (typeof initialTemplate?.amount === "number" ? String(initialTemplate.amount) : ""));
-  const [icon, setIcon] = useState(() => initialTemplate?.icon || "receipt_long");
 
   if (!isOpen) {
     return null;
@@ -39,22 +67,24 @@ export default function AddRecurringTemplateModal({
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const parsedAmount = Number(amount);
-    if (!title.trim() || !category.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    const category = (selectedCategory === "__custom__" ? customCategory : selectedCategory).trim();
+    if (!title.trim() || !category || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       return;
     }
+    const icon = resolveIconFromCategory(category);
 
     if (initialTemplate) {
       updateRecurringTemplate({
         ...initialTemplate,
         title: title.trim(),
-        category: category.trim(),
+        category,
         amount: parsedAmount,
         icon,
       });
     } else {
       addRecurringTemplate({
         title: title.trim(),
-        category: category.trim(),
+        category,
         amount: parsedAmount,
         icon,
         active: true,
@@ -62,9 +92,9 @@ export default function AddRecurringTemplateModal({
     }
 
     setTitle("");
-    setCategory("");
+    setSelectedCategory(recurringCategoryOptions[0]);
+    setCustomCategory("");
     setAmount("");
-    setIcon("receipt_long");
     onClose();
   };
 
@@ -89,14 +119,32 @@ export default function AddRecurringTemplateModal({
             className="glass-input w-full h-10 px-3 text-sm text-[#f0f0ff]"
             required
           />
-          <input
-            type="text"
-            value={category}
-            onChange={(event) => setCategory(event.target.value)}
-            placeholder="Category"
-            className="glass-input w-full h-10 px-3 text-sm text-[#f0f0ff]"
-            required
-          />
+          <select
+            value={selectedCategory}
+            onChange={(event) => setSelectedCategory(event.target.value)}
+            className="glass-input w-full h-10 px-3 text-sm text-[#f0f0ff] bg-transparent"
+          >
+            {recurringCategoryOptions.map((option) => (
+              <option key={option} value={option} className="bg-[#111118] text-[#f0f0ff]">
+                {option}
+              </option>
+            ))}
+            <option value="__custom__" className="bg-[#111118] text-[#f0f0ff]">
+              Custom Category
+            </option>
+          </select>
+
+          {selectedCategory === "__custom__" && (
+            <input
+              type="text"
+              value={customCategory}
+              onChange={(event) => setCustomCategory(event.target.value)}
+              placeholder="Custom category"
+              className="glass-input w-full h-10 px-3 text-sm text-[#f0f0ff]"
+              required
+            />
+          )}
+
           <input
             type="number"
             min="0.01"
@@ -107,23 +155,6 @@ export default function AddRecurringTemplateModal({
             className="glass-input w-full h-10 px-3 text-sm text-[#f0f0ff]"
             required
           />
-
-          <div className="grid grid-cols-3 gap-2">
-            {iconOptions.map((iconName) => (
-              <button
-                key={iconName}
-                type="button"
-                onClick={() => setIcon(iconName)}
-                className={`h-10 rounded-lg border inline-flex items-center justify-center ${
-                  icon === iconName
-                    ? "border-[#00C9A7]/60 bg-[#00C9A7]/18 text-[#c6fff3]"
-                    : "border-white/20 bg-white/[0.05] text-white/75"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">{iconName}</span>
-              </button>
-            ))}
-          </div>
 
           <button
             type="submit"
@@ -136,3 +167,4 @@ export default function AddRecurringTemplateModal({
     </div>
   );
 }
+

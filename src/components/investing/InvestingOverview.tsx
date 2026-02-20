@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import GoalCard from "../savings/GoalCard";
 import { useFinanceStore } from "../shared/store";
 import { SavingGoal } from "../shared/types";
@@ -13,6 +13,8 @@ interface InvestingOverviewProps {
   onToggleBudget: () => void;
 }
 
+type InvestingSegment = "overview" | "insurance" | "goals" | "investments";
+
 const containsEmergency = (value: string) => value.toLowerCase().includes("emergency");
 
 export default function InvestingOverview({
@@ -22,6 +24,8 @@ export default function InvestingOverview({
   onToggleBudget,
 }: InvestingOverviewProps) {
   const { formatCurrency } = useCurrency();
+  const [activeSegment, setActiveSegment] = useState<InvestingSegment>("overview");
+
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
@@ -58,6 +62,7 @@ export default function InvestingOverview({
     const invested = scopedData.investments.reduce((sum, item) => sum + item.amount, 0);
     return { totalSaved: saved, totalInvested: invested };
   }, [scopedData.goals, scopedData.investments]);
+
   const totalGoalTarget = useMemo(
     () => scopedData.goals.reduce((sum, goal) => sum + goal.targetAmount, 0),
     [scopedData.goals],
@@ -111,206 +116,232 @@ export default function InvestingOverview({
 
   return (
     <section className="px-4 pt-3 pb-4 space-y-4">
-      <div className="glass-card rounded-2xl p-4">
-        <div className="flex items-end justify-between gap-2 mb-2">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.14em] text-white/55 font-semibold">Investing Snapshot</p>
-            <p className="text-2xl font-bold text-white">{formatCurrency(combinedTotal)}</p>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs text-[#9cf4e4] font-semibold">Total Managed</span>
+      <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2">
+        <div className="grid grid-cols-4 gap-1.5">
+          {([
+            { id: "overview", label: "Overview" },
+            { id: "insurance", label: "Insurance" },
+            { id: "goals", label: "Goals" },
+            { id: "investments", label: "Investments" },
+          ] as Array<{ id: InvestingSegment; label: string }>).map((segment) => (
             <button
+              key={segment.id}
               type="button"
-              onClick={onToggleBudget}
-              className={`h-6 px-2 rounded-full border text-[10px] font-semibold ${
-                isBudgetOpen
-                  ? "border-[#00C9A7]/60 bg-[#00C9A7]/18 text-[#bdfdee]"
-                  : "border-white/20 bg-white/[0.08] text-white/70"
+              onClick={() => setActiveSegment(segment.id)}
+              className={`h-8 rounded-xl text-[10px] font-semibold uppercase tracking-wide active:scale-95 transition-all ${
+                activeSegment === segment.id
+                  ? "bg-white/[0.08] border border-white/35 text-white"
+                  : "bg-[#111118] border border-[rgba(255,255,255,0.08)] text-[#94A3B8]"
               }`}
             >
-              Budget
+              {segment.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {activeSegment === "overview" && (
+        <>
+          <div className="glass-card rounded-2xl p-4">
+            <div className="flex items-end justify-between gap-2 mb-2">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.14em] text-white/55 font-semibold">Investing Snapshot</p>
+                <p className="text-2xl font-bold text-white">{formatCurrency(combinedTotal)}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-xs text-[#9cf4e4] font-semibold">Total Managed</span>
+                <button
+                  type="button"
+                  onClick={onToggleBudget}
+                  className={`h-6 px-2 rounded-full border text-[10px] font-semibold ${
+                    isBudgetOpen
+                      ? "border-[#4F46E5]/60 bg-[#4F46E5]/18 text-[#bdfdee]"
+                      : "border-[rgba(255,255,255,0.08)] bg-[#111118] text-white/70"
+                  }`}
+                >
+                  Budget
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
+                <p className="text-white/55 uppercase tracking-wide">Goal Savings</p>
+                <p className="text-sm font-semibold text-white mt-0.5">{formatCurrency(totalSaved)}</p>
+              </div>
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
+                <p className="text-white/55 uppercase tracking-wide">Investments</p>
+                <p className="text-sm font-semibold text-white mt-0.5">{formatCurrency(totalInvested)}</p>
+              </div>
+            </div>
+
+            <p className="mt-2 text-[11px] text-white/60">
+              Savings budget: {formatCurrency(savingsBudget)} - Remaining: {formatCurrency(Math.abs(savingsRemaining))} {savingsRemaining < 0 ? "over" : "left"}
+            </p>
+            <p className="mt-1 text-[11px] text-white/60">
+              {savingsCarryForwardEnabled ? "Carry forward ON: all-time totals" : `Carry forward OFF: last ${dashboardWindow} month(s)`}
+            </p>
+          </div>
+
+          <div className="glass-card rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-white">Emergency Fund Tracker</h3>
+              <span className="text-xs text-[#6b7280]">Target: {emergencyMeta.targetMonths} months</span>
+            </div>
+
+            {emergencyMeta.emergencyGoal ? (
+              <>
+                <p className="text-xs text-[#6b7280] mb-1">
+                  {emergencyMeta.emergencyGoal.name} - {formatCurrency(emergencyMeta.savedAmount)} saved
+                </p>
+                <p className="text-sm font-semibold text-[#f0f0ff] mb-2">{emergencyMeta.monthsCovered.toFixed(1)} months covered</p>
+                <div className="h-2 rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden">
+                  <div className="h-full rounded-full bg-[#00C9A7]" style={{ width: `${emergencyMeta.progress}%` }} />
+                </div>
+                <p className="text-[11px] text-[#6b7280] mt-2">Baseline expense: {formatCurrency(emergencyMeta.baseline || 0)} / month</p>
+                <p className="text-[11px] text-[#6b7280] mt-1">
+                  {emergencyMeta.monthsCovered >= emergencyMeta.targetMonths ? "On track" : "Below target"}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-[#6b7280]">Create a goal and mark it as Emergency Fund to track coverage.</p>
+            )}
+          </div>
+        </>
+      )}
+
+      {activeSegment === "insurance" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-semibold text-white">Life Insurance</h3>
+            <button
+              type="button"
+              onClick={onAddLifeInsurance}
+              className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+            >
+              Add
             </button>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-xl border border-white/15 bg-white/5 p-2.5">
-            <p className="text-white/55 uppercase tracking-wide">Goal Savings</p>
-            <p className="text-sm font-semibold text-white mt-0.5">{formatCurrency(totalSaved)}</p>
-          </div>
-          <div className="rounded-xl border border-white/15 bg-white/5 p-2.5">
-            <p className="text-white/55 uppercase tracking-wide">Investments</p>
-            <p className="text-sm font-semibold text-white mt-0.5">{formatCurrency(totalInvested)}</p>
-          </div>
-        </div>
-
-        <p className="mt-2 text-[11px] text-white/60">
-          Savings budget: {formatCurrency(savingsBudget)} - Remaining: {formatCurrency(Math.abs(savingsRemaining))} {savingsRemaining < 0 ? "over" : "left"}
-        </p>
-        <p className="mt-1 text-[11px] text-white/60">
-          {savingsCarryForwardEnabled ? "Carry forward ON: all-time totals" : `Carry forward OFF: last ${dashboardWindow} month(s)`}
-        </p>
-      </div>
-
-      <div className="glass-card rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-white">Emergency Fund Tracker</h3>
-          <span className="text-xs text-[#6b7280]">Target: {emergencyMeta.targetMonths} months</span>
-        </div>
-
-        {emergencyMeta.emergencyGoal ? (
-          <>
-            <p className="text-xs text-[#6b7280] mb-1">
-              {emergencyMeta.emergencyGoal.name} - {formatCurrency(emergencyMeta.savedAmount)} saved
-            </p>
-            <p className="text-sm font-semibold text-[#f0f0ff] mb-2">
-              {emergencyMeta.monthsCovered.toFixed(1)} months covered
-            </p>
-            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[#00C9A7] drop-shadow-[0_0_4px_currentColor]"
-                style={{ width: `${emergencyMeta.progress}%` }}
-              />
+          {sortedInsurances.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-sm text-white/80">No life insurance entries yet.</p>
+              <p className="text-xs text-white/60 mt-1">Add your monthly premium and EMI date.</p>
             </div>
-            <p className="text-[11px] text-[#6b7280] mt-2">
-              Baseline expense: {formatCurrency(emergencyMeta.baseline || 0)} / month
-            </p>
-            <p className="text-[11px] text-[#6b7280] mt-1">
-              {emergencyMeta.monthsCovered >= emergencyMeta.targetMonths ? "On track" : "Below target"}
-            </p>
-          </>
-        ) : (
-          <p className="text-sm text-[#6b7280]">Create a goal and mark it as Emergency Fund to track coverage.</p>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="text-sm font-semibold text-white">Life Insurance</h3>
-          <button
-            type="button"
-            onClick={onAddLifeInsurance}
-            className="h-7 px-2.5 rounded-lg border border-white/20 bg-white/[0.08] text-[11px] font-semibold text-[#c7dfdb]"
-          >
-            Add
-          </button>
+          ) : (
+            <div className="space-y-2.5">
+              {sortedInsurances.map((item) => {
+                const isPaidForMonth = paidInsuranceIdsForMonth.has(item.id);
+                return (
+                  <article key={item.id} className="glass-card rounded-2xl p-3.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-sm font-semibold text-white">{item.providerName}</h4>
+                        <p className="text-xs text-white/65">{item.planName}</p>
+                        <p className="text-[11px] text-white/45 mt-1">Due: {item.dueDate}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.monthlyAmount)}</p>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => toggleLifeInsurancePaid(item.id)}
+                            className={`h-7 px-2.5 rounded-lg text-[11px] font-semibold ${
+                              isPaidForMonth ? "bg-[rgba(0,201,167,0.2)] text-[#00C9A7]" : "bg-[rgba(255,140,66,0.2)] text-[#FF8C42]"
+                            }`}
+                          >
+                            {isPaidForMonth ? "Paid This Month" : "Unpaid This Month"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteLifeInsurance(item.id)}
+                            className="size-7 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42] inline-flex items-center justify-center"
+                            title="Delete insurance"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    {item.note && <p className="text-xs text-white/65 mt-2 whitespace-normal break-words">{item.note}</p>}
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </div>
+      )}
 
-        {sortedInsurances.length === 0 ? (
-          <div className="glass-card rounded-2xl p-6 text-center">
-            <p className="text-sm text-white/80">No life insurance entries yet.</p>
-            <p className="text-xs text-white/60 mt-1">Add your monthly premium and EMI date.</p>
+      {activeSegment === "goals" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-semibold text-white">Goals</h3>
+            <span className="text-xs text-white/55">{scopedData.goals.length} total</span>
           </div>
-        ) : (
-          <div className="space-y-2.5">
-            {sortedInsurances.map((item) => {
-              const isPaidForMonth = paidInsuranceIdsForMonth.has(item.id);
-              return (
+          <div className="glass-card rounded-xl p-2.5 flex items-center justify-between">
+            <p className="text-[10px] uppercase tracking-wide text-white/55">Saved / Target</p>
+            <p className="text-xs font-semibold text-[#f0f0ff]">
+              {formatCurrency(totalSaved)} / {formatCurrency(totalGoalTarget)}
+            </p>
+          </div>
+
+          {scopedData.goals.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-sm text-white/80">No goals yet.</p>
+              <p className="text-xs text-white/60 mt-1">Use the add button to create your first savings goal.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
+              {scopedData.goals.map((goal) => (
+                <GoalCard key={goal.id} goal={goal} onEditGoal={onEditGoal} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSegment === "investments" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-semibold text-white">Investments</h3>
+            <span className="text-xs text-white/55">{scopedData.investments.length}</span>
+          </div>
+
+          {scopedData.investments.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center">
+              <p className="text-sm text-white/80">No investments yet.</p>
+              <p className="text-xs text-white/60 mt-1">Use the add button to add your first investment.</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {scopedData.investments.map((item) => (
                 <article key={item.id} className="glass-card rounded-2xl p-3.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="text-sm font-semibold text-white">{item.providerName}</h4>
-                    <p className="text-xs text-white/65">{item.planName}</p>
-                    <p className="text-[11px] text-white/45 mt-1">Due: {item.dueDate}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.monthlyAmount)}</p>
-                    <div className="flex items-center gap-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">{item.title}</h4>
+                      <p className="text-xs text-white/65">{item.category}</p>
+                      <p className="text-[11px] text-white/45 mt-1">{item.date}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
                       <button
                         type="button"
-                        onClick={() => toggleLifeInsurancePaid(item.id)}
-                        className={`h-7 px-2.5 rounded-lg text-[11px] font-semibold ${
-                          isPaidForMonth
-                            ? "bg-[rgba(0,201,167,0.2)] text-[#00C9A7]"
-                            : "bg-[rgba(255,140,66,0.2)] text-[#FF8C42]"
-                        }`}
-                      >
-                        {isPaidForMonth ? "Paid This Month" : "Unpaid This Month"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteLifeInsurance(item.id)}
+                        onClick={() => deleteInvestment(item.id)}
                         className="size-7 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42] inline-flex items-center justify-center"
-                        title="Delete insurance"
+                        title="Delete investment"
                       >
                         <span className="material-symbols-outlined text-[14px]">delete</span>
                       </button>
                     </div>
                   </div>
-                </div>
-                {item.note && <p className="text-xs text-white/65 mt-2 whitespace-normal break-words">{item.note}</p>}
+                  {item.note && <p className="text-xs text-white/65 mt-2 truncate">{item.note}</p>}
                 </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="text-sm font-semibold text-white">Goals</h3>
-          <span className="text-xs text-white/55">{scopedData.goals.length} total</span>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="glass-card rounded-xl p-2.5 flex items-center justify-between">
-          <p className="text-[10px] uppercase tracking-wide text-white/55">Saved / Target</p>
-          <p className="text-xs font-semibold text-[#f0f0ff]">
-            {formatCurrency(totalSaved)} / {formatCurrency(totalGoalTarget)}
-          </p>
-        </div>
-
-        {scopedData.goals.length === 0 ? (
-          <div className="glass-card rounded-2xl p-6 text-center">
-            <p className="text-sm text-white/80">No goals yet.</p>
-            <p className="text-xs text-white/60 mt-1">Use the add button to create your first savings goal.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
-            {scopedData.goals.map((goal) => (
-              <GoalCard key={goal.id} goal={goal} onEditGoal={onEditGoal} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="text-sm font-semibold text-white">Investments</h3>
-          <span className="text-xs text-white/55">{scopedData.investments.length}</span>
-        </div>
-
-        {scopedData.investments.length === 0 ? (
-          <div className="glass-card rounded-2xl p-6 text-center">
-            <p className="text-sm text-white/80">No investments yet.</p>
-            <p className="text-xs text-white/60 mt-1">Use the add button to add your first investment.</p>
-          </div>
-        ) : (
-          <div className="space-y-2.5">
-            {scopedData.investments.map((item) => (
-              <article key={item.id} className="glass-card rounded-2xl p-3.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="text-sm font-semibold text-white">{item.title}</h4>
-                    <p className="text-xs text-white/65">{item.category}</p>
-                    <p className="text-[11px] text-white/45 mt-1">{item.date}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
-                    <button
-                      type="button"
-                      onClick={() => deleteInvestment(item.id)}
-                      className="size-7 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[#FF8C42] inline-flex items-center justify-center"
-                      title="Delete investment"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">delete</span>
-                    </button>
-                  </div>
-                </div>
-                {item.note && <p className="text-xs text-white/65 mt-2 truncate">{item.note}</p>}
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </section>
   );
 }
+

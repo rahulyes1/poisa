@@ -18,9 +18,11 @@ import {
   NewPersonalLoan,
   NewRecurringTemplate,
   NewSavingGoal,
+  NewSpendingTodo,
   PersonalLoan,
   RecurringTemplate,
   SavingGoal,
+  SpendingTodo,
 } from "./types";
 
 interface FinanceStoreState {
@@ -43,6 +45,8 @@ interface FinanceStoreState {
   personalLoans: PersonalLoan[];
   lifeInsurances: LifeInsurance[];
   recurringTemplates: RecurringTemplate[];
+  spendingTodos: SpendingTodo[];
+  spendingTodoDoneMonths: Record<string, string[]>;
   recurringExpenses: () => Expense[];
   dueSoonPersonalLoans: (leadDays?: number) => PersonalLoan[];
   totalPersonalLoanOutstanding: () => number;
@@ -102,6 +106,10 @@ interface FinanceStoreState {
   updateRecurringTemplate: (template: RecurringTemplate) => void;
   deleteRecurringTemplate: (id: string) => void;
   toggleRecurringTemplatePaid: (id: string, month: string) => void;
+  addSpendingTodo: (todo: NewSpendingTodo) => void;
+  updateSpendingTodo: (todo: SpendingTodo) => void;
+  deleteSpendingTodo: (id: string) => void;
+  toggleSpendingTodoDone: (id: string, month: string) => void;
   syncSourcePaymentToExpense: (params: {
     sourceType: "loan_emi" | "insurance_premium" | "recurring_template";
     sourceId: string;
@@ -300,6 +308,49 @@ const defaultRecurringTemplates: RecurringTemplate[] = [
   },
 ];
 
+const defaultSpendingTodos: SpendingTodo[] = [
+  {
+    id: "todo-rent",
+    title: "Rent",
+    category: "Rent",
+    defaultAmount: 12000,
+    note: "",
+    active: true,
+  },
+  {
+    id: "todo-electricity",
+    title: "Electricity Bill",
+    category: "Utilities",
+    defaultAmount: 1800,
+    note: "",
+    active: true,
+  },
+  {
+    id: "todo-life-insurance",
+    title: "Life Insurance",
+    category: "Bills & Recharge",
+    defaultAmount: 0,
+    note: "",
+    active: true,
+  },
+  {
+    id: "todo-sip",
+    title: "SIP",
+    category: "Recurring Expenses",
+    defaultAmount: 0,
+    note: "",
+    active: true,
+  },
+  {
+    id: "todo-parents-insurance",
+    title: "Parents Insurance",
+    category: "Bills & Recharge",
+    defaultAmount: 0,
+    note: "",
+    active: true,
+  },
+];
+
 const findLinkedExpense = (
   expenses: Expense[],
   sourceType: "loan_emi" | "insurance_premium" | "recurring_template",
@@ -321,6 +372,7 @@ const initialLoans: Loan[] = [];
 const initialPersonalLoans: PersonalLoan[] = [];
 const initialLifeInsurances: LifeInsurance[] = [];
 const initialRecurringTemplates: RecurringTemplate[] = defaultRecurringTemplates;
+const initialSpendingTodos: SpendingTodo[] = defaultSpendingTodos;
 
 const initialAdjustments: FinanceAdjustments = {
   manualAssets: 0,
@@ -351,6 +403,8 @@ export const useFinanceStore = create<FinanceStoreState>()(
       personalLoans: initialPersonalLoans,
       lifeInsurances: initialLifeInsurances,
       recurringTemplates: initialRecurringTemplates,
+      spendingTodos: initialSpendingTodos,
+      spendingTodoDoneMonths: {},
       recurringExpenses: () => get().expenses.filter((expense) => expense.recurring),
       dueSoonPersonalLoans: (leadDays = 3) => {
         const now = new Date();
@@ -712,7 +766,7 @@ export const useFinanceStore = create<FinanceStoreState>()(
               {
                 id: generateId(),
                 name: `${targetLoan.lenderName} EMI`,
-                category: "Loan EMI",
+                category: "EMI Expenses",
                 amount,
                 date: getCurrentDate(),
                 icon: "credit_card",
@@ -815,7 +869,7 @@ export const useFinanceStore = create<FinanceStoreState>()(
                 {
                   id: generateId(),
                   name: `${target.providerName} Premium`,
-                  category: "Life Insurance",
+                  category: "Bills & Recharge",
                   amount: target.monthlyAmount,
                   date: getCurrentDate(),
                   icon: "shield",
@@ -900,7 +954,7 @@ export const useFinanceStore = create<FinanceStoreState>()(
                 {
                   id: generateId(),
                   name: target.title,
-                  category: target.category,
+                  category: "Recurring Expenses",
                   amount: target.amount,
                   date: getCurrentDate(),
                   icon: target.icon || "receipt_long",
@@ -921,6 +975,57 @@ export const useFinanceStore = create<FinanceStoreState>()(
           return {
             recurringTemplates: nextTemplates,
             expenses: nextExpenses,
+          };
+        }),
+      addSpendingTodo: (todo) =>
+        set((state) => {
+          const title = todo.title.trim();
+          const category = todo.category.trim();
+          const defaultAmount = Number(todo.defaultAmount);
+          if (!title || !category || !Number.isFinite(defaultAmount) || defaultAmount < 0) {
+            return state;
+          }
+
+          return {
+            spendingTodos: [
+              {
+                id: generateId(),
+                title,
+                category,
+                defaultAmount: Number(defaultAmount.toFixed(2)),
+                note: todo.note?.trim() ?? "",
+                active: todo.active ?? true,
+              },
+              ...state.spendingTodos,
+            ],
+          };
+        }),
+      updateSpendingTodo: (todo) =>
+        set((state) => ({
+          spendingTodos: state.spendingTodos.map((existing) => (existing.id === todo.id ? todo : existing)),
+        })),
+      deleteSpendingTodo: (id) =>
+        set((state) => {
+          const nextDoneMonths = { ...state.spendingTodoDoneMonths };
+          delete nextDoneMonths[id];
+          return {
+            spendingTodos: state.spendingTodos.filter((todo) => todo.id !== id),
+            spendingTodoDoneMonths: nextDoneMonths,
+          };
+        }),
+      toggleSpendingTodoDone: (id, month) =>
+        set((state) => {
+          const doneMonths = state.spendingTodoDoneMonths[id] ?? [];
+          const isDone = doneMonths.includes(month);
+          const nextDoneMonths = isDone
+            ? doneMonths.filter((doneMonth) => doneMonth !== month)
+            : [...doneMonths, month];
+
+          return {
+            spendingTodoDoneMonths: {
+              ...state.spendingTodoDoneMonths,
+              [id]: nextDoneMonths,
+            },
           };
         }),
       syncSourcePaymentToExpense: ({ sourceType, sourceId, sourceMonth, paid, name, category, amount, icon }) =>
