@@ -86,6 +86,7 @@ export interface PersonalLoan {
   nextEmiDate?: string;
   outstandingAmount?: number;
   emiPaid?: boolean;
+  paidMonths?: string[];
   note?: string;
   closed: boolean;
   payments: PersonalLoanPayment[];

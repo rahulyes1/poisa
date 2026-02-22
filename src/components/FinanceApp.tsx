@@ -45,10 +45,11 @@ interface FinanceAppShellProps {
   onSignIn: () => Promise<void>;
   onSignOut: () => Promise<void>;
   authConfigured: boolean;
+  isSigningIn: boolean;
   authError?: string;
 }
 
-function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, authError }: FinanceAppShellProps) {
+function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningIn, authError }: FinanceAppShellProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("spending");
   const [spendingQuery, setSpendingQuery] = useState("");
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
@@ -194,6 +195,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, authError 
         onSignIn={onSignIn}
         onSignOut={onSignOut}
         authConfigured={authConfigured}
+        isSigningIn={isSigningIn}
         authError={authError}
       />
 
@@ -327,43 +329,71 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, authError 
 
       <BottomNav activeTab={activeTab} setActiveTab={onTabChange} />
 
-      <AddExpenseModal isOpen={isAddExpenseOpen} onClose={() => setIsAddExpenseOpen(false)} />
+      <AddExpenseModal
+        key={`add-expense-${isAddExpenseOpen ? "open" : "closed"}`}
+        isOpen={isAddExpenseOpen}
+        onClose={() => setIsAddExpenseOpen(false)}
+      />
       <EditExpenseModal
         key={editExpenseItem?.id ?? "edit-expense"}
         isOpen={Boolean(editExpenseItem)}
         item={editExpenseItem}
         onClose={() => setEditExpenseItem(null)}
       />
-      <AddGoalModal isOpen={isAddGoalOpen} onClose={() => setIsAddGoalOpen(false)} />
+      <AddGoalModal
+        key={`add-goal-${isAddGoalOpen ? "open" : "closed"}`}
+        isOpen={isAddGoalOpen}
+        onClose={() => setIsAddGoalOpen(false)}
+      />
       <EditGoalModal
         key={editGoalItem?.id ?? "edit-goal"}
         isOpen={Boolean(editGoalItem)}
         item={editGoalItem}
         onClose={() => setEditGoalItem(null)}
       />
-      <AddLendModal isOpen={isAddLendOpen} onClose={() => setIsAddLendOpen(false)} />
+      <AddLendModal
+        key={`add-lend-${isAddLendOpen ? "open" : "closed"}`}
+        isOpen={isAddLendOpen}
+        onClose={() => setIsAddLendOpen(false)}
+      />
       <EditLoanModal
         key={editLoanItem?.id ?? "edit-loan"}
         isOpen={Boolean(editLoanItem)}
         item={editLoanItem}
         onClose={() => setEditLoanItem(null)}
       />
-      <AddPersonalLoanModal isOpen={isAddPersonalLoanOpen} onClose={() => setIsAddPersonalLoanOpen(false)} />
+      <AddPersonalLoanModal
+        key={`add-personal-loan-${isAddPersonalLoanOpen ? "open" : "closed"}`}
+        isOpen={isAddPersonalLoanOpen}
+        onClose={() => setIsAddPersonalLoanOpen(false)}
+      />
       <EditPersonalLoanModal
         key={editPersonalLoanItem?.id ?? "edit-personal-loan"}
         isOpen={Boolean(editPersonalLoanItem)}
         item={editPersonalLoanItem}
         onClose={() => setEditPersonalLoanItem(null)}
       />
-      <AddMoneyTookModal isOpen={isAddMoneyTookOpen} onClose={() => setIsAddMoneyTookOpen(false)} />
+      <AddMoneyTookModal
+        key={`add-money-took-${isAddMoneyTookOpen ? "open" : "closed"}`}
+        isOpen={isAddMoneyTookOpen}
+        onClose={() => setIsAddMoneyTookOpen(false)}
+      />
       <EditMoneyTookModal
         key={editMoneyTookItem?.id ?? "edit-money-took"}
         isOpen={Boolean(editMoneyTookItem)}
         item={editMoneyTookItem}
         onClose={() => setEditMoneyTookItem(null)}
       />
-      <AddInvestmentModal isOpen={isAddInvestmentOpen} onClose={() => setIsAddInvestmentOpen(false)} />
-      <AddLifeInsuranceModal isOpen={isAddLifeInsuranceOpen} onClose={() => setIsAddLifeInsuranceOpen(false)} />
+      <AddInvestmentModal
+        key={`add-investment-${isAddInvestmentOpen ? "open" : "closed"}`}
+        isOpen={isAddInvestmentOpen}
+        onClose={() => setIsAddInvestmentOpen(false)}
+      />
+      <AddLifeInsuranceModal
+        key={`add-life-insurance-${isAddLifeInsuranceOpen ? "open" : "closed"}`}
+        isOpen={isAddLifeInsuranceOpen}
+        onClose={() => setIsAddLifeInsuranceOpen(false)}
+      />
     </div>
   );
 }
@@ -371,12 +401,13 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, authError 
 export default function FinanceApp() {
   return (
     <AuthGate>
-      {({ user, onSignIn, onSignOut, authConfigured, authError }) => (
+      {({ user, onSignIn, onSignOut, authConfigured, isSigningIn, authError }) => (
         <FinanceAppShell
           user={user}
           onSignIn={onSignIn}
           onSignOut={onSignOut}
           authConfigured={authConfigured}
+          isSigningIn={isSigningIn}
           authError={authError}
         />
       )}

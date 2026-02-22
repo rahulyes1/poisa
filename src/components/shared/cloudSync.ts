@@ -29,10 +29,27 @@ let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let unsubscribeStore: (() => void) | null = null;
 let detachOnlineListener: (() => void) | null = null;
+let snapshotTableMissing = false;
 
 const isConnectivityError = (error: unknown) => {
   const text = error instanceof Error ? error.message : String(error ?? "");
   return text.toLowerCase().includes("fetch") || text.toLowerCase().includes("network");
+};
+
+const isSnapshotTableMissingError = (error: unknown) => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const postgrestCode =
+    "code" in (error as { code?: unknown }) ? (error as { code?: unknown }).code : undefined;
+  if (postgrestCode === "PGRST205") {
+    return true;
+  }
+
+  const text = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = text.toLowerCase();
+  return normalized.includes("user_finance_snapshots") && normalized.includes("could not find");
 };
 
 const serializeState = (state: FinanceDataSnapshot) => JSON.stringify(state);
@@ -168,7 +185,7 @@ export const upsertRemoteSnapshot = async (
 };
 
 const flushCloudSync = async () => {
-  if (!activeUserId || !supabase) {
+  if (!activeUserId || !supabase || snapshotTableMissing) {
     return;
   }
 
@@ -200,24 +217,41 @@ const flushCloudSync = async () => {
       setSyncStatus("idle");
       return;
     }
+    if (latest.error && isSnapshotTableMissingError(latest.error)) {
+      snapshotTableMissing = true;
+      setSyncStatus("error");
+      clearTimers();
+      return;
+    }
   }
 
   if (result.error) {
+    if (isSnapshotTableMissingError(result.error)) {
+      snapshotTableMissing = true;
+      setSyncStatus("error");
+      clearTimers();
+      return;
+    }
+
     const offline = (typeof navigator !== "undefined" && !navigator.onLine) || isConnectivityError(result.error);
     setSyncStatus(offline ? "offline" : "error");
     retryTimer = setTimeout(() => {
-      flushCloudSync();
+      void flushCloudSync();
     }, RETRY_DELAY_MS);
   }
 };
 
 const scheduleCloudSync = () => {
+  if (snapshotTableMissing) {
+    return;
+  }
+
   if (syncTimer) {
     clearTimeout(syncTimer);
   }
 
   syncTimer = setTimeout(() => {
-    flushCloudSync();
+    void flushCloudSync();
   }, SYNC_DEBOUNCE_MS);
 };
 
@@ -227,6 +261,7 @@ export const stopCloudSync = () => {
   latestRemoteVersion = null;
   latestSerializedSnapshot = "";
   isApplyingRemote = false;
+  snapshotTableMissing = false;
   if (unsubscribeStore) {
     unsubscribeStore();
     unsubscribeStore = null;
@@ -240,6 +275,7 @@ export const stopCloudSync = () => {
 export const startCloudSync = async (userId: string) => {
   stopCloudSync();
   activeUserId = userId;
+  snapshotTableMissing = false;
 
   const currentSnapshot = getFinanceDataSnapshot();
   latestSerializedSnapshot = serializeState(currentSnapshot);
@@ -248,6 +284,11 @@ export const startCloudSync = async (userId: string) => {
   const remote = await loadRemoteSnapshot(userId);
 
   if (remote.error) {
+    if (isSnapshotTableMissingError(remote.error)) {
+      snapshotTableMissing = true;
+      setSyncStatus("error");
+      return;
+    }
     const offline = (typeof navigator !== "undefined" && !navigator.onLine) || isConnectivityError(remote.error);
     setSyncStatus(offline ? "offline" : "error");
   } else if (remote.row) {
@@ -258,6 +299,9 @@ export const startCloudSync = async (userId: string) => {
     if (hasMeaningfulLocalData(currentSnapshot)) {
       useFinanceStore.getState().markDirty();
       await flushCloudSync();
+      if (snapshotTableMissing) {
+        return;
+      }
     } else {
       useFinanceStore.getState().clearDirty();
       setSyncStatus("idle");
@@ -283,7 +327,7 @@ export const startCloudSync = async (userId: string) => {
   if (typeof window !== "undefined") {
     const onOnline = () => {
       if (useFinanceStore.getState().dirty) {
-        flushCloudSync();
+        void flushCloudSync();
       }
     };
     window.addEventListener("online", onOnline);

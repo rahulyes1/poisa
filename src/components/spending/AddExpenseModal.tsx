@@ -79,12 +79,6 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
       recurring,
     });
 
-    setDate(today());
-    setAmount("");
-    setSelectedCategory(categoryOptions[0] ?? "Other");
-    setCustomCategory("");
-    setNote("");
-    setRecurring(false);
     onClose();
   };
 

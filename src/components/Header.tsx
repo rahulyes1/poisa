@@ -20,6 +20,7 @@ interface HeaderProps {
   onSignIn?: () => Promise<void> | void;
   onSignOut?: () => Promise<void> | void;
   authConfigured?: boolean;
+  isSigningIn?: boolean;
   authError?: string;
 }
 
@@ -50,6 +51,7 @@ export default function Header({
   onSignIn,
   onSignOut,
   authConfigured = true,
+  isSigningIn = false,
   authError,
 }: HeaderProps) {
   const { currency, currencySymbol } = useCurrency();
@@ -120,13 +122,27 @@ export default function Header({
             ) : (
               <button
                 type="button"
-                onClick={() => onSignIn?.()}
+                onClick={() => {
+                  if (isSigningIn) {
+                    return;
+                  }
+                  void onSignIn?.();
+                }}
                 disabled={!authConfigured}
                 className="h-6 px-2 rounded-full border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.16)] inline-flex items-center gap-1 text-[10px] font-semibold text-[#c7d2fe] disabled:opacity-45 disabled:cursor-not-allowed"
-                title={authConfigured ? "Sign in with Google" : "Supabase config missing. Add env vars in .env.local"}
+                title={
+                  authConfigured
+                    ? isSigningIn
+                      ? "Starting Google sign-in"
+                      : "Sign in with Google"
+                    : "Supabase config missing. Add env vars in .env.local"
+                }
+                aria-busy={isSigningIn}
               >
-                <span className="material-symbols-outlined text-[12px]">login</span>
-                <span>Sign In</span>
+                <span className="material-symbols-outlined text-[12px]">
+                  {isSigningIn ? "hourglass_top" : "login"}
+                </span>
+                <span>{isSigningIn ? "Signing in..." : "Sign In"}</span>
               </button>
             )}
             {activeTab === "spending" && (
@@ -223,7 +239,9 @@ export default function Header({
         </div>
 
         {!isSignedIn && authError && (
-          <p className="pt-1 text-[10px] text-[#FFB88D]">{authError}</p>
+          <div className="mt-1 rounded-lg border border-[rgba(255,184,141,0.35)] bg-[rgba(255,184,141,0.12)] px-2 py-1 text-[10px] text-[#FFB88D]">
+            {authError}
+          </div>
         )}
 
         {activeTab === "spending" && showSearch && (

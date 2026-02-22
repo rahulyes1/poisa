@@ -91,10 +91,6 @@ export default function AddRecurringTemplateModal({
       });
     }
 
-    setTitle("");
-    setSelectedCategory(recurringCategoryOptions[0]);
-    setCustomCategory("");
-    setAmount("");
     onClose();
   };
 

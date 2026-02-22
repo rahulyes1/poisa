@@ -43,13 +43,6 @@ export default function AddGoalModal({ isOpen, onClose }: AddGoalModalProps) {
       isEmergencyFund,
     });
 
-    setName("");
-    setCategory("General");
-    setTargetAmount("");
-    setSavedAmount("");
-    setDate(today());
-    setIcon("savings");
-    setIsEmergencyFund(false);
     onClose();
   };
 

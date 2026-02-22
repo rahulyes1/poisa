@@ -40,19 +40,20 @@ export default function SpendingDashboard({ isBudgetOpen, onToggleBudget }: Spen
   const [editingLimitCategory, setEditingLimitCategory] = useState<string | null>(null);
   const [limitInput, setLimitInput] = useState("");
 
+  const expenses = useFinanceStore((state) => state.expenses);
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
-  const getExpensesForWindow = useFinanceStore((state) => state.getExpensesForWindow);
+  const getWindowMonths = useFinanceStore((state) => state.getWindowMonths);
   const getSpentForMonth = useFinanceStore((state) => state.getSpentForMonth);
   const getEffectiveSpendingBudget = useFinanceStore((state) => state.getEffectiveSpendingBudget);
   const getSpendingCarryOut = useFinanceStore((state) => state.getSpendingCarryOut);
   const categoryLimits = useFinanceStore((state) => state.categoryLimits);
   const setCategoryLimit = useFinanceStore((state) => state.setCategoryLimit);
 
-  const windowExpenses = useMemo(
-    () => getExpensesForWindow(selectedMonth, dashboardWindow),
-    [dashboardWindow, getExpensesForWindow, selectedMonth],
-  );
+  const windowExpenses = useMemo(() => {
+    const months = new Set(getWindowMonths(selectedMonth, dashboardWindow));
+    return expenses.filter((expense) => months.has(expense.date.slice(0, 7)));
+  }, [dashboardWindow, expenses, getWindowMonths, selectedMonth]);
 
   const totalSpentInWindow = useMemo(
     () => windowExpenses.reduce((sum, expense) => sum + expense.amount, 0),

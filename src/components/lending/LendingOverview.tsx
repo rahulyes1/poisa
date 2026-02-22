@@ -300,7 +300,9 @@ export default function LendingOverview({ onEditLoan, onEditPersonalLoan, onEdit
             <h3 className="text-sm font-semibold text-white">My Loans (EMI)</h3>
             <span className="text-xs text-white/55">{sortedPersonalLoans.length}</span>
           </div>
-          <p className="px-1 text-[11px] text-white/50">Mark Paid adds a linked EMI expense in Spending for the selected month.</p>
+          <p className="px-1 text-[11px] text-white/50">
+            Mark Paid syncs to Spending only when EMI amount is set; otherwise it updates loan status only.
+          </p>
 
           {sortedPersonalLoans.length === 0 ? (
             <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-6 text-center">

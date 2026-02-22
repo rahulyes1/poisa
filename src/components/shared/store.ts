@@ -282,23 +282,12 @@ const getOutstandingForPersonalLoan = (loan: PersonalLoan) => {
   return Math.max(baseAmount - paidAmount, 0);
 };
 
-const resolvePersonalLoanEmiAmount = (loan: PersonalLoan) => {
-  const fromEmi = Number(loan.emiAmount ?? 0);
-  if (Number.isFinite(fromEmi) && fromEmi > 0) {
-    return fromEmi;
+const resolveConfiguredPersonalLoanEmiAmount = (loan: PersonalLoan) => {
+  const value = Number(loan.emiAmount ?? 0);
+  if (!Number.isFinite(value) || value <= 0) {
+    return 0;
   }
-
-  const fromOutstanding = Number(loan.outstandingAmount ?? 0);
-  if (Number.isFinite(fromOutstanding) && fromOutstanding > 0) {
-    return fromOutstanding;
-  }
-
-  const fromTotal = Number(loan.totalLoanAmount ?? 0);
-  if (Number.isFinite(fromTotal) && fromTotal > 0) {
-    return fromTotal;
-  }
-
-  return 0;
+  return value;
 };
 
 const getOutstandingForMoneyTook = (entry: MoneyTookEntry) => {
@@ -703,7 +692,13 @@ export const useFinanceStore = create<FinanceStoreState>()(
           if (target.sourceType && target.sourceId && target.sourceMonth) {
             if (target.sourceType === "loan_emi") {
               nextState.personalLoans = state.personalLoans.map((loan) =>
-                loan.id === target.sourceId ? { ...loan, emiPaid: false } : loan,
+                loan.id === target.sourceId
+                  ? {
+                      ...loan,
+                      emiPaid: false,
+                      paidMonths: (loan.paidMonths ?? []).filter((month) => month !== target.sourceMonth),
+                    }
+                  : loan,
               );
             }
 
@@ -825,6 +820,7 @@ export const useFinanceStore = create<FinanceStoreState>()(
             closed: loan.closed ?? false,
             nextEmiDate,
             emiPaid: loan.emiPaid ?? false,
+            paidMonths: loan.paidMonths ?? [],
             note: loan.note ?? "",
           };
 
@@ -849,6 +845,7 @@ export const useFinanceStore = create<FinanceStoreState>()(
               ...loan,
               nextEmiDate,
               emiPaid: loan.emiPaid ?? false,
+              paidMonths: loan.paidMonths ?? existing.paidMonths ?? [],
               note: loan.note ?? "",
             };
           }),
@@ -982,19 +979,25 @@ export const useFinanceStore = create<FinanceStoreState>()(
           }
 
           const linked = findLinkedExpense(state.expenses, "loan_emi", id, sourceMonth);
-          if (linked) {
+          const paidMonths = targetLoan.paidMonths ?? [];
+          if (linked || paidMonths.includes(sourceMonth)) {
             return state;
           }
 
-          const amount = resolvePersonalLoanEmiAmount(targetLoan);
+          const amount = resolveConfiguredPersonalLoanEmiAmount(targetLoan);
+          const nextPaidMonths = [...paidMonths, sourceMonth];
+          const nextPersonalLoans = state.personalLoans.map((loan) =>
+            loan.id === id ? { ...loan, emiPaid: true, paidMonths: nextPaidMonths } : loan,
+          );
+
           if (amount <= 0) {
-            return state;
+            return {
+              personalLoans: nextPersonalLoans,
+            };
           }
 
           return {
-            personalLoans: state.personalLoans.map((loan) =>
-              loan.id === id ? { ...loan, emiPaid: true } : loan,
-            ),
+            personalLoans: nextPersonalLoans,
             expenses: [
               {
                 id: generateId(),
@@ -1021,7 +1024,13 @@ export const useFinanceStore = create<FinanceStoreState>()(
 
           return {
             personalLoans: state.personalLoans.map((loan) =>
-              loan.id === id ? { ...loan, emiPaid: false } : loan,
+              loan.id === id
+                ? {
+                    ...loan,
+                    emiPaid: false,
+                    paidMonths: (loan.paidMonths ?? []).filter((month) => month !== sourceMonth),
+                  }
+                : loan,
             ),
             expenses: linked
               ? state.expenses.filter((expense) => expense.id !== linked.id)
@@ -1316,7 +1325,13 @@ export const useFinanceStore = create<FinanceStoreState>()(
 
           if (target.sourceType === "loan_emi") {
             nextState.personalLoans = state.personalLoans.map((loan) =>
-              loan.id === target.sourceId ? { ...loan, emiPaid: false } : loan,
+              loan.id === target.sourceId
+                ? {
+                    ...loan,
+                    emiPaid: false,
+                    paidMonths: (loan.paidMonths ?? []).filter((month) => month !== target.sourceMonth),
+                  }
+                : loan,
             );
           }
           if (target.sourceType === "insurance_premium") {

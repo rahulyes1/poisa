@@ -65,15 +65,6 @@ export default function AddPersonalLoanModal({ isOpen, onClose }: AddPersonalLoa
       note: note.trim() || undefined,
     });
 
-    setLenderName("");
-    setLoanType("personal");
-    setCustomTypeLabel("");
-    setStartDate(today());
-    setTotalLoanAmount("");
-    setOutstandingAmount("");
-    setEmiAmount("");
-    setNextEmiDate("");
-    setNote("");
     onClose();
   };
 

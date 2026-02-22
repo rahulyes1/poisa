@@ -51,12 +51,6 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       note: note.trim(),
     });
 
-    setDate(today());
-    setAmount("");
-    setSelectedCategory(categoryOptions[0] ?? "Stocks");
-    setCustomCategory("");
-    setTitle("");
-    setNote("");
     onClose();
   };
 

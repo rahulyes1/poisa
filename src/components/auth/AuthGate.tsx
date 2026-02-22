@@ -19,6 +19,7 @@ interface AuthGateProps {
     onSignIn: () => Promise<void>;
     onSignOut: () => Promise<void>;
     authConfigured: boolean;
+    isSigningIn: boolean;
     authError?: string;
   }) => ReactNode;
 }
@@ -34,6 +35,35 @@ export default function AuthGate({ children }: AuthGateProps) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<AppAuthUser | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  const getReadableSignInError = (value: unknown) => {
+    const message = value instanceof Error ? value.message.trim() : "";
+    if (!message) {
+      return "Unable to start Google sign-in. Please try again.";
+    }
+
+    const normalized = message.toLowerCase();
+    if (normalized.includes("redirect") || normalized.includes("requested path is invalid")) {
+      return `${message}. Check Supabase Auth URL Configuration and include localhost + production callback URLs.`;
+    }
+
+    return message;
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get("auth_error");
+    if (authError !== "google_signin_failed") {
+      return;
+    }
+
+    setError("Sign-in failed. Check OAuth redirect URLs and try again.");
+    params.delete("auth_error");
+    const nextQuery = params.toString();
+    const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`;
+    window.history.replaceState({}, "", nextUrl);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -44,16 +74,27 @@ export default function AuthGate({ children }: AuthGateProps) {
       }
 
       await setFinanceStoreNamespace(supabaseUser?.id ?? null);
+      if (!active) {
+        return;
+      }
 
       if (supabaseUser) {
-        await startCloudSync(supabaseUser.id);
+        setError(null);
         setUser(toAppAuthUser(supabaseUser));
+        setReady(true);
+        setIsSigningIn(false);
+        void startCloudSync(supabaseUser.id).catch(() => {
+          if (!active) {
+            return;
+          }
+          setError((current) => current ?? "Signed in, but cloud sync is unavailable right now.");
+        });
       } else {
         stopCloudSync();
         setUser(null);
+        setReady(true);
+        setIsSigningIn(false);
       }
-
-      setReady(true);
     };
 
     const init = async () => {
@@ -64,11 +105,14 @@ export default function AuthGate({ children }: AuthGateProps) {
         return;
       }
 
-      const { data } = await supabase.auth.getSession();
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError && active) {
+        setError("Unable to read your session. You can still use the app signed out.");
+      }
       await applyAuthUser(data.session?.user ?? null);
     };
 
-    init();
+    void init();
 
     const { data: listener } =
       supabase?.auth.onAuthStateChange(async (_event, session) => {
@@ -90,6 +134,7 @@ export default function AuthGate({ children }: AuthGateProps) {
 
     try {
       setError(null);
+      setIsSigningIn(true);
       const redirectBase = window.location.origin;
       const redirectTo = `${redirectBase}/auth/callback`;
       const { error: signInError } = await supabase.auth.signInWithOAuth({
@@ -100,12 +145,14 @@ export default function AuthGate({ children }: AuthGateProps) {
       if (signInError) {
         throw signInError;
       }
-    } catch {
-      setError("Unable to start Google sign-in. Please try again.");
+    } catch (signInError) {
+      setIsSigningIn(false);
+      setError(getReadableSignInError(signInError));
     }
   };
 
   const onSignOut = async () => {
+    setIsSigningIn(false);
     if (!supabase) {
       await setFinanceStoreNamespace(null);
       stopCloudSync();
@@ -114,7 +161,14 @@ export default function AuthGate({ children }: AuthGateProps) {
     }
 
     stopCloudSync();
-    await supabase.auth.signOut();
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      setError("Unable to sign out right now. Please try again.");
+      return;
+    }
+    await setFinanceStoreNamespace(null);
+    setUser(null);
+    setReady(true);
   };
 
   if (!ready) {
@@ -132,6 +186,7 @@ export default function AuthGate({ children }: AuthGateProps) {
         onSignIn,
         onSignOut,
         authConfigured: isSupabaseConfigured,
+        isSigningIn,
         authError: error ?? undefined,
       })}
     </>

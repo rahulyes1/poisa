@@ -38,11 +38,6 @@ export default function AddMoneyTookModal({ isOpen, onClose }: AddMoneyTookModal
       note: note.trim() || undefined,
     });
 
-    setLenderName("");
-    setAmount("");
-    setEmiAmount("");
-    setDueDate("");
-    setNote("");
     onClose();
   };
 

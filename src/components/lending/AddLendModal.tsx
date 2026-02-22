@@ -40,11 +40,6 @@ export default function AddLendModal({ isOpen, onClose }: AddLendModalProps) {
       repaidAmount: repaid ? parsedAmount : 0,
     });
 
-    setPersonName("");
-    setAmount("");
-    setDate(today());
-    setDueDate("");
-    setRepaid(false);
     onClose();
   };
 

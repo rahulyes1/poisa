@@ -40,12 +40,6 @@ export default function AddLifeInsuranceModal({ isOpen, onClose }: AddLifeInsura
       note: note.trim() || undefined,
     });
 
-    setProviderName("");
-    setPlanName("");
-    setMonthlyAmount("");
-    setDueDate(today());
-    setNote("");
-    setPaid(false);
     onClose();
   };
 
