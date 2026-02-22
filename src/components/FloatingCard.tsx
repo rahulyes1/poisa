@@ -26,10 +26,12 @@ export default function FloatingCard({
         <button
           type="button"
           onClick={onAction}
-          className="size-14 rounded-full border border-[#4F46E5]/40 bg-[#4F46E5] text-white shadow-[0_10px_24px_rgba(79,70,229,0.40)] flex items-center justify-center active:scale-90 transition-transform"
+          className="poisa-fab poisa-pressable size-14 rounded-full flex items-center justify-center"
           title={buttonLabel}
         >
-          <span className="material-symbols-outlined text-[28px]">{icon}</span>
+          <span className={`material-symbols-outlined text-[28px] poisa-fab-icon ${icon === "add" ? "poisa-fab-icon-add" : ""}`}>
+            {icon}
+          </span>
         </button>
       </div>
 
@@ -47,9 +49,9 @@ export default function FloatingCard({
         <button
           type="button"
           onClick={onAction}
-          className="h-10 px-4 rounded-xl bg-[#4F46E5] text-white text-sm font-semibold shadow-[0_0_18px_rgba(79,70,229,0.35)] flex items-center gap-2 active:scale-95 transition-transform"
+          className="poisa-fab poisa-pressable h-10 px-4 rounded-xl text-white text-sm font-semibold flex items-center gap-2"
         >
-          <span className="material-symbols-outlined text-[18px]">{icon}</span>
+          <span className={`material-symbols-outlined text-[18px] poisa-fab-icon ${icon === "add" ? "poisa-fab-icon-add" : ""}`}>{icon}</span>
           <span>{buttonLabel}</span>
         </button>
       </div>

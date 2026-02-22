@@ -10,7 +10,11 @@ const formatMonthLabel = (month: string) => {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 };
 
-export default function BudgetSetter() {
+interface BudgetSetterProps {
+  onClose: () => void;
+}
+
+export default function BudgetSetter({ onClose }: BudgetSetterProps) {
   const { formatCurrency } = useCurrency();
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const getBaseBudgetForMonth = useFinanceStore((state) => state.getBaseBudgetForMonth);
@@ -19,6 +23,8 @@ export default function BudgetSetter() {
   const currentBudget = getBaseBudgetForMonth(selectedMonth);
   const monthLabel = useMemo(() => formatMonthLabel(selectedMonth), [selectedMonth]);
   const [value, setValue] = useState(String(currentBudget));
+  const parsedValue = Number(value);
+  const canSave = Number.isFinite(parsedValue) && parsedValue > 0;
 
   useEffect(() => {
     setValue(String(currentBudget));
@@ -26,24 +32,36 @@ export default function BudgetSetter() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextValue = Number(value);
-    if (!Number.isFinite(nextValue) || nextValue <= 0) {
+    if (!canSave) {
       return;
     }
-    setMonthlyBudget(selectedMonth, nextValue);
+    setMonthlyBudget(selectedMonth, parsedValue);
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("poisa:spending-budget-saved"));
     }
+    onClose();
   };
 
   return (
-    <section className="px-4 pt-1">
+    <div className="fixed inset-0 z-[75] flex items-center justify-center px-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60"
+        onClick={onClose}
+        aria-label="Close budget popup"
+      />
       <form
         onSubmit={onSubmit}
-        className="glass-card rounded-xl p-2.5 flex items-end gap-2"
+        className="relative z-10 w-full max-w-md rounded-2xl border border-[#2A3345] bg-[#161B22] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
       >
-        <label className="flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/60 mb-1.5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-[#E8EDF5]">Set Spending Budget</h3>
+          <button type="button" onClick={onClose} className="text-[#7A8599]">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <label className="block">
+          <p className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[#7A8599] mb-1.5">
             Budget for {monthLabel}
           </p>
           <input
@@ -52,20 +70,21 @@ export default function BudgetSetter() {
             step="0.01"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            className="glass-input w-full px-2.5 py-1.5 text-xs text-[#f0f0ff]"
+            className="w-full h-11 rounded-xl border border-[#2A3345] bg-[#0D1117] px-3 text-sm text-[#E8EDF5] outline-none focus:border-[#00C896]"
           />
         </label>
+        <p className="mt-2 text-xs text-[#7A8599]">
+          Current budget: <span className="font-semibold text-[#E8EDF5]">{formatCurrency(currentBudget)}</span>
+        </p>
         <button
           type="submit"
-          className="h-8 px-3 rounded-lg bg-[#00C9A7] text-[#07241f] text-xs font-semibold hover:bg-[#00C9A7]/90 transition-colors"
+          disabled={!canSave}
+          className="mt-3 h-10 w-full rounded-xl bg-[#00C896] text-[#06221a] text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Save
         </button>
       </form>
-      <p className="px-1 mt-1.5 text-[11px] text-white/70">
-        Current budget: <span className="font-semibold">{formatCurrency(currentBudget)}</span>
-      </p>
-    </section>
+    </div>
   );
 }
 

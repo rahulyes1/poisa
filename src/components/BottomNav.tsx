@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { TabKey } from "./shared/types";
 
 interface NavItem {
@@ -21,8 +22,36 @@ interface BottomNavProps {
 }
 
 export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsScrolling(true);
+      if (scrollStopTimer.current) {
+        clearTimeout(scrollStopTimer.current);
+      }
+      scrollStopTimer.current = setTimeout(() => setIsScrolling(false), 180);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (scrollStopTimer.current) {
+        clearTimeout(scrollStopTimer.current);
+      }
+    };
+  }, []);
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 bg-[#0F172A]/92 backdrop-blur-[24px] border-t border-[rgba(255,255,255,0.08)] px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+6px)] z-50">
+    <nav
+      className="fixed inset-x-0 bottom-0 px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+6px)] z-50 transition-[backdrop-filter,border-color,background-color] duration-200"
+      style={{
+        backgroundColor: "rgba(13,15,26,0.92)",
+        backdropFilter: "blur(22px)",
+        borderTop: `1px solid ${isScrolling ? "rgba(108,99,255,0.28)" : "rgba(255,255,255,0.08)"}`,
+      }}
+    >
       <div className="grid grid-cols-4 items-end gap-1">
         {navItems.map((item) => {
           const isActive = item.id === activeTab;

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Expense, RecurringTemplate, SpendingTodo } from "../shared/types";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
@@ -39,59 +39,183 @@ const toOrdinal = (value: number) => {
   return `${v}th`;
 };
 
-function getCategoryBorderClass(category: string): string {
-  const key = category.toLowerCase().trim();
-  if (key.includes("rent")) return "category-border-rent";
-  if (key.includes("ott") || key.includes("subscription") || key.includes("stream")) return "category-border-ott";
-  if (key.includes("electric")) return "category-border-electricity";
-  if (key.includes("utilit") || key.includes("bills") || key.includes("bill")) return "category-border-utilities";
-  if (key.includes("food") || key.includes("dining") || key.includes("restaurant")) return "category-border-food";
-  if (key.includes("grocer")) return "category-border-groceries";
-  if (key.includes("transport") || key.includes("travel") || key.includes("fuel") || key.includes("uber") || key.includes("cab")) return "category-border-transport";
-  if (key.includes("health") || key.includes("medical") || key.includes("medicine")) return "category-border-health";
-  if (key.includes("shop") || key.includes("cloth") || key.includes("fashion")) return "category-border-shopping";
-  if (key.includes("entertain") || key.includes("movie") || key.includes("game")) return "category-border-entertainment";
-  if (key.includes("edu") || key.includes("course") || key.includes("book")) return "category-border-education";
-  return "category-border-other";
-}
-
-const categoryIconColors: Record<string, { bg: string; text: string }> = {
-  rent: { bg: "rgba(108,99,255,0.18)", text: "#9B93FF" },
-  ott: { bg: "rgba(255,184,0,0.16)", text: "#F59E0B" },
-  subscription: { bg: "rgba(255,184,0,0.16)", text: "#F59E0B" },
-  electricity: { bg: "rgba(255,107,53,0.16)", text: "#F43F5E" },
-  utilities: { bg: "rgba(255,107,53,0.16)", text: "#F43F5E" },
-  bills: { bg: "rgba(255,140,66,0.16)", text: "#FF8C42" },
-  food: { bg: "rgba(255,140,66,0.16)", text: "#FF8C42" },
-  groceries: { bg: "rgba(0,201,167,0.16)", text: "#00C9A7" },
-  fuel: { bg: "rgba(255,184,0,0.16)", text: "#F59E0B" },
-  transport: { bg: "rgba(79,70,229,0.14)", text: "#4F46E5" },
-  health: { bg: "rgba(0,201,167,0.16)", text: "#00C9A7" },
-  shopping: { bg: "rgba(79,70,229,0.14)", text: "#4F46E5" },
-  entertainment: { bg: "rgba(79,70,229,0.14)", text: "#4F46E5" },
-  education: { bg: "rgba(79,70,229,0.14)", text: "#4F46E5" },
-  travel: { bg: "rgba(79,70,229,0.14)", text: "#4F46E5" },
-  recurring: { bg: "rgba(79,70,229,0.14)", text: "#4F46E5" },
-  other: { bg: "rgba(138,155,171,0.18)", text: "#94A3B8" },
-};
-
-function getCategoryIconColors(category: string) {
-  const key = category.toLowerCase().trim();
-  for (const [pattern, colors] of Object.entries(categoryIconColors)) {
-    if (key.includes(pattern)) return colors;
-  }
-  return categoryIconColors.other;
-}
-
 function getCategoryAccentColor(category: string): string {
   const key = category.toLowerCase().trim();
-  if (key.includes("rent")) return "#4F46E5";
-  if (key.includes("electric") || key.includes("utilit")) return "#F43F5E";
-  if (key.includes("subscription") || key.includes("ott") || key.includes("stream")) return "#F59E0B";
-  if (key.includes("bill")) return "#FF8C42";
-  if (key.includes("fuel")) return "#F59E0B";
-  if (key.includes("grocer")) return "#00C9A7";
-  return "#4F46E5";
+  if (key.includes("fuel") || key.includes("petrol") || key.includes("diesel")) return "#ff5b5b";
+  if (
+    key.includes("bill") ||
+    key.includes("rent") ||
+    key.includes("electric") ||
+    key.includes("utilit") ||
+    key.includes("recharge")
+  ) {
+    return "#ffb347";
+  }
+  if (
+    key.includes("food") ||
+    key.includes("eat") ||
+    key.includes("dining") ||
+    key.includes("restaurant") ||
+    key.includes("grocer")
+  ) {
+    return "#00e5a0";
+  }
+  return "#6c63ff";
+}
+
+function getCategoryEmoji(category: string): string {
+  const key = category.toLowerCase().trim();
+  if (key.includes("fuel") || key.includes("petrol") || key.includes("diesel")) return "\u26FD";
+  if (key.includes("bill") || key.includes("rent") || key.includes("electric") || key.includes("utilit")) return "\uD83E\uDDFE";
+  if (key.includes("grocer")) return "\uD83D\uDED2";
+  if (key.includes("food") || key.includes("eat") || key.includes("dining") || key.includes("restaurant")) return "\uD83C\uDF5C";
+  return "\uD83E\uDDE9";
+}
+
+type TransactionFilter = "All" | "Bills" | "Eating out" | "Fuel" | "Groceries" | "Other";
+
+const transactionFilters: TransactionFilter[] = ["All", "Bills", "Eating out", "Fuel", "Groceries", "Other"];
+
+const matchesTransactionFilter = (expense: Expense, filter: TransactionFilter) => {
+  if (filter === "All") return true;
+  const key = expense.category.toLowerCase();
+
+  if (filter === "Bills") {
+    return (
+      key.includes("bill") ||
+      key.includes("rent") ||
+      key.includes("electric") ||
+      key.includes("utilit") ||
+      key.includes("recharge")
+    );
+  }
+  if (filter === "Eating out") {
+    return key.includes("food") || key.includes("eat") || key.includes("dining") || key.includes("restaurant");
+  }
+  if (filter === "Fuel") {
+    return key.includes("fuel") || key.includes("petrol") || key.includes("diesel");
+  }
+  if (filter === "Groceries") {
+    return key.includes("grocer");
+  }
+
+  const isBills =
+    key.includes("bill") || key.includes("rent") || key.includes("electric") || key.includes("utilit") || key.includes("recharge");
+  const isFood = key.includes("food") || key.includes("eat") || key.includes("dining") || key.includes("restaurant");
+  const isFuel = key.includes("fuel") || key.includes("petrol") || key.includes("diesel");
+  const isGroceries = key.includes("grocer");
+  return !(isBills || isFood || isFuel || isGroceries);
+};
+
+interface SwipeExpenseRowProps {
+  expense: Expense;
+  delayMs: number;
+  onDelete: (id: string) => void;
+  formatCurrency: (amount: number) => string;
+}
+
+function SwipeExpenseRow({ expense, delayMs, onDelete, formatCurrency }: SwipeExpenseRowProps) {
+  const [offsetX, setOffsetX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const dragMeta = useRef({ startX: 0, startY: 0, baseX: 0, lock: false, horizontal: false });
+  const offsetRef = useRef(0);
+
+  useEffect(() => {
+    offsetRef.current = offsetX;
+  }, [offsetX]);
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    setPressed(true);
+    dragMeta.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      baseX: offsetRef.current,
+      lock: false,
+      horizontal: false,
+    };
+    setDragging(true);
+
+    const onMove = (moveEvent: PointerEvent) => {
+      const deltaX = moveEvent.clientX - dragMeta.current.startX;
+      const deltaY = moveEvent.clientY - dragMeta.current.startY;
+
+      if (!dragMeta.current.lock && (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6)) {
+        dragMeta.current.lock = true;
+        dragMeta.current.horizontal = Math.abs(deltaX) > Math.abs(deltaY);
+      }
+
+      if (!dragMeta.current.horizontal) return;
+      const next = Math.min(0, Math.max(-92, dragMeta.current.baseX + deltaX));
+      setOffsetX(next);
+    };
+
+    const onUp = () => {
+      setPressed(false);
+      setDragging(false);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      setOffsetX((current) => (current <= -60 ? -92 : 0));
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  };
+
+  const onConfirmDelete = () => {
+    setIsRemoving(true);
+    window.setTimeout(() => onDelete(expense.id), 300);
+  };
+
+  const accent = getCategoryAccentColor(expense.category);
+  const emoji = getCategoryEmoji(expense.category);
+  const reveal = Math.min(Math.max(-offsetX / 92, 0), 1);
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl border border-[#2b2f46] bg-[#161826] poisa-fade-up"
+      style={{
+        animationDelay: `${delayMs}ms`,
+        maxHeight: isRemoving ? 0 : 112,
+        opacity: isRemoving ? 0 : 1,
+        transition: "max-height 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 220ms cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
+    >
+      <div
+        className="absolute inset-y-0 right-0 flex items-center justify-center bg-[#ff5b5b]"
+        style={{ width: `${Math.max(-offsetX, 0)}px`, opacity: reveal, transition: dragging ? "none" : "opacity 180ms cubic-bezier(0.4, 0, 0.2, 1)" }}
+      >
+        <button type="button" onClick={onConfirmDelete} className="poisa-pressable px-3 text-[11px] font-semibold text-white">
+          Delete
+        </button>
+      </div>
+
+      <div
+        onPointerDown={onPointerDown}
+        className={`relative cursor-pointer ${pressed ? "bg-white/[0.03]" : ""}`}
+        style={{
+          transform: `translateX(${offsetX}px)`,
+          transition: dragging ? "none" : "transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 180ms cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <div className="absolute left-0 top-0 h-full w-[3px]" style={{ backgroundColor: accent }} />
+        <div className="flex items-center gap-3 px-3 py-3">
+          <div className="inline-flex size-9 items-center justify-center rounded-lg" style={{ backgroundColor: `${accent}22`, color: accent }}>
+            <span className="text-base leading-none">{emoji}</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[14px] font-semibold text-[#f3f5ff]">{expense.name}</p>
+            <p className="truncate text-[11px] text-[#8b90aa]">{expense.category}</p>
+          </div>
+          <p className="shrink-0 text-[14px] font-bold text-[#ff5b5b]">-{formatCurrency(expense.amount)}</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const todoCategoryOptions = [
@@ -116,15 +240,14 @@ interface GroupedExpenses {
 
 interface TransactionListProps {
   query: string;
-  onEditExpense: (expense: Expense) => void;
 }
 
 type SpendingPanel = "transactions" | "recurring" | "todo";
 
-export default function TransactionList({ query, onEditExpense }: TransactionListProps) {
+export default function TransactionList({ query }: TransactionListProps) {
   const { formatCurrency } = useCurrency();
   const [activePanel, setActivePanel] = useState<SpendingPanel>("transactions");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState<TransactionFilter>("All");
   const [isAddRecurringOpen, setIsAddRecurringOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<RecurringTemplate | null>(null);
 
@@ -140,6 +263,16 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
   const [showCompletedTodos, setShowCompletedTodos] = useState(false);
   const [activeTodoActionId, setActiveTodoActionId] = useState<string | null>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const filterTrackRef = useRef<HTMLDivElement | null>(null);
+  const filterRefs = useRef<Record<TransactionFilter, HTMLButtonElement | null>>({
+    All: null,
+    Bills: null,
+    "Eating out": null,
+    Fuel: null,
+    Groceries: null,
+    Other: null,
+  });
+  const [filterIndicator, setFilterIndicator] = useState({ left: 0, width: 0 });
 
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
@@ -170,20 +303,28 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
     [expenses, selectedMonth],
   );
 
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(monthlyExpenses.map((expense) => expense.category))).sort();
-    return ["All", ...unique];
-  }, [monthlyExpenses]);
-
   const filteredMonthlyExpenses = useMemo(() => {
     const q = query.trim().toLowerCase();
     return monthlyExpenses.filter((expense) => {
-      const categoryMatch = activeCategory === "All" || expense.category === activeCategory;
+      const categoryMatch = matchesTransactionFilter(expense, activeCategory);
       if (!categoryMatch) return false;
       if (!q) return true;
       return expense.name.toLowerCase().includes(q) || expense.category.toLowerCase().includes(q);
     });
   }, [activeCategory, monthlyExpenses, query]);
+
+  useLayoutEffect(() => {
+    const track = filterTrackRef.current;
+    const activeChip = filterRefs.current[activeCategory];
+    if (!track || !activeChip) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const chipRect = activeChip.getBoundingClientRect();
+    setFilterIndicator({
+      left: chipRect.left - trackRect.left,
+      width: chipRect.width,
+    });
+  }, [activeCategory, activePanel]);
 
   const groups = useMemo(() => {
     const sorted = [...filteredMonthlyExpenses].sort((a, b) => b.date.localeCompare(a.date));
@@ -362,9 +503,17 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
 
   return (
     <section className="pt-2 pb-3 space-y-3">
-      <div className="px-4">
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-1.5">
-          <div className="grid grid-cols-3 gap-1.5">
+      <div className="poisa-fade-up px-4" style={{ animationDelay: "260ms" }}>
+        <div className="relative rounded-2xl border border-[#2b2f46] bg-[#161826] p-1">
+          <div
+            className="absolute inset-y-1 left-1 rounded-xl bg-[#6c63ff]"
+            style={{
+              width: "calc((100% - 8px) / 3)",
+              transform: `translateX(${(["transactions", "recurring", "todo"] as SpendingPanel[]).indexOf(activePanel) * 100}%)`,
+              transition: "transform 220ms cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+          />
+          <div className="relative grid grid-cols-3">
             {([
               { key: "transactions", label: "Transactions" },
               { key: "recurring", label: "Recurring" },
@@ -374,11 +523,11 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
                 key={panel.key}
                 type="button"
                 onClick={() => setActivePanel(panel.key)}
-                className={`h-8 rounded-xl text-[11px] font-semibold uppercase tracking-wide active:scale-95 transition-all ${
-                  activePanel === panel.key
-                    ? "border border-[#4F46E5] bg-[#4F46E5] text-[#000000]"
-                    : "border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[#94A3B8]"
-                }`}
+                className="poisa-pressable h-8 rounded-xl text-[11px] font-semibold uppercase tracking-wide"
+                style={{
+                  color: activePanel === panel.key ? "#ffffff" : "#8c92ab",
+                  transition: "color 180ms cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
               >
                 {panel.label}
               </button>
@@ -389,30 +538,43 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
 
       {activePanel === "transactions" && (
         <>
-          <div className="px-4">
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  className={`h-7 px-3 rounded-full text-[11px] font-semibold whitespace-nowrap border active:scale-95 transition-all ${
-                    activeCategory === category
-                      ? "bg-[#4F46E5] border-[#4F46E5] text-[#000000]"
-                      : "bg-[#111118] border-[rgba(255,255,255,0.08)] text-[#94A3B8]"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
+          <div className="poisa-fade-up px-4" style={{ animationDelay: "300ms" }}>
+            <div className="overflow-x-auto no-scrollbar">
+              <div ref={filterTrackRef} className="relative inline-flex items-center gap-1 rounded-full border border-[#2b2f46] bg-[#161826] p-1">
+                <span
+                  className="absolute inset-y-1 rounded-full bg-[#00e5a0]"
+                  style={{
+                    left: filterIndicator.left,
+                    width: filterIndicator.width,
+                    transition: "left 250ms cubic-bezier(0.4, 0, 0.2, 1), width 250ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                />
+                {transactionFilters.map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    ref={(node) => {
+                      filterRefs.current[filter] = node;
+                    }}
+                    onClick={() => setActiveCategory(filter)}
+                    className="poisa-pressable relative z-10 h-7 whitespace-nowrap rounded-full px-3 text-[11px] font-semibold"
+                    style={{
+                      color: activeCategory === filter ? "#062218" : "#8e93ad",
+                      transition: "color 180ms cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {groups.length === 0 ? (
             <section className="px-4 py-1">
-              <div className="glass-card rounded-2xl p-8 text-center">
-                <p className="text-sm font-bold text-[#F1F5F9]">{query ? "No results found" : "No expenses yet"}</p>
-                <p className="text-xs text-[#64748B] mt-1">
+              <div className="rounded-2xl border border-[#2b2f46] bg-[#161826] p-8 text-center">
+                <p className="font-poisa-heading text-sm font-bold text-[#f1f5f9]">{query ? "No results found" : "No expenses yet"}</p>
+                <p className="mt-1 text-xs text-[#6b7280]">
                   {query ? "Try a different search term or category" : "Tap + to add your first expense this month"}
                 </p>
               </div>
@@ -421,62 +583,24 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
             groups.map((group, groupIndex) => (
               <div key={group.date}>
                 <div
-                  className={`sticky top-0 bg-[#0F172A]/96 backdrop-blur-sm px-4 py-2 border-b border-[rgba(255,255,255,0.08)] z-10 flex justify-between items-center ${
-                    groupIndex > 0 ? "border-t mt-2 border-[rgba(255,255,255,0.08)]" : ""
+                  className={`px-4 py-2 z-10 flex justify-between items-center ${
+                    groupIndex > 0 ? "mt-1" : ""
                   }`}
                 >
-                  <h3 className="text-[11px] font-bold text-[#64748B] uppercase tracking-widest">{group.label}</h3>
-                  <span className="text-[11px] font-semibold text-[#F43F5E]">-{formatCurrency(group.total)}</span>
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-[#7d859d]">{group.label}</h3>
+                  <span className="text-[12px] font-semibold text-[#ff5b5b]">-{formatCurrency(group.total)}</span>
                 </div>
 
                 <div className="px-4 py-1 space-y-2">
-                  {group.items.map((item) => {
-                    const borderClass = getCategoryBorderClass(item.category);
-                    const iconColors = getCategoryIconColors(item.category);
-
-                    return (
-                      <div key={item.id} className={`glass-card relative rounded-xl overflow-hidden ${borderClass}`} style={{ borderRadius: "14px" }}>
-                        <div className="flex items-center gap-2.5 p-3">
-                          <div className="size-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: iconColors.bg }}>
-                            <span className="material-symbols-outlined text-[17px]" style={{ color: iconColors.text }}>
-                              {item.icon || "receipt_long"}
-                            </span>
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline gap-2 mb-px">
-                              <h4 className="text-[13px] font-semibold text-[#F1F5F9] truncate inline-flex items-center gap-1">
-                                {item.name}
-                                {item.recurring && <span className="material-symbols-outlined text-[12px] text-[#64748B]">autorenew</span>}
-                              </h4>
-                              <span className="text-[13px] font-bold text-[#F43F5E] shrink-0">-{formatCurrency(item.amount)}</span>
-                            </div>
-                            <p className="text-[10px] font-medium text-[#94A3B8]">{item.category}</p>
-                            {item.note && <p className="text-[11px] text-[#64748B] mt-1 whitespace-normal break-words leading-snug">{item.note}</p>}
-                          </div>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => onEditExpense(item)}
-                              className="h-7 px-2.5 rounded-full border border-[#4F46E5]/35 bg-[#4F46E5]/10 text-[#73EFD9] active:scale-95 transition-transform"
-                              title="Edit"
-                            >
-                              <span className="material-symbols-outlined text-[13px]">edit</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteExpense(item.id)}
-                              className="h-7 px-2.5 rounded-full border border-[#F43F5E]/30 bg-[#F43F5E]/10 text-[#F43F5E] active:scale-95 transition-transform"
-                              title="Delete"
-                            >
-                              <span className="material-symbols-outlined text-[13px]">delete</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {group.items.map((item, itemIndex) => (
+                    <SwipeExpenseRow
+                      key={item.id}
+                      expense={item}
+                      delayMs={300 + itemIndex * 40}
+                      onDelete={deleteExpense}
+                      formatCurrency={formatCurrency}
+                    />
+                  ))}
                 </div>
               </div>
             ))
@@ -827,5 +951,6 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
     </section>
   );
 }
+
 
 

@@ -329,17 +329,20 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
                   onOpenBurnRateCalculator={() => setActiveCalculator({ type: "budget_burn" })}
                   onOpenCalculator={onOpenCalculatorFromHub}
                 />
-                {showSpendingBudgetSetter && <BudgetSetter />}
+                {showSpendingBudgetSetter && (
+                  <BudgetSetter onClose={() => setShowSpendingBudgetSetter(false)} />
+                )}
                 <TransactionList
                   query={spendingQuery}
-                  onEditExpense={setEditExpenseItem}
                 />
               </>
             )}
 
             {activeTab === "investing" && (
               <>
-                {showInvestingBudgetSetter && <SavingsBudgetSetter />}
+                {showInvestingBudgetSetter && (
+                  <SavingsBudgetSetter onClose={() => setShowInvestingBudgetSetter(false)} />
+                )}
                 <InvestingOverview
                   onEditGoal={setEditGoalItem}
                   onAddGoal={() => setIsAddGoalOpen(true)}
@@ -528,7 +531,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
         desktopMode="floating-small"
         mobileOffsetClass={
           activeTab === "lending"
-            ? "bottom-[calc(env(safe-area-inset-bottom)+90px)]"
+            ? "bottom-[calc(env(safe-area-inset-bottom)+158px)]"
             : "bottom-[calc(env(safe-area-inset-bottom)+144px)]"
         }
       />

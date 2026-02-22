@@ -4,12 +4,15 @@ import { FormEvent, useEffect, useState } from "react";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
 
-export default function SavingsBudgetSetter() {
+interface SavingsBudgetSetterProps {
+  onClose: () => void;
+}
+
+export default function SavingsBudgetSetter({ onClose }: SavingsBudgetSetterProps) {
   const { formatCurrency } = useCurrency();
   const savingsBudget = useFinanceStore((state) => state.savingsBudget);
   const setSavingsBudget = useFinanceStore((state) => state.setSavingsBudget);
   const [value, setValue] = useState(savingsBudget.toString());
-  const [savedTick, setSavedTick] = useState(false);
   const parsedValue = Number(value.replace(/,/g, "").trim());
   const canSave = Number.isFinite(parsedValue) && parsedValue >= 0;
 
@@ -25,44 +28,52 @@ export default function SavingsBudgetSetter() {
     const normalized = Number(parsedValue.toFixed(2));
     setSavingsBudget(normalized);
     setValue(normalized.toString());
-    setSavedTick(true);
-    window.setTimeout(() => setSavedTick(false), 1200);
+    onClose();
   };
 
   return (
-    <section className="px-5 pt-4">
+    <div className="fixed inset-0 z-[75] flex items-center justify-center px-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60"
+        onClick={onClose}
+        aria-label="Close savings budget popup"
+      />
       <form
         onSubmit={onSubmit}
-        className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4 flex items-end gap-3"
+        className="relative z-10 w-full max-w-md rounded-2xl border border-[#2A3345] bg-[#161B22] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
       >
-        <label className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#4a4a6a] mb-2">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-[#E8EDF5]">Set Savings Budget</h3>
+          <button type="button" onClick={onClose} className="text-[#7A8599]">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <label className="block">
+          <p className="text-[11px] font-semibold uppercase tracking-[1.2px] text-[#7A8599] mb-1.5">
             Savings Budget
           </p>
           <input
             type="number"
-            min="1"
+            min="0"
             step="0.01"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-sm text-[#f0f0ff] placeholder:text-[#3d3d5c] outline-none focus:border-[rgba(0,201,167,0.5)] focus:ring-0"
+            className="w-full h-11 rounded-xl border border-[#2A3345] bg-[#0D1117] px-3 text-sm text-[#E8EDF5] outline-none focus:border-[#00C896]"
           />
         </label>
+        <p className="mt-2 text-xs text-[#7A8599]">
+          Current savings budget: <span className="font-semibold text-[#E8EDF5]">{formatCurrency(savingsBudget)}</span>
+        </p>
         <button
           type="submit"
           disabled={!canSave}
-          className={`h-10 px-4 rounded-xl text-white text-sm font-semibold transition-colors ${
-            canSave ? "bg-[#00C9A7] hover:bg-[#00C9A7]/90" : "bg-white/15 text-white/50 cursor-not-allowed"
-          }`}
+          className="mt-3 h-10 w-full rounded-xl bg-[#00C896] text-[#06221a] text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Save
         </button>
       </form>
-      <p className="px-1 mt-2 text-xs text-[#6b7280]">
-        Current savings budget: <span className="font-semibold">{formatCurrency(savingsBudget)}</span>
-        {savedTick && <span className="ml-2 text-[#00C9A7] font-semibold">Saved</span>}
-      </p>
-    </section>
+    </div>
   );
 }
 

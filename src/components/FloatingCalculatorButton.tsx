@@ -23,11 +23,11 @@ export default function FloatingCalculatorButton({
         <button
           type="button"
           onClick={onAction}
-          className="size-12 rounded-full border border-[#00C896]/40 bg-[#00C896] text-[#06221a] shadow-[0_10px_24px_rgba(0,200,150,0.36)] flex items-center justify-center active:scale-90 transition-transform"
+          className="size-14 rounded-full border border-[#00C896]/40 bg-[#00C896] text-[#06221a] shadow-[0_10px_24px_rgba(0,200,150,0.36)] flex items-center justify-center active:scale-90 transition-transform"
           title="Open calculator"
           aria-label="Open calculator"
         >
-          <span className="material-symbols-outlined text-[23px]">calculate</span>
+          <span className="material-symbols-outlined text-[28px]">calculate</span>
         </button>
       </div>
 
@@ -36,11 +36,11 @@ export default function FloatingCalculatorButton({
           <button
             type="button"
             onClick={onAction}
-            className="size-11 rounded-full border border-[#00C896]/40 bg-[#00C896] text-[#06221a] shadow-[0_10px_24px_rgba(0,200,150,0.30)] flex items-center justify-center active:scale-95 transition-transform"
+            className="size-14 rounded-full border border-[#00C896]/40 bg-[#00C896] text-[#06221a] shadow-[0_10px_24px_rgba(0,200,150,0.30)] flex items-center justify-center active:scale-95 transition-transform"
             title="Open calculator"
             aria-label="Open calculator"
           >
-            <span className="material-symbols-outlined text-[20px]">calculate</span>
+            <span className="material-symbols-outlined text-[24px]">calculate</span>
           </button>
         </div>
       )}

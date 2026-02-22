@@ -17,6 +17,13 @@ const windowOptions: Array<{ label: string; value: DashboardWindow }> = [
   { label: "12M", value: 12 },
 ];
 
+const parseMoneyInput = (value: string) => {
+  const normalized = value.replace(/,/g, "").trim();
+  if (!normalized) return 0;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+};
+
 export default function SettingsPanel() {
   const { formatCurrency } = useCurrency();
   const [isAddRecurringOpen, setIsAddRecurringOpen] = useState(false);
@@ -71,8 +78,8 @@ export default function SettingsPanel() {
   };
 
   const saveIncome = () => {
-    const salary = Number(salaryInput || 0);
-    const other = Number(otherIncomeInput || 0);
+    const salary = parseMoneyInput(salaryInput);
+    const other = parseMoneyInput(otherIncomeInput);
     if (!Number.isFinite(salary) || salary < 0 || !Number.isFinite(other) || other < 0) {
       return;
     }
@@ -282,18 +289,26 @@ export default function SettingsPanel() {
           <label className="block">
             <p className="text-xs text-[#7d8590] mb-1">Monthly Salary (INR)</p>
             <input
+              type="number"
+              min="0"
+              step="0.01"
               value={salaryInput}
               onChange={(event) => setSalaryInput(event.target.value)}
               inputMode="decimal"
+              placeholder="e.g. 50000"
               className="w-full h-10 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
             />
           </label>
           <label className="block">
             <p className="text-xs text-[#7d8590] mb-1">Other Monthly Income (INR)</p>
             <input
+              type="number"
+              min="0"
+              step="0.01"
               value={otherIncomeInput}
               onChange={(event) => setOtherIncomeInput(event.target.value)}
               inputMode="decimal"
+              placeholder="optional"
               className="w-full h-10 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
             />
           </label>

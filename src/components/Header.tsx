@@ -99,7 +99,12 @@ export default function Header({
 
   return (
     <>
-      <header className="flex-none px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5 border-b border-white/10 bg-[#0F172A]/85 backdrop-blur-[22px] z-30">
+      <header
+        className={`flex-none px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5 border-b border-white/10 bg-[#0F172A]/85 backdrop-blur-[22px] z-30 ${
+          activeTab === "spending" ? "poisa-fade-up" : ""
+        }`}
+        style={activeTab === "spending" ? { animationDelay: "0ms" } : undefined}
+      >
         <div className="flex items-center justify-between h-8">
           {/* Poisa Logo */}
           <div className="flex items-center gap-2">
@@ -259,7 +264,12 @@ export default function Header({
           </div>
         )}
 
-        <div className="pt-1.5 pb-0.5 flex items-center justify-center">
+        <div
+          className={`pt-1.5 pb-0.5 flex items-center justify-center ${
+            activeTab === "spending" ? "poisa-fade-up" : ""
+          }`}
+          style={activeTab === "spending" ? { animationDelay: "60ms" } : undefined}
+        >
           <button
             type="button"
             className="h-8 min-w-40 px-5 rounded-xl border border-white/25 bg-white/[0.08] backdrop-blur-[18px] inline-flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.15)] active:scale-95 transition-transform"

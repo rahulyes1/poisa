@@ -227,3 +227,162 @@ body {
   border-radius: 14px;
   background: #161b22;
 }
+
+.font-poisa-heading {
+  font-family: var(--font-syne), var(--font-dm-sans), sans-serif;
+}
+
+.font-poisa-body {
+  font-family: var(--font-dm-sans), sans-serif;
+}
+
+@keyframes poisa-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.poisa-fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: poisa-fade-up 380ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.poisa-pressable {
+  transition:
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1);
+}
+
+.poisa-pressable:active {
+  transform: scale(0.96);
+  transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes poisa-dash-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.poisa-income-orb {
+  position: relative;
+  width: 3.8rem;
+  height: 3.8rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #00e5a0;
+  background: rgba(0, 229, 160, 0.08);
+  isolation: isolate;
+}
+
+.poisa-income-orb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px dashed rgba(0, 229, 160, 0.9);
+  animation: poisa-dash-spin 8s linear infinite;
+}
+
+.poisa-income-orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(0, 229, 160, 0.18);
+  opacity: 0;
+  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.poisa-income-orb-flash::after {
+  opacity: 1;
+}
+
+@keyframes poisa-badge-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.poisa-danger-pulse {
+  animation: poisa-badge-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes poisa-shimmer {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(130%); }
+}
+
+.poisa-progress-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.poisa-progress-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 36%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0)
+  );
+  animation: poisa-shimmer 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes poisa-fab-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.poisa-fab {
+  position: relative;
+  background: linear-gradient(145deg, #7b6fff, #6c63ff 52%, #5648f2);
+  border: 1px solid rgba(124, 111, 255, 0.48);
+  color: #f5f7ff;
+  box-shadow:
+    0 12px 30px rgba(108, 99, 255, 0.45),
+    0 0 20px rgba(108, 99, 255, 0.35);
+}
+
+.poisa-fab::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  border: 1px solid rgba(124, 111, 255, 0.5);
+  animation: poisa-fab-ring 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+.poisa-fab:active::before {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+.poisa-fab-icon {
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.poisa-fab:active .poisa-fab-icon-add {
+  transform: rotate(90deg);
+}
