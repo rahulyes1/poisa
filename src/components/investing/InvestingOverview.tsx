@@ -120,7 +120,7 @@ export default function InvestingOverview({
   return (
     <section className="px-4 pt-3 pb-4 space-y-4">
       <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2">
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-4 gap-2">
           {([
             { id: "overview", label: "Overview" },
             { id: "insurance", label: "Insurance" },
@@ -131,11 +131,7 @@ export default function InvestingOverview({
               key={segment.id}
               type="button"
               onClick={() => setActiveSegment(segment.id)}
-              className={`h-8 rounded-xl text-[10px] font-semibold uppercase tracking-wide active:scale-95 transition-all ${
-                activeSegment === segment.id
-                  ? "bg-white/[0.08] border border-white/35 text-white"
-                  : "bg-[#111118] border border-[rgba(255,255,255,0.08)] text-[#94A3B8]"
-              }`}
+              className={`segment-pill-tab ${activeSegment === segment.id ? "segment-pill-tab-active" : ""}`}
             >
               {segment.label}
             </button>

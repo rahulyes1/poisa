@@ -10,11 +10,13 @@ import {
   Investment,
   LifeInsurance,
   Loan,
+  MoneyTookEntry,
   MonthMode,
   NewExpense,
   NewInvestment,
   NewLifeInsurance,
   NewLoan,
+  NewMoneyTookEntry,
   NewPersonalLoan,
   NewRecurringTemplate,
   NewSavingGoal,
@@ -22,12 +24,14 @@ import {
   PersonalLoan,
   RecurringTemplate,
   SavingGoal,
+  SyncStatus,
   SpendingTodo,
 } from "./types";
 
 interface FinanceStoreState {
   currency: CurrencyCode;
   hasSelectedCurrency: boolean;
+  hasSeenFeaturePoster: boolean;
   selectedMonth: string;
   monthMode: MonthMode;
   dashboardWindow: DashboardWindow;
@@ -43,10 +47,15 @@ interface FinanceStoreState {
   savingGoals: SavingGoal[];
   loans: Loan[];
   personalLoans: PersonalLoan[];
+  moneyTookEntries: MoneyTookEntry[];
   lifeInsurances: LifeInsurance[];
   recurringTemplates: RecurringTemplate[];
   spendingTodos: SpendingTodo[];
   spendingTodoDoneMonths: Record<string, string[]>;
+  syncStatus: SyncStatus;
+  lastSyncedAt?: string;
+  lastSyncedVersion?: number;
+  dirty: boolean;
   recurringExpenses: () => Expense[];
   dueSoonPersonalLoans: (leadDays?: number) => PersonalLoan[];
   totalPersonalLoanOutstanding: () => number;
@@ -60,6 +69,7 @@ interface FinanceStoreState {
   getSpendingCarryOut: (month: string) => number;
   setCurrency: (currency: CurrencyCode) => void;
   setHasSelectedCurrency: (value: boolean) => void;
+  setHasSeenFeaturePoster: (value: boolean) => void;
   setSelectedMonth: (month: string, mode?: MonthMode) => void;
   syncCurrentMonth: () => void;
   setDashboardWindow: (window: DashboardWindow) => void;
@@ -93,6 +103,14 @@ interface FinanceStoreState {
   updatePersonalLoan: (loan: PersonalLoan) => void;
   deletePersonalLoan: (id: string) => void;
   addPersonalLoanPayment: (id: string, amount: number, date: string) => void;
+  addMoneyTookEntry: (entry: NewMoneyTookEntry) => void;
+  updateMoneyTookEntry: (entry: MoneyTookEntry) => void;
+  deleteMoneyTookEntry: (id: string) => void;
+  addMoneyTookPayment: (id: string, amount: number, date: string) => void;
+  getMoneyTookOutstandingTotal: () => number;
+  getMoneyTookBorrowedTotal: () => number;
+  getMoneyTookDueSoonCount: (leadDays?: number) => number;
+  getMoneyTookOverdueCount: () => number;
   markPersonalLoanEmiPaid: (id: string) => void;
   unmarkPersonalLoanEmiPaid: (id: string) => void;
   togglePersonalLoanEmiPaid: (id: string) => void;
@@ -110,6 +128,11 @@ interface FinanceStoreState {
   updateSpendingTodo: (todo: SpendingTodo) => void;
   deleteSpendingTodo: (id: string) => void;
   toggleSpendingTodoDone: (id: string, month: string) => void;
+  setSyncStatus: (status: SyncStatus) => void;
+  setLastSyncedAt: (value?: string) => void;
+  setLastSyncedVersion: (value?: number) => void;
+  markDirty: () => void;
+  clearDirty: () => void;
   syncSourcePaymentToExpense: (params: {
     sourceType: "loan_emi" | "insurance_premium" | "recurring_template";
     sourceId: string;
@@ -278,6 +301,28 @@ const resolvePersonalLoanEmiAmount = (loan: PersonalLoan) => {
   return 0;
 };
 
+const getOutstandingForMoneyTook = (entry: MoneyTookEntry) => {
+  if (entry.closed) {
+    return 0;
+  }
+
+  const paidAmount = entry.payments.reduce((sum, payment) => sum + payment.amount, 0);
+  return Math.max(entry.amount - paidAmount, 0);
+};
+
+const getDateOnly = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate());
+
+const getDiffDaysFromToday = (dateValue: string) => {
+  const raw = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(raw.getTime())) {
+    return null;
+  }
+
+  const today = getDateOnly(new Date());
+  const due = getDateOnly(raw);
+  return Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
 const defaultRecurringTemplates: RecurringTemplate[] = [
   {
     id: "template-ott",
@@ -370,6 +415,7 @@ const initialInvestments: Investment[] = [];
 const initialSavingGoals: SavingGoal[] = [];
 const initialLoans: Loan[] = [];
 const initialPersonalLoans: PersonalLoan[] = [];
+const initialMoneyTookEntries: MoneyTookEntry[] = [];
 const initialLifeInsurances: LifeInsurance[] = [];
 const initialRecurringTemplates: RecurringTemplate[] = defaultRecurringTemplates;
 const initialSpendingTodos: SpendingTodo[] = defaultSpendingTodos;
@@ -381,30 +427,126 @@ const initialAdjustments: FinanceAdjustments = {
   emergencyTargetMonths: 6,
 };
 
+export const FINANCE_STORE_BASE_KEY = "finance-app-store-v2";
+
+const getPersistNameForNamespace = (namespace: string | null) =>
+  namespace ? `${FINANCE_STORE_BASE_KEY}:${namespace}` : `${FINANCE_STORE_BASE_KEY}:anon`;
+
+export const getBaseStoreSnapshot = () => ({
+  currency: "USD" as CurrencyCode,
+  hasSelectedCurrency: false,
+  hasSeenFeaturePoster: false,
+  selectedMonth: getCurrentMonth(),
+  monthMode: "auto" as MonthMode,
+  dashboardWindow: 1 as DashboardWindow,
+  spendingCarryForwardEnabled: true,
+  savingsCarryForwardEnabled: true,
+  spendingBudget: 3000,
+  monthlyBudgets: {} as Record<string, number>,
+  savingsBudget: 1000,
+  categoryLimits: {} as Record<string, number>,
+  adjustments: { ...initialAdjustments },
+  expenses: [...initialExpenses],
+  investments: [...initialInvestments],
+  savingGoals: [...initialSavingGoals],
+  loans: [...initialLoans],
+  personalLoans: [...initialPersonalLoans],
+  moneyTookEntries: [...initialMoneyTookEntries],
+  lifeInsurances: [...initialLifeInsurances],
+  recurringTemplates: [...initialRecurringTemplates],
+  spendingTodos: [...initialSpendingTodos],
+  spendingTodoDoneMonths: {} as Record<string, string[]>,
+  syncStatus: "idle" as SyncStatus,
+  lastSyncedAt: undefined as string | undefined,
+  lastSyncedVersion: undefined as number | undefined,
+  dirty: false,
+});
+
+export type FinanceDataSnapshot = Pick<
+  ReturnType<typeof getBaseStoreSnapshot>,
+  | "currency"
+  | "hasSelectedCurrency"
+  | "hasSeenFeaturePoster"
+  | "selectedMonth"
+  | "monthMode"
+  | "dashboardWindow"
+  | "spendingCarryForwardEnabled"
+  | "savingsCarryForwardEnabled"
+  | "spendingBudget"
+  | "monthlyBudgets"
+  | "savingsBudget"
+  | "categoryLimits"
+  | "adjustments"
+  | "expenses"
+  | "investments"
+  | "savingGoals"
+  | "loans"
+  | "personalLoans"
+  | "moneyTookEntries"
+  | "lifeInsurances"
+  | "recurringTemplates"
+  | "spendingTodos"
+  | "spendingTodoDoneMonths"
+>;
+
+const financeDataKeys = [
+  "currency",
+  "hasSelectedCurrency",
+  "hasSeenFeaturePoster",
+  "selectedMonth",
+  "monthMode",
+  "dashboardWindow",
+  "spendingCarryForwardEnabled",
+  "savingsCarryForwardEnabled",
+  "spendingBudget",
+  "monthlyBudgets",
+  "savingsBudget",
+  "categoryLimits",
+  "adjustments",
+  "expenses",
+  "investments",
+  "savingGoals",
+  "loans",
+  "personalLoans",
+  "moneyTookEntries",
+  "lifeInsurances",
+  "recurringTemplates",
+  "spendingTodos",
+  "spendingTodoDoneMonths",
+] as const;
+
+export const getFinanceDataSnapshot = (state?: FinanceStoreState): FinanceDataSnapshot => {
+  const sourceState = state ?? useFinanceStore.getState();
+  const snapshot: Partial<FinanceDataSnapshot> = {};
+  for (const key of financeDataKeys) {
+    (snapshot as Record<string, unknown>)[key] = sourceState[key];
+  }
+  return snapshot as FinanceDataSnapshot;
+};
+
+export const applyFinanceSnapshot = (snapshot: Partial<FinanceDataSnapshot>) => {
+  const base = getBaseStoreSnapshot();
+  const nextState: Partial<FinanceStoreState> = {};
+
+  for (const key of financeDataKeys) {
+    if (key in snapshot) {
+      (nextState as Record<string, unknown>)[key] = snapshot[key];
+    } else {
+      (nextState as Record<string, unknown>)[key] = base[key];
+    }
+  }
+
+  useFinanceStore.setState({
+    ...nextState,
+    syncStatus: "idle",
+    dirty: false,
+  });
+};
+
 export const useFinanceStore = create<FinanceStoreState>()(
   persist(
     (set, get) => ({
-      currency: "USD",
-      hasSelectedCurrency: false,
-      selectedMonth: getCurrentMonth(),
-      monthMode: "auto",
-      dashboardWindow: 1,
-      spendingCarryForwardEnabled: true,
-      savingsCarryForwardEnabled: true,
-      spendingBudget: 3000,
-      monthlyBudgets: {},
-      savingsBudget: 1000,
-      categoryLimits: {},
-      adjustments: initialAdjustments,
-      expenses: initialExpenses,
-      investments: initialInvestments,
-      savingGoals: initialSavingGoals,
-      loans: initialLoans,
-      personalLoans: initialPersonalLoans,
-      lifeInsurances: initialLifeInsurances,
-      recurringTemplates: initialRecurringTemplates,
-      spendingTodos: initialSpendingTodos,
-      spendingTodoDoneMonths: {},
+      ...getBaseStoreSnapshot(),
       recurringExpenses: () => get().expenses.filter((expense) => expense.recurring),
       dueSoonPersonalLoans: (leadDays = 3) => {
         const now = new Date();
@@ -460,6 +602,7 @@ export const useFinanceStore = create<FinanceStoreState>()(
       },
       setCurrency: (currency) => set({ currency, hasSelectedCurrency: true }),
       setHasSelectedCurrency: (value) => set({ hasSelectedCurrency: value }),
+      setHasSeenFeaturePoster: (value) => set({ hasSeenFeaturePoster: value }),
       setSelectedMonth: (month, mode) =>
         set((state) => ({
           selectedMonth: month,
@@ -740,6 +883,96 @@ export const useFinanceStore = create<FinanceStoreState>()(
             };
           }),
         })),
+      addMoneyTookEntry: (entry) =>
+        set((state) => {
+          const parsedAmount = Number(entry.amount);
+          if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+            return state;
+          }
+
+          const parsedEmi = Number(entry.emiAmount ?? 0);
+          const nextEntry: MoneyTookEntry = {
+            id: generateId(),
+            lenderName: entry.lenderName.trim(),
+            amount: Number(parsedAmount.toFixed(2)),
+            emiAmount: Number.isFinite(parsedEmi) && parsedEmi > 0 ? Number(parsedEmi.toFixed(2)) : undefined,
+            dueDate: entry.dueDate || undefined,
+            note: entry.note?.trim() || "",
+            closed: entry.closed ?? false,
+            payments: entry.payments ?? [],
+          };
+
+          if (!nextEntry.lenderName) {
+            return state;
+          }
+
+          return {
+            moneyTookEntries: [nextEntry, ...state.moneyTookEntries],
+          };
+        }),
+      updateMoneyTookEntry: (entry) =>
+        set((state) => ({
+          moneyTookEntries: state.moneyTookEntries.map((existing) => {
+            if (existing.id !== entry.id) {
+              return existing;
+            }
+
+            const parsedEmi = Number(entry.emiAmount ?? 0);
+            return {
+              ...entry,
+              lenderName: entry.lenderName.trim(),
+              emiAmount: Number.isFinite(parsedEmi) && parsedEmi > 0 ? Number(parsedEmi.toFixed(2)) : undefined,
+              dueDate: entry.dueDate || undefined,
+              note: entry.note?.trim() || "",
+            };
+          }),
+        })),
+      deleteMoneyTookEntry: (id) =>
+        set((state) => ({
+          moneyTookEntries: state.moneyTookEntries.filter((entry) => entry.id !== id),
+        })),
+      addMoneyTookPayment: (id, amount, date) =>
+        set((state) => ({
+          moneyTookEntries: state.moneyTookEntries.map((entry) => {
+            if (entry.id !== id || entry.closed) {
+              return entry;
+            }
+
+            const parsedAmount = Number(amount);
+            if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+              return entry;
+            }
+
+            const nextPayments = [...entry.payments, { id: generateId(), amount: Number(parsedAmount.toFixed(2)), date }];
+            const nextOutstanding = getOutstandingForMoneyTook({ ...entry, payments: nextPayments });
+
+            return {
+              ...entry,
+              payments: nextPayments,
+              closed: nextOutstanding <= 0,
+            };
+          }),
+        })),
+      getMoneyTookOutstandingTotal: () =>
+        get().moneyTookEntries.reduce((sum, entry) => sum + getOutstandingForMoneyTook(entry), 0),
+      getMoneyTookBorrowedTotal: () =>
+        get().moneyTookEntries.reduce((sum, entry) => sum + entry.amount, 0),
+      getMoneyTookDueSoonCount: (leadDays = 3) =>
+        get().moneyTookEntries.filter((entry) => {
+          if (!entry.dueDate || getOutstandingForMoneyTook(entry) <= 0) {
+            return false;
+          }
+          const diffDays = getDiffDaysFromToday(entry.dueDate);
+          return typeof diffDays === "number" && diffDays >= 0 && diffDays <= leadDays;
+        }).length,
+      getMoneyTookOverdueCount: () =>
+        get().moneyTookEntries.filter((entry) => {
+          if (!entry.dueDate || getOutstandingForMoneyTook(entry) <= 0) {
+            return false;
+          }
+          const diffDays = getDiffDaysFromToday(entry.dueDate);
+          return typeof diffDays === "number" && diffDays < 0;
+        }).length,
       markPersonalLoanEmiPaid: (id) =>
         set((state) => {
           const sourceMonth = state.selectedMonth;
@@ -1028,6 +1261,11 @@ export const useFinanceStore = create<FinanceStoreState>()(
             },
           };
         }),
+      setSyncStatus: (status) => set({ syncStatus: status }),
+      setLastSyncedAt: (value) => set({ lastSyncedAt: value }),
+      setLastSyncedVersion: (value) => set({ lastSyncedVersion: value }),
+      markDirty: () => set({ dirty: true }),
+      clearDirty: () => set({ dirty: false }),
       syncSourcePaymentToExpense: ({ sourceType, sourceId, sourceMonth, paid, name, category, amount, icon }) =>
         set((state) => {
           const linked = findLinkedExpense(state.expenses, sourceType, sourceId, sourceMonth);
@@ -1101,9 +1339,49 @@ export const useFinanceStore = create<FinanceStoreState>()(
         }),
     }),
     {
-      name: "finance-app-store-v2",
+      name: getPersistNameForNamespace(null),
       storage: createJSONStorage(() => localStorage),
     },
   ),
 );
+
+const migrateLegacyStoreDataIfNeeded = (uid: string) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const targetKey = getPersistNameForNamespace(uid);
+  const targetValue = localStorage.getItem(targetKey);
+  if (targetValue) {
+    return;
+  }
+
+  const legacyValue = localStorage.getItem(FINANCE_STORE_BASE_KEY);
+  if (!legacyValue) {
+    return;
+  }
+
+  localStorage.setItem(targetKey, legacyValue);
+};
+
+export const setFinanceStoreNamespace = async (uid: string | null) => {
+  const persist = useFinanceStore.persist;
+  if (!persist) {
+    return;
+  }
+
+  const nextName = getPersistNameForNamespace(uid);
+  const currentName = persist.getOptions().name;
+  if (currentName === nextName) {
+    return;
+  }
+
+  if (uid) {
+    migrateLegacyStoreDataIfNeeded(uid);
+  }
+
+  useFinanceStore.setState(getBaseStoreSnapshot());
+  persist.setOptions({ name: nextName });
+  await persist.rehydrate();
+};
 

@@ -165,3 +165,27 @@ body {
 .btn-press:active {
   transform: scale(0.95);
 }
+
+.segment-pill-tab {
+  height: 2.35rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111118;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: transform 0.12s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.segment-pill-tab:active {
+  transform: scale(0.97);
+}
+
+.segment-pill-tab-active {
+  border-color: rgba(129, 140, 248, 0.55);
+  color: #ecfeff;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.34), rgba(0, 201, 167, 0.28));
+  box-shadow: 0 0 16px rgba(79, 70, 229, 0.24);
+}

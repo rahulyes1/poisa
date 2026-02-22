@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ExportButton from "../ExportButton";
+import DownloadSpendingPdfButton from "../DownloadSpendingPdfButton";
 import AddRecurringTemplateModal from "../spending/AddRecurringTemplateModal";
 import { CurrencyCode, DashboardWindow } from "../shared/types";
 import { useFinanceStore } from "../shared/store";
@@ -25,6 +26,9 @@ export default function SettingsPanel() {
   const spendingCarryForwardEnabled = useFinanceStore((state) => state.spendingCarryForwardEnabled);
   const savingsCarryForwardEnabled = useFinanceStore((state) => state.savingsCarryForwardEnabled);
   const recurringTemplates = useFinanceStore((state) => state.recurringTemplates);
+  const syncStatus = useFinanceStore((state) => state.syncStatus);
+  const lastSyncedAt = useFinanceStore((state) => state.lastSyncedAt);
+  const lastSyncedVersion = useFinanceStore((state) => state.lastSyncedVersion);
   const setCurrency = useFinanceStore((state) => state.setCurrency);
   const setDashboardWindow = useFinanceStore((state) => state.setDashboardWindow);
   const setSpendingCarryForwardEnabled = useFinanceStore((state) => state.setSpendingCarryForwardEnabled);
@@ -33,6 +37,23 @@ export default function SettingsPanel() {
   const deleteRecurringTemplate = useFinanceStore((state) => state.deleteRecurringTemplate);
 
   const editingTemplate = recurringTemplates.find((template) => template.id === editingRecurringId) ?? null;
+  const syncedAtLabel = lastSyncedAt
+    ? new Date(lastSyncedAt).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Never";
+
+  const syncStatusLabel =
+    syncStatus === "syncing"
+      ? "Syncing"
+      : syncStatus === "offline"
+        ? "Offline"
+        : syncStatus === "error"
+          ? "Error"
+          : "Idle";
 
   return (
     <section className="px-5 pt-5 pb-4 space-y-4">
@@ -180,7 +201,26 @@ export default function SettingsPanel() {
 
       <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
         <h4 className="text-sm font-bold text-[#f0f0ff] mb-3">Data</h4>
-        <ExportButton />
+        <div className="mb-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2 text-[11px] text-[#94A3B8]">
+          <p className="flex items-center justify-between">
+            <span>Cloud Sync</span>
+            <span className="text-[#cde3df] font-semibold">{syncStatusLabel}</span>
+          </p>
+          <p className="flex items-center justify-between mt-1">
+            <span>Last Synced</span>
+            <span className="text-[#f0f0ff]">{syncedAtLabel}</span>
+          </p>
+          {typeof lastSyncedVersion === "number" && (
+            <p className="flex items-center justify-between mt-1">
+              <span>Snapshot Version</span>
+              <span className="text-[#cde3df]">v{lastSyncedVersion}</span>
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButton />
+          <DownloadSpendingPdfButton />
+        </div>
       </div>
 
       <AddRecurringTemplateModal

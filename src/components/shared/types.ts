@@ -3,6 +3,7 @@ export type TabKey = "spending" | "investing" | "lending" | "analytics" | "setti
 export type CurrencyCode = "USD" | "INR" | "EUR" | "GBP" | "JPY" | "AED";
 export type DashboardWindow = 1 | 3 | 6 | 12;
 export type MonthMode = "auto" | "manual";
+export type SyncStatus = "idle" | "syncing" | "error" | "offline";
 
 export interface Expense {
   id: string;
@@ -94,6 +95,35 @@ export type NewPersonalLoan = Omit<PersonalLoan, "id" | "payments" | "closed"> &
   payments?: PersonalLoanPayment[];
   closed?: boolean;
 };
+
+export interface MoneyTookPayment {
+  id: string;
+  date: string;
+  amount: number;
+}
+
+export interface MoneyTookEntry {
+  id: string;
+  lenderName: string;
+  amount: number;
+  emiAmount?: number;
+  dueDate?: string;
+  note?: string;
+  closed: boolean;
+  payments: MoneyTookPayment[];
+}
+
+export type NewMoneyTookEntry = Omit<MoneyTookEntry, "id" | "payments" | "closed"> & {
+  payments?: MoneyTookPayment[];
+  closed?: boolean;
+};
+
+export interface FinanceSnapshotRow {
+  user_id: string;
+  state: unknown;
+  version: number;
+  updated_at: string;
+}
 
 export interface LifeInsurance {
   id: string;

@@ -13,6 +13,10 @@ interface HeaderProps {
   setActiveTab: (tab: TabKey) => void;
   spendingQuery: string;
   onSpendingQueryChange: (value: string) => void;
+  userName?: string | null;
+  userEmail?: string | null;
+  userPhotoURL?: string | null;
+  onSignOut?: () => Promise<void> | void;
 }
 
 const parseMonth = (month: string) => {
@@ -35,6 +39,10 @@ export default function Header({
   setActiveTab,
   spendingQuery,
   onSpendingQueryChange,
+  userName,
+  userEmail,
+  userPhotoURL,
+  onSignOut,
 }: HeaderProps) {
   const { currency, currencySymbol } = useCurrency();
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
@@ -44,6 +52,7 @@ export default function Header({
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [draftYear, setDraftYear] = useState(parseMonth(selectedMonth).year);
   const [draftMonthIndex, setDraftMonthIndex] = useState(parseMonth(selectedMonth).monthIndex);
 
@@ -95,6 +104,12 @@ export default function Header({
             >
               Poisa
             </span>
+            {onSignOut && (
+              <span className="h-6 px-2 rounded-full border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.16)] inline-flex items-center gap-1 text-[10px] font-semibold text-[#c7d2fe] max-w-[140px]">
+                <span className="material-symbols-outlined text-[12px]">verified_user</span>
+                <span className="truncate">{userName || userEmail || "Signed in"}</span>
+              </span>
+            )}
             {activeTab === "spending" && (
               <button
                 type="button"
@@ -148,6 +163,43 @@ export default function Header({
             >
               <span className="material-symbols-outlined text-[13px] leading-none">settings</span>
             </button>
+
+            {onSignOut && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowUserMenu((value) => !value)}
+                  className="h-6 w-6 rounded-full border border-white/20 bg-white/[0.08] overflow-hidden inline-flex items-center justify-center active:scale-95 transition-transform"
+                  title="Account"
+                >
+                  {userPhotoURL ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={userPhotoURL} alt={userName || "User"} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] font-bold text-white">
+                      {(userName || userEmail || "U").slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 top-8 w-56 rounded-xl border border-white/20 bg-[#0F172A]/95 backdrop-blur-[22px] shadow-[0_16px_34px_rgba(0,0,0,0.45)] overflow-hidden z-20 p-2">
+                    <p className="text-[11px] font-semibold text-[#f0f0ff] truncate">{userName || "Account User"}</p>
+                    <p className="text-[10px] text-white/65 truncate mt-0.5">{userEmail || "Signed in"}</p>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setShowUserMenu(false);
+                        await onSignOut();
+                      }}
+                      className="mt-2 w-full h-8 rounded-lg border border-[rgba(255,255,255,0.12)] bg-white/[0.08] text-[11px] font-semibold text-white"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

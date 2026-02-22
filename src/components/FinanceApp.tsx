@@ -17,6 +17,8 @@ import AddLendModal from "./lending/AddLendModal";
 import EditLoanModal from "./lending/EditLoanModal";
 import AddPersonalLoanModal from "./lending/AddPersonalLoanModal";
 import EditPersonalLoanModal from "./lending/EditPersonalLoanModal";
+import AddMoneyTookModal from "./lending/AddMoneyTookModal";
+import EditMoneyTookModal from "./lending/EditMoneyTookModal";
 import SavingsBudgetSetter from "./savings/SavingsBudgetSetter";
 import SettingsPanel from "./settings/SettingsPanel";
 import CurrencyPickerModal from "./CurrencyPickerModal";
@@ -24,24 +26,40 @@ import AddInvestmentModal from "./investment/AddInvestmentModal";
 import AddLifeInsuranceModal from "./investing/AddLifeInsuranceModal";
 import InvestingOverview from "./investing/InvestingOverview";
 import AnalyticsDashboard from "./analytics/AnalyticsDashboard";
+import AuthGate, { AppAuthUser } from "./auth/AuthGate";
 import { useFinanceStore } from "./shared/store";
-import { CurrencyCode, Expense, Loan, PersonalLoan, SavingGoal, TabKey } from "./shared/types";
+import {
+  CurrencyCode,
+  Expense,
+  Loan,
+  MoneyTookEntry,
+  PersonalLoan,
+  SavingGoal,
+  TabKey,
+} from "./shared/types";
 
 type ActionTab = Exclude<TabKey, "settings" | "analytics">;
 
-export default function FinanceApp() {
+interface FinanceAppShellProps {
+  user: AppAuthUser;
+  onSignOut: () => Promise<void>;
+}
+
+function FinanceAppShell({ user, onSignOut }: FinanceAppShellProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("spending");
   const [spendingQuery, setSpendingQuery] = useState("");
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
   const [isAddLendOpen, setIsAddLendOpen] = useState(false);
   const [isAddPersonalLoanOpen, setIsAddPersonalLoanOpen] = useState(false);
+  const [isAddMoneyTookOpen, setIsAddMoneyTookOpen] = useState(false);
   const [isAddInvestmentOpen, setIsAddInvestmentOpen] = useState(false);
   const [isAddLifeInsuranceOpen, setIsAddLifeInsuranceOpen] = useState(false);
   const [editExpenseItem, setEditExpenseItem] = useState<Expense | null>(null);
   const [editGoalItem, setEditGoalItem] = useState<SavingGoal | null>(null);
   const [editLoanItem, setEditLoanItem] = useState<Loan | null>(null);
   const [editPersonalLoanItem, setEditPersonalLoanItem] = useState<PersonalLoan | null>(null);
+  const [editMoneyTookItem, setEditMoneyTookItem] = useState<MoneyTookEntry | null>(null);
   const [showSpendingBudgetSetter, setShowSpendingBudgetSetter] = useState(false);
   const [showInvestingBudgetSetter, setShowInvestingBudgetSetter] = useState(false);
   const [showInvestingActions, setShowInvestingActions] = useState(false);
@@ -166,6 +184,10 @@ export default function FinanceApp() {
         setActiveTab={onTabChange}
         spendingQuery={spendingQuery}
         onSpendingQueryChange={setSpendingQuery}
+        userName={user.fullName}
+        userEmail={user.email}
+        userPhotoURL={user.avatarUrl}
+        onSignOut={onSignOut}
       />
 
       <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+126px)] sm:pb-[calc(env(safe-area-inset-bottom)+112px)]">
@@ -207,6 +229,7 @@ export default function FinanceApp() {
               <LendingOverview
                 onEditLoan={setEditLoanItem}
                 onEditPersonalLoan={setEditPersonalLoanItem}
+                onEditMoneyTook={setEditMoneyTookItem}
               />
             )}
             {activeTab === "analytics" && <AnalyticsDashboard />}
@@ -272,6 +295,16 @@ export default function FinanceApp() {
           >
             Add My Loan
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowLendingActions(false);
+              setIsAddMoneyTookOpen(true);
+            }}
+            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            Add Money I Took
+          </button>
         </div>
       )}
 
@@ -315,9 +348,23 @@ export default function FinanceApp() {
         item={editPersonalLoanItem}
         onClose={() => setEditPersonalLoanItem(null)}
       />
+      <AddMoneyTookModal isOpen={isAddMoneyTookOpen} onClose={() => setIsAddMoneyTookOpen(false)} />
+      <EditMoneyTookModal
+        key={editMoneyTookItem?.id ?? "edit-money-took"}
+        isOpen={Boolean(editMoneyTookItem)}
+        item={editMoneyTookItem}
+        onClose={() => setEditMoneyTookItem(null)}
+      />
       <AddInvestmentModal isOpen={isAddInvestmentOpen} onClose={() => setIsAddInvestmentOpen(false)} />
       <AddLifeInsuranceModal isOpen={isAddLifeInsuranceOpen} onClose={() => setIsAddLifeInsuranceOpen(false)} />
     </div>
   );
 }
 
+export default function FinanceApp() {
+  return (
+    <AuthGate>
+      {({ user, onSignOut }) => <FinanceAppShell user={user} onSignOut={onSignOut} />}
+    </AuthGate>
+  );
+}
