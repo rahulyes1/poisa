@@ -24,12 +24,15 @@ type UpsertResult = {
 let activeUserId: string | null = null;
 let latestRemoteVersion: number | null = null;
 let latestSerializedSnapshot = "";
+let latestQueuedSnapshot = "";
 let isApplyingRemote = false;
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let unsubscribeStore: (() => void) | null = null;
 let detachOnlineListener: (() => void) | null = null;
 let snapshotTableMissing = false;
+let syncInFlight = false;
+let flushRequestedWhileInFlight = false;
 
 const isConnectivityError = (error: unknown) => {
   const text = error instanceof Error ? error.message : String(error ?? "");
@@ -104,6 +107,7 @@ const applyRemoteSnapshot = (row: FinanceSnapshotRow) => {
   const remoteState = row.state as FinanceDataSnapshot;
   const serialized = serializeState(remoteState);
   latestSerializedSnapshot = serialized;
+  latestQueuedSnapshot = serialized;
   isApplyingRemote = true;
   applyFinanceSnapshot(remoteState);
   isApplyingRemote = false;
@@ -189,55 +193,70 @@ const flushCloudSync = async () => {
     return;
   }
 
+  if (syncInFlight) {
+    flushRequestedWhileInFlight = true;
+    return;
+  }
+
   const store = useFinanceStore.getState();
   if (!store.dirty) {
     return;
   }
 
-  const snapshot = getFinanceDataSnapshot();
-  const serialized = serializeState(snapshot);
+  syncInFlight = true;
+  try {
+    const snapshot = getFinanceDataSnapshot();
+    const serialized = serializeState(snapshot);
 
-  setSyncStatus("syncing");
-  const result = await upsertRemoteSnapshot(activeUserId, snapshot, latestRemoteVersion);
+    setSyncStatus("syncing");
+    const result = await upsertRemoteSnapshot(activeUserId, snapshot, latestRemoteVersion);
 
-  if (result.row) {
-    latestRemoteVersion = Number(result.row.version ?? 0);
-    latestSerializedSnapshot = serialized;
-    useFinanceStore.getState().setLastSyncedAt(result.row.updated_at);
-    useFinanceStore.getState().setLastSyncedVersion(latestRemoteVersion ?? undefined);
-    useFinanceStore.getState().clearDirty();
-    setSyncStatus("idle");
-    return;
-  }
-
-  if (result.conflict) {
-    const latest = await loadRemoteSnapshot(activeUserId);
-    if (latest.row) {
-      applyRemoteSnapshot(latest.row);
+    if (result.row) {
+      latestRemoteVersion = Number(result.row.version ?? 0);
+      latestSerializedSnapshot = serialized;
+      latestQueuedSnapshot = serialized;
+      useFinanceStore.getState().setLastSyncedAt(result.row.updated_at);
+      useFinanceStore.getState().setLastSyncedVersion(latestRemoteVersion ?? undefined);
+      useFinanceStore.getState().clearDirty();
       setSyncStatus("idle");
       return;
     }
-    if (latest.error && isSnapshotTableMissingError(latest.error)) {
-      snapshotTableMissing = true;
-      setSyncStatus("error");
-      clearTimers();
-      return;
-    }
-  }
 
-  if (result.error) {
-    if (isSnapshotTableMissingError(result.error)) {
-      snapshotTableMissing = true;
-      setSyncStatus("error");
-      clearTimers();
-      return;
+    if (result.conflict) {
+      const latest = await loadRemoteSnapshot(activeUserId);
+      if (latest.row) {
+        applyRemoteSnapshot(latest.row);
+        setSyncStatus("idle");
+        return;
+      }
+      if (latest.error && isSnapshotTableMissingError(latest.error)) {
+        snapshotTableMissing = true;
+        setSyncStatus("error");
+        clearTimers();
+        return;
+      }
     }
 
-    const offline = (typeof navigator !== "undefined" && !navigator.onLine) || isConnectivityError(result.error);
-    setSyncStatus(offline ? "offline" : "error");
-    retryTimer = setTimeout(() => {
+    if (result.error) {
+      if (isSnapshotTableMissingError(result.error)) {
+        snapshotTableMissing = true;
+        setSyncStatus("error");
+        clearTimers();
+        return;
+      }
+
+      const offline = (typeof navigator !== "undefined" && !navigator.onLine) || isConnectivityError(result.error);
+      setSyncStatus(offline ? "offline" : "error");
+      retryTimer = setTimeout(() => {
+        void flushCloudSync();
+      }, RETRY_DELAY_MS);
+    }
+  } finally {
+    syncInFlight = false;
+    if (flushRequestedWhileInFlight) {
+      flushRequestedWhileInFlight = false;
       void flushCloudSync();
-    }, RETRY_DELAY_MS);
+    }
   }
 };
 
@@ -260,8 +279,11 @@ export const stopCloudSync = () => {
   clearTimers();
   latestRemoteVersion = null;
   latestSerializedSnapshot = "";
+  latestQueuedSnapshot = "";
   isApplyingRemote = false;
   snapshotTableMissing = false;
+  syncInFlight = false;
+  flushRequestedWhileInFlight = false;
   if (unsubscribeStore) {
     unsubscribeStore();
     unsubscribeStore = null;
@@ -279,6 +301,7 @@ export const startCloudSync = async (userId: string) => {
 
   const currentSnapshot = getFinanceDataSnapshot();
   latestSerializedSnapshot = serializeState(currentSnapshot);
+  latestQueuedSnapshot = latestSerializedSnapshot;
   setSyncStatus("syncing");
 
   const remote = await loadRemoteSnapshot(userId);
@@ -312,15 +335,24 @@ export const startCloudSync = async (userId: string) => {
     const snapshot = getFinanceDataSnapshot(state);
     const serialized = serializeState(snapshot);
     if (serialized === latestSerializedSnapshot) {
+      latestQueuedSnapshot = serialized;
       return;
     }
 
     if (isApplyingRemote) {
       latestSerializedSnapshot = serialized;
+      latestQueuedSnapshot = serialized;
       return;
     }
 
-    useFinanceStore.getState().markDirty();
+    if (state.dirty && serialized === latestQueuedSnapshot) {
+      return;
+    }
+
+    latestQueuedSnapshot = serialized;
+    if (!state.dirty) {
+      useFinanceStore.getState().markDirty();
+    }
     scheduleCloudSync();
   });
 
