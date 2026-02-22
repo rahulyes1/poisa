@@ -13,10 +13,14 @@ interface HeaderProps {
   setActiveTab: (tab: TabKey) => void;
   spendingQuery: string;
   onSpendingQueryChange: (value: string) => void;
+  isSignedIn?: boolean;
   userName?: string | null;
   userEmail?: string | null;
   userPhotoURL?: string | null;
+  onSignIn?: () => Promise<void> | void;
   onSignOut?: () => Promise<void> | void;
+  authConfigured?: boolean;
+  authError?: string;
 }
 
 const parseMonth = (month: string) => {
@@ -39,10 +43,14 @@ export default function Header({
   setActiveTab,
   spendingQuery,
   onSpendingQueryChange,
+  isSignedIn = false,
   userName,
   userEmail,
   userPhotoURL,
+  onSignIn,
   onSignOut,
+  authConfigured = true,
+  authError,
 }: HeaderProps) {
   const { currency, currencySymbol } = useCurrency();
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
@@ -104,11 +112,22 @@ export default function Header({
             >
               Poisa
             </span>
-            {onSignOut && (
+            {isSignedIn ? (
               <span className="h-6 px-2 rounded-full border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.16)] inline-flex items-center gap-1 text-[10px] font-semibold text-[#c7d2fe] max-w-[140px]">
                 <span className="material-symbols-outlined text-[12px]">verified_user</span>
                 <span className="truncate">{userName || userEmail || "Signed in"}</span>
               </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onSignIn?.()}
+                disabled={!authConfigured}
+                className="h-6 px-2 rounded-full border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.16)] inline-flex items-center gap-1 text-[10px] font-semibold text-[#c7d2fe] disabled:opacity-45 disabled:cursor-not-allowed"
+                title={authConfigured ? "Sign in with Google" : "Supabase config missing. Add env vars in .env.local"}
+              >
+                <span className="material-symbols-outlined text-[12px]">login</span>
+                <span>Sign In</span>
+              </button>
             )}
             {activeTab === "spending" && (
               <button
@@ -164,7 +183,7 @@ export default function Header({
               <span className="material-symbols-outlined text-[13px] leading-none">settings</span>
             </button>
 
-            {onSignOut && (
+            {isSignedIn && onSignOut && (
               <div className="relative">
                 <button
                   type="button"
@@ -202,6 +221,10 @@ export default function Header({
             )}
           </div>
         </div>
+
+        {!isSignedIn && authError && (
+          <p className="pt-1 text-[10px] text-[#FFB88D]">{authError}</p>
+        )}
 
         {activeTab === "spending" && showSearch && (
           <div className="pt-2">

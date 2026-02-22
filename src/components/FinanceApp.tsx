@@ -41,11 +41,14 @@ import {
 type ActionTab = Exclude<TabKey, "settings" | "analytics">;
 
 interface FinanceAppShellProps {
-  user: AppAuthUser;
+  user: AppAuthUser | null;
+  onSignIn: () => Promise<void>;
   onSignOut: () => Promise<void>;
+  authConfigured: boolean;
+  authError?: string;
 }
 
-function FinanceAppShell({ user, onSignOut }: FinanceAppShellProps) {
+function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, authError }: FinanceAppShellProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("spending");
   const [spendingQuery, setSpendingQuery] = useState("");
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
@@ -184,10 +187,14 @@ function FinanceAppShell({ user, onSignOut }: FinanceAppShellProps) {
         setActiveTab={onTabChange}
         spendingQuery={spendingQuery}
         onSpendingQueryChange={setSpendingQuery}
-        userName={user.fullName}
-        userEmail={user.email}
-        userPhotoURL={user.avatarUrl}
+        isSignedIn={Boolean(user)}
+        userName={user?.fullName ?? null}
+        userEmail={user?.email ?? null}
+        userPhotoURL={user?.avatarUrl ?? null}
+        onSignIn={onSignIn}
         onSignOut={onSignOut}
+        authConfigured={authConfigured}
+        authError={authError}
       />
 
       <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 pb-[calc(env(safe-area-inset-bottom)+126px)] sm:pb-[calc(env(safe-area-inset-bottom)+112px)]">
@@ -364,7 +371,15 @@ function FinanceAppShell({ user, onSignOut }: FinanceAppShellProps) {
 export default function FinanceApp() {
   return (
     <AuthGate>
-      {({ user, onSignOut }) => <FinanceAppShell user={user} onSignOut={onSignOut} />}
+      {({ user, onSignIn, onSignOut, authConfigured, authError }) => (
+        <FinanceAppShell
+          user={user}
+          onSignIn={onSignIn}
+          onSignOut={onSignOut}
+          authConfigured={authConfigured}
+          authError={authError}
+        />
+      )}
     </AuthGate>
   );
 }

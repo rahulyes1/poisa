@@ -2,7 +2,6 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import SignInScreen from "./SignInScreen";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 import { setFinanceStoreNamespace } from "../shared/store";
 import { startCloudSync, stopCloudSync } from "../shared/cloudSync";
@@ -15,7 +14,13 @@ export interface AppAuthUser {
 }
 
 interface AuthGateProps {
-  children: (params: { user: AppAuthUser; onSignOut: () => Promise<void> }) => ReactNode;
+  children: (params: {
+    user: AppAuthUser | null;
+    onSignIn: () => Promise<void>;
+    onSignOut: () => Promise<void>;
+    authConfigured: boolean;
+    authError?: string;
+  }) => ReactNode;
 }
 
 const toAppAuthUser = (user: User): AppAuthUser => ({
@@ -27,7 +32,6 @@ const toAppAuthUser = (user: User): AppAuthUser => ({
 
 export default function AuthGate({ children }: AuthGateProps) {
   const [ready, setReady] = useState(false);
-  const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<AppAuthUser | null>(null);
 
@@ -49,12 +53,13 @@ export default function AuthGate({ children }: AuthGateProps) {
         setUser(null);
       }
 
-      setError(null);
       setReady(true);
     };
 
     const init = async () => {
       if (!supabase) {
+        await setFinanceStoreNamespace(null);
+        stopCloudSync();
         setReady(true);
         return;
       }
@@ -77,14 +82,13 @@ export default function AuthGate({ children }: AuthGateProps) {
     };
   }, []);
 
-  const onGoogleSignIn = async () => {
+  const onSignIn = async () => {
     if (!supabase) {
-      setError("Google sign-in is unavailable because Supabase config is missing.");
+      setError("Supabase config is missing. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local.");
       return;
     }
 
     try {
-      setSigningIn(true);
       setError(null);
       const redirectBase = window.location.origin;
       const redirectTo = `${redirectBase}/auth/callback`;
@@ -98,7 +102,6 @@ export default function AuthGate({ children }: AuthGateProps) {
       }
     } catch {
       setError("Unable to start Google sign-in. Please try again.");
-      setSigningIn(false);
     }
   };
 
@@ -106,6 +109,7 @@ export default function AuthGate({ children }: AuthGateProps) {
     if (!supabase) {
       await setFinanceStoreNamespace(null);
       stopCloudSync();
+      setUser(null);
       return;
     }
 
@@ -121,16 +125,15 @@ export default function AuthGate({ children }: AuthGateProps) {
     );
   }
 
-  if (!user) {
-    return (
-      <SignInScreen
-        loading={signingIn}
-        error={error}
-        onGoogleSignIn={onGoogleSignIn}
-        authConfigured={isSupabaseConfigured}
-      />
-    );
-  }
-
-  return <>{children({ user, onSignOut })}</>;
+  return (
+    <>
+      {children({
+        user,
+        onSignIn,
+        onSignOut,
+        authConfigured: isSupabaseConfigured,
+        authError: error ?? undefined,
+      })}
+    </>
+  );
 }
