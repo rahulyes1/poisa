@@ -12,6 +12,8 @@ import {
   Loan,
   MoneyTookEntry,
   MonthMode,
+  MonthlyIncomeEntry,
+  NetWorthHistoryPoint,
   NewExpense,
   NewInvestment,
   NewLifeInsurance,
@@ -52,6 +54,8 @@ interface FinanceStoreState {
   recurringTemplates: RecurringTemplate[];
   spendingTodos: SpendingTodo[];
   spendingTodoDoneMonths: Record<string, string[]>;
+  monthlyIncomeByMonth: Record<string, MonthlyIncomeEntry>;
+  netWorthHistory: NetWorthHistoryPoint[];
   syncStatus: SyncStatus;
   lastSyncedAt?: string;
   lastSyncedVersion?: number;
@@ -67,6 +71,8 @@ interface FinanceStoreState {
   getSpendingCarryIn: (month: string) => number;
   getEffectiveSpendingBudget: (month: string) => number;
   getSpendingCarryOut: (month: string) => number;
+  getMonthlyIncome: (month: string) => MonthlyIncomeEntry | null;
+  getTotalIncomeForMonth: (month: string) => number;
   setCurrency: (currency: CurrencyCode) => void;
   setHasSelectedCurrency: (value: boolean) => void;
   setHasSeenFeaturePoster: (value: boolean) => void;
@@ -128,6 +134,10 @@ interface FinanceStoreState {
   updateSpendingTodo: (todo: SpendingTodo) => void;
   deleteSpendingTodo: (id: string) => void;
   toggleSpendingTodoDone: (id: string, month: string) => void;
+  resetSpendingTodoForMonth: (month: string) => void;
+  setMonthlyIncome: (month: string, salary: number, otherIncome?: number) => void;
+  clearMonthlyIncome: (month: string) => void;
+  upsertNetWorthHistoryPoint: (point: NetWorthHistoryPoint) => void;
   setSyncStatus: (status: SyncStatus) => void;
   setLastSyncedAt: (value?: string) => void;
   setLastSyncedVersion: (value?: number) => void;
@@ -183,6 +193,58 @@ const getSpentForMonthFromState = (state: FinanceStoreState, month: string) =>
   state.expenses
     .filter((expense) => toMonth(expense.date) === month)
     .reduce((sum, expense) => sum + expense.amount, 0);
+
+const clampTodoDueDay = (day?: number) => {
+  if (typeof day !== "number" || !Number.isFinite(day)) {
+    return 1;
+  }
+  return Math.max(1, Math.min(Math.round(day), 31));
+};
+
+const normalizeMonthInput = (month: string) => {
+  if (/^\d{4}-\d{2}$/.test(month)) {
+    return month;
+  }
+  return getCurrentMonth();
+};
+
+const getTotalIncomeForMonthFromState = (state: FinanceStoreState, month: string) => {
+  const entry = state.monthlyIncomeByMonth[month];
+  if (!entry) {
+    return 0;
+  }
+  return Math.max((entry.salary || 0) + (entry.otherIncome || 0), 0);
+};
+
+const getNetWorthForState = (state: FinanceStoreState) => {
+  const investingAssets =
+    state.savingGoals.reduce((sum, goal) => sum + goal.savedAmount, 0) +
+    state.investments.reduce((sum, item) => sum + item.amount, 0);
+
+  const moneyLentReceivable = state.loans.reduce(
+    (sum, loan) => sum + Math.max(loan.amount - loan.repaidAmount, 0),
+    0,
+  );
+  const liabilities = state.personalLoans.reduce((sum, loan) => sum + getOutstandingForPersonalLoan(loan), 0);
+
+  return investingAssets + moneyLentReceivable - liabilities + state.adjustments.manualAssets - state.adjustments.manualLiabilities;
+};
+
+const upsertNetWorthPoint = (history: NetWorthHistoryPoint[], point: NetWorthHistoryPoint) => {
+  const normalizedMonth = normalizeMonthInput(point.month);
+  const normalizedValue = Number.isFinite(point.netWorth) ? Number(point.netWorth.toFixed(2)) : 0;
+  const existingIndex = history.findIndex((row) => row.month === normalizedMonth);
+
+  if (existingIndex === -1) {
+    return [...history, { month: normalizedMonth, netWorth: normalizedValue }].sort((a, b) =>
+      a.month.localeCompare(b.month),
+    );
+  }
+
+  return history.map((row, index) =>
+    index === existingIndex ? { month: normalizedMonth, netWorth: normalizedValue } : row,
+  );
+};
 
 const getBaseBudgetForMonthFromState = (state: FinanceStoreState, month: string) =>
   typeof state.monthlyBudgets[month] === "number" ? state.monthlyBudgets[month] : state.spendingBudget;
@@ -347,41 +409,51 @@ const defaultSpendingTodos: SpendingTodo[] = [
     id: "todo-rent",
     title: "Rent",
     category: "Rent",
-    defaultAmount: 12000,
+    defaultAmount: 22000,
     note: "",
     active: true,
+    dueDay: 1,
+    recurring: true,
   },
   {
     id: "todo-electricity",
     title: "Electricity Bill",
     category: "Utilities",
-    defaultAmount: 1800,
+    defaultAmount: 1298,
     note: "",
     active: true,
+    dueDay: 5,
+    recurring: true,
   },
   {
     id: "todo-life-insurance",
     title: "Life Insurance",
     category: "Bills & Recharge",
-    defaultAmount: 0,
+    defaultAmount: 3000,
     note: "",
     active: true,
+    dueDay: 7,
+    recurring: true,
   },
   {
     id: "todo-sip",
     title: "SIP",
     category: "Recurring Expenses",
-    defaultAmount: 0,
+    defaultAmount: 5000,
     note: "",
     active: true,
+    dueDay: 10,
+    recurring: true,
   },
   {
     id: "todo-parents-insurance",
     title: "Parents Insurance",
     category: "Bills & Recharge",
-    defaultAmount: 0,
+    defaultAmount: 4000,
     note: "",
     active: true,
+    dueDay: 12,
+    recurring: true,
   },
 ];
 
@@ -408,6 +480,8 @@ const initialMoneyTookEntries: MoneyTookEntry[] = [];
 const initialLifeInsurances: LifeInsurance[] = [];
 const initialRecurringTemplates: RecurringTemplate[] = defaultRecurringTemplates;
 const initialSpendingTodos: SpendingTodo[] = defaultSpendingTodos;
+const initialMonthlyIncomeByMonth: Record<string, MonthlyIncomeEntry> = {};
+const initialNetWorthHistory: NetWorthHistoryPoint[] = [];
 
 const initialAdjustments: FinanceAdjustments = {
   manualAssets: 0,
@@ -445,6 +519,8 @@ export const getBaseStoreSnapshot = () => ({
   recurringTemplates: [...initialRecurringTemplates],
   spendingTodos: [...initialSpendingTodos],
   spendingTodoDoneMonths: {} as Record<string, string[]>,
+  monthlyIncomeByMonth: { ...initialMonthlyIncomeByMonth },
+  netWorthHistory: [...initialNetWorthHistory],
   syncStatus: "idle" as SyncStatus,
   lastSyncedAt: undefined as string | undefined,
   lastSyncedVersion: undefined as number | undefined,
@@ -476,6 +552,8 @@ export type FinanceDataSnapshot = Pick<
   | "recurringTemplates"
   | "spendingTodos"
   | "spendingTodoDoneMonths"
+  | "monthlyIncomeByMonth"
+  | "netWorthHistory"
 >;
 
 const financeDataKeys = [
@@ -502,6 +580,8 @@ const financeDataKeys = [
   "recurringTemplates",
   "spendingTodos",
   "spendingTodoDoneMonths",
+  "monthlyIncomeByMonth",
+  "netWorthHistory",
 ] as const;
 
 export const getFinanceDataSnapshot = (state?: FinanceStoreState): FinanceDataSnapshot => {
@@ -589,6 +669,21 @@ export const useFinanceStore = create<FinanceStoreState>()(
         const spent = getSpentForMonthFromState(state, month);
         return Math.max(effectiveBudget - spent, 0);
       },
+      getMonthlyIncome: (month) => {
+        const normalizedMonth = normalizeMonthInput(month);
+        const entry = get().monthlyIncomeByMonth[normalizedMonth];
+        if (!entry) {
+          return null;
+        }
+        return {
+          salary: Number(entry.salary) || 0,
+          otherIncome: Number(entry.otherIncome) || 0,
+        };
+      },
+      getTotalIncomeForMonth: (month) => {
+        const normalizedMonth = normalizeMonthInput(month);
+        return getTotalIncomeForMonthFromState(get(), normalizedMonth);
+      },
       setCurrency: (currency) => set({ currency, hasSelectedCurrency: true }),
       setHasSelectedCurrency: (value) => set({ hasSelectedCurrency: value }),
       setHasSeenFeaturePoster: (value) => set({ hasSeenFeaturePoster: value }),
@@ -603,10 +698,15 @@ export const useFinanceStore = create<FinanceStoreState>()(
             return state;
           }
           const currentMonth = getCurrentMonth();
+          const nextNetWorthHistory = upsertNetWorthPoint(state.netWorthHistory, {
+            month: currentMonth,
+            netWorth: getNetWorthForState(state),
+          });
+
           if (state.selectedMonth === currentMonth) {
-            return state;
+            return { netWorthHistory: nextNetWorthHistory };
           }
-          return { ...state, selectedMonth: currentMonth };
+          return { ...state, selectedMonth: currentMonth, netWorthHistory: nextNetWorthHistory };
         }),
       setDashboardWindow: (window) => set({ dashboardWindow: window }),
       setSpendingCarryForwardEnabled: (value) => set({ spendingCarryForwardEnabled: value }),
@@ -1237,6 +1337,8 @@ export const useFinanceStore = create<FinanceStoreState>()(
                 defaultAmount: Number(defaultAmount.toFixed(2)),
                 note: todo.note?.trim() ?? "",
                 active: todo.active ?? true,
+                dueDay: clampTodoDueDay(todo.dueDay),
+                recurring: todo.recurring ?? true,
               },
               ...state.spendingTodos,
             ],
@@ -1244,7 +1346,15 @@ export const useFinanceStore = create<FinanceStoreState>()(
         }),
       updateSpendingTodo: (todo) =>
         set((state) => ({
-          spendingTodos: state.spendingTodos.map((existing) => (existing.id === todo.id ? todo : existing)),
+          spendingTodos: state.spendingTodos.map((existing) =>
+            existing.id === todo.id
+              ? {
+                  ...todo,
+                  dueDay: clampTodoDueDay(todo.dueDay),
+                  recurring: todo.recurring ?? existing.recurring ?? true,
+                }
+              : existing,
+          ),
         })),
       deleteSpendingTodo: (id) =>
         set((state) => {
@@ -1270,6 +1380,44 @@ export const useFinanceStore = create<FinanceStoreState>()(
             },
           };
         }),
+      resetSpendingTodoForMonth: (month) =>
+        set((state) => ({
+          spendingTodoDoneMonths: Object.fromEntries(
+            Object.entries(state.spendingTodoDoneMonths).map(([todoId, doneMonths]) => [
+              todoId,
+              doneMonths.filter((doneMonth) => doneMonth !== month),
+            ]),
+          ),
+        })),
+      setMonthlyIncome: (month, salary, otherIncome = 0) =>
+        set((state) => {
+          const normalizedMonth = normalizeMonthInput(month);
+          const normalizedSalary = Number.isFinite(salary) ? Math.max(Number(salary.toFixed(2)), 0) : 0;
+          const normalizedOtherIncome = Number.isFinite(otherIncome)
+            ? Math.max(Number(otherIncome.toFixed(2)), 0)
+            : 0;
+
+          return {
+            monthlyIncomeByMonth: {
+              ...state.monthlyIncomeByMonth,
+              [normalizedMonth]: {
+                salary: normalizedSalary,
+                otherIncome: normalizedOtherIncome,
+              },
+            },
+          };
+        }),
+      clearMonthlyIncome: (month) =>
+        set((state) => {
+          const normalizedMonth = normalizeMonthInput(month);
+          const nextMonthlyIncomeByMonth = { ...state.monthlyIncomeByMonth };
+          delete nextMonthlyIncomeByMonth[normalizedMonth];
+          return { monthlyIncomeByMonth: nextMonthlyIncomeByMonth };
+        }),
+      upsertNetWorthHistoryPoint: (point) =>
+        set((state) => ({
+          netWorthHistory: upsertNetWorthPoint(state.netWorthHistory, point),
+        })),
       setSyncStatus: (status) => set({ syncStatus: status }),
       setLastSyncedAt: (value) => set({ lastSyncedAt: value }),
       setLastSyncedVersion: (value) => set({ lastSyncedVersion: value }),

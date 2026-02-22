@@ -6,13 +6,21 @@ interface FloatingCardProps {
   buttonLabel: string;
   icon: string;
   onAction: () => void;
+  mobileOffsetClass?: string;
 }
 
-export default function FloatingCard({ label, amount, buttonLabel, icon, onAction }: FloatingCardProps) {
+export default function FloatingCard({
+  label,
+  amount,
+  buttonLabel,
+  icon,
+  onAction,
+  mobileOffsetClass = "bottom-[calc(env(safe-area-inset-bottom)+76px)]",
+}: FloatingCardProps) {
   const { formatCurrency } = useCurrency();
 
   return (
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+76px)] right-4 z-40 pointer-events-none">
+    <div className={`fixed ${mobileOffsetClass} right-4 z-40 pointer-events-none`}>
       {/* Mobile FAB */}
       <div className="sm:hidden pointer-events-auto">
         <button

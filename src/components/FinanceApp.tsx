@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
 import FloatingCard from "./FloatingCard";
+import FloatingCalculatorButton from "./FloatingCalculatorButton";
 import SpendingDashboard from "./spending/SpendingDashboard";
 import BudgetSetter from "./spending/BudgetSetter";
 import TransactionList from "./spending/TransactionList";
@@ -26,6 +27,8 @@ import AddInvestmentModal from "./investment/AddInvestmentModal";
 import AddLifeInsuranceModal from "./investing/AddLifeInsuranceModal";
 import InvestingOverview from "./investing/InvestingOverview";
 import AnalyticsDashboard from "./analytics/AnalyticsDashboard";
+import CalculatorModal, { CalculatorPrefills, CalculatorType } from "./calculators/CalculatorModal";
+import { CalculatorHubItem } from "./calculators/CalculatorHub";
 import AuthGate, { AppAuthUser } from "./auth/AuthGate";
 import { useFinanceStore } from "./shared/store";
 import {
@@ -39,6 +42,10 @@ import {
 } from "./shared/types";
 
 type ActionTab = Exclude<TabKey, "settings" | "analytics">;
+type ActiveCalculatorState = {
+  type: CalculatorType;
+  initialLendingTab?: "emi" | "affordability";
+};
 
 interface FinanceAppShellProps {
   user: AppAuthUser | null;
@@ -68,14 +75,23 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
   const [showInvestingBudgetSetter, setShowInvestingBudgetSetter] = useState(false);
   const [showInvestingActions, setShowInvestingActions] = useState(false);
   const [showLendingActions, setShowLendingActions] = useState(false);
+  const [showInvestingCalculatorActions, setShowInvestingCalculatorActions] = useState(false);
+  const [showLendingCalculatorActions, setShowLendingCalculatorActions] = useState(false);
+  const [activeCalculator, setActiveCalculator] = useState<ActiveCalculatorState | null>(null);
 
   const hasSelectedCurrency = useFinanceStore((state) => state.hasSelectedCurrency);
   const setCurrency = useFinanceStore((state) => state.setCurrency);
   const syncCurrentMonth = useFinanceStore((state) => state.syncCurrentMonth);
+  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
   const investments = useFinanceStore((state) => state.investments);
   const savingGoals = useFinanceStore((state) => state.savingGoals);
   const loans = useFinanceStore((state) => state.loans);
+  const personalLoans = useFinanceStore((state) => state.personalLoans);
+  const adjustments = useFinanceStore((state) => state.adjustments);
+  const getSpentForMonth = useFinanceStore((state) => state.getSpentForMonth);
+  const getEffectiveSpendingBudget = useFinanceStore((state) => state.getEffectiveSpendingBudget);
+  const totalMonthlyEmiDue = useFinanceStore((state) => state.totalMonthlyEmiDue);
 
   useEffect(() => {
     syncCurrentMonth();
@@ -114,6 +130,9 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
   const onTabChange = (tab: TabKey) => {
     setShowInvestingActions(false);
     setShowLendingActions(false);
+    setShowInvestingCalculatorActions(false);
+    setShowLendingCalculatorActions(false);
+    setActiveCalculator(null);
     if (tab !== "spending") {
       setSpendingQuery("");
     }
@@ -150,27 +169,121 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
   }, [expenses, investments, savingGoals, loans]);
 
   const onFloatingAction = () => {
+    setShowInvestingCalculatorActions(false);
+    setShowLendingCalculatorActions(false);
     if (activeTab === "spending") {
       setIsAddExpenseOpen(true);
       return;
     }
     if (activeTab === "investing") {
       setShowInvestingActions((value) => !value);
+      setShowLendingActions(false);
       return;
     }
     if (activeTab === "lending") {
       setShowLendingActions((value) => !value);
+      setShowInvestingActions(false);
     }
+  };
+
+  const onCalculatorFloatingAction = () => {
+    setShowInvestingActions(false);
+    setShowLendingActions(false);
+    if (activeTab === "spending") {
+      setActiveCalculator({ type: "budget_burn" });
+      return;
+    }
+    if (activeTab === "investing") {
+      setShowInvestingCalculatorActions((value) => !value);
+      setShowLendingCalculatorActions(false);
+      return;
+    }
+    if (activeTab === "lending") {
+      setShowLendingCalculatorActions((value) => !value);
+      setShowInvestingCalculatorActions(false);
+      return;
+    }
+    if (activeTab === "analytics") {
+      setActiveCalculator({ type: "freedom" });
+    }
+  };
+
+  const onOpenCalculatorFromHub = (item: CalculatorHubItem) => {
+    if (item.id === "affordability") {
+      setActiveCalculator({ type: "lending", initialLendingTab: "affordability" });
+      return;
+    }
+    if (item.id === "emi") {
+      setActiveCalculator({ type: "lending", initialLendingTab: "emi" });
+      return;
+    }
+    setActiveCalculator({ type: item.calculatorType });
   };
 
   const cfg =
     activeTab === "settings" || activeTab === "analytics"
       ? null
       : floatingConfig[activeTab as ActionTab];
+  const calculatorFabVisible = activeTab !== "settings";
 
   const onCurrencySelected = (selected: CurrencyCode) => {
     setCurrency(selected);
   };
+
+  const calculatorPrefills = useMemo<CalculatorPrefills>(() => {
+    const monthSpent = getSpentForMonth(selectedMonth);
+    const effectiveBudget = getEffectiveSpendingBudget(selectedMonth);
+    const currentDay = new Date().getDate();
+
+    const investingAssets =
+      savingGoals.reduce((sum, goal) => sum + goal.savedAmount, 0) +
+      investments.reduce((sum, item) => sum + item.amount, 0);
+
+    const receivable = loans.reduce((sum, loan) => sum + Math.max(loan.amount - loan.repaidAmount, 0), 0);
+
+    const personalOutstanding = personalLoans.reduce((sum, loan) => {
+      if (loan.closed) {
+        return sum;
+      }
+      const base =
+        typeof loan.outstandingAmount === "number" && loan.outstandingAmount > 0
+          ? loan.outstandingAmount
+          : loan.totalLoanAmount ?? 0;
+      const paid = loan.payments.reduce((acc, payment) => acc + payment.amount, 0);
+      return sum + Math.max(base - paid, 0);
+    }, 0);
+
+    const netWorth =
+      investingAssets +
+      receivable +
+      adjustments.manualAssets -
+      personalOutstanding -
+      adjustments.manualLiabilities;
+
+    const monthlyExpenses =
+      adjustments.essentialMonthlyExpense > 0 ? adjustments.essentialMonthlyExpense : monthSpent;
+
+    return {
+      monthlyBudget: effectiveBudget,
+      totalSpentSoFar: monthSpent,
+      currentDayOfMonth: currentDay,
+      existingEmis: totalMonthlyEmiDue(),
+      currentMonthlyExpenses: monthlyExpenses,
+      currentNetWorth: Math.max(netWorth, 0),
+    };
+  }, [
+    adjustments.essentialMonthlyExpense,
+    adjustments.manualAssets,
+    adjustments.manualLiabilities,
+    getEffectiveSpendingBudget,
+    getSpentForMonth,
+    investments,
+    loans,
+    personalLoans,
+    savingGoals,
+    selectedMonth,
+    totalMonthlyEmiDue,
+  ]);
 
   return (
     <div className="bg-[#0F172A] font-display text-[#F1F5F9] antialiased min-h-[100dvh] overflow-hidden flex flex-col relative">
@@ -213,6 +326,8 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
                 <SpendingDashboard
                   isBudgetOpen={showSpendingBudgetSetter}
                   onToggleBudget={() => setShowSpendingBudgetSetter((value) => !value)}
+                  onOpenBurnRateCalculator={() => setActiveCalculator({ type: "budget_burn" })}
+                  onOpenCalculator={onOpenCalculatorFromHub}
                 />
                 {showSpendingBudgetSetter && <BudgetSetter />}
                 <TransactionList
@@ -227,7 +342,11 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
                 {showInvestingBudgetSetter && <SavingsBudgetSetter />}
                 <InvestingOverview
                   onEditGoal={setEditGoalItem}
+                  onAddGoal={() => setIsAddGoalOpen(true)}
+                  onAddInvestment={() => setIsAddInvestmentOpen(true)}
                   onAddLifeInsurance={() => setIsAddLifeInsuranceOpen(true)}
+                  onOpenSipCalculator={() => setActiveCalculator({ type: "sip" })}
+                  onOpenGoalCalculator={() => setActiveCalculator({ type: "goal" })}
                   isBudgetOpen={showInvestingBudgetSetter}
                   onToggleBudget={() => setShowInvestingBudgetSetter((value) => !value)}
                 />
@@ -239,9 +358,18 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
                 onEditLoan={setEditLoanItem}
                 onEditPersonalLoan={setEditPersonalLoanItem}
                 onEditMoneyTook={setEditMoneyTookItem}
+                onAddMoneyLent={() => setIsAddLendOpen(true)}
+                onAddMoneyOwed={() => setIsAddMoneyTookOpen(true)}
+                onAddLoanEmi={() => setIsAddPersonalLoanOpen(true)}
+                onOpenLendingCalculator={() => setActiveCalculator({ type: "lending", initialLendingTab: "emi" })}
               />
             )}
-            {activeTab === "analytics" && <AnalyticsDashboard />}
+            {activeTab === "analytics" && (
+              <AnalyticsDashboard
+                onOpenFreedomCalculator={() => setActiveCalculator({ type: "freedom" })}
+                onOpenCalculator={onOpenCalculatorFromHub}
+              />
+            )}
             {activeTab === "settings" && <SettingsPanel />}
           </motion.div>
         </AnimatePresence>
@@ -253,6 +381,8 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
             type="button"
             onClick={() => {
               setShowInvestingActions(false);
+              setShowInvestingCalculatorActions(false);
+              setShowLendingCalculatorActions(false);
               setIsAddGoalOpen(true);
             }}
             className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
@@ -263,6 +393,8 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
             type="button"
             onClick={() => {
               setShowInvestingActions(false);
+              setShowInvestingCalculatorActions(false);
+              setShowLendingCalculatorActions(false);
               setIsAddInvestmentOpen(true);
             }}
             className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
@@ -273,6 +405,8 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
             type="button"
             onClick={() => {
               setShowInvestingActions(false);
+              setShowInvestingCalculatorActions(false);
+              setShowLendingCalculatorActions(false);
               setIsAddLifeInsuranceOpen(true);
             }}
             className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
@@ -288,31 +422,87 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
             type="button"
             onClick={() => {
               setShowLendingActions(false);
+              setShowInvestingCalculatorActions(false);
+              setShowLendingCalculatorActions(false);
               setIsAddLendOpen(true);
             }}
             className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
           >
-            Lend to Someone
+            Add Money Lent
           </button>
           <button
             type="button"
             onClick={() => {
               setShowLendingActions(false);
-              setIsAddPersonalLoanOpen(true);
-            }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
-          >
-            Add My Loan
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setShowLendingActions(false);
+              setShowInvestingCalculatorActions(false);
+              setShowLendingCalculatorActions(false);
               setIsAddMoneyTookOpen(true);
             }}
             className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
           >
             Add Money I Took
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowLendingActions(false);
+              setShowInvestingCalculatorActions(false);
+              setShowLendingCalculatorActions(false);
+              setIsAddPersonalLoanOpen(true);
+            }}
+            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            Add Loan / EMI
+          </button>
+        </div>
+      )}
+
+      {showInvestingCalculatorActions && activeTab === "investing" && (
+        <div className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+214px)] z-40 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setShowInvestingCalculatorActions(false);
+              setActiveCalculator({ type: "sip" });
+            }}
+            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            SIP Calculator
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowInvestingCalculatorActions(false);
+              setActiveCalculator({ type: "goal" });
+            }}
+            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            Goal Calculator
+          </button>
+        </div>
+      )}
+
+      {showLendingCalculatorActions && activeTab === "lending" && (
+        <div className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+214px)] z-40 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setShowLendingCalculatorActions(false);
+              setActiveCalculator({ type: "lending", initialLendingTab: "emi" });
+            }}
+            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            EMI Calculator
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowLendingCalculatorActions(false);
+              setActiveCalculator({ type: "lending", initialLendingTab: "affordability" });
+            }}
+            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+          >
+            Affordability Calculator
           </button>
         </div>
       )}
@@ -324,10 +514,41 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
           buttonLabel={cfg.buttonLabel}
           icon={cfg.icon}
           onAction={onFloatingAction}
+          mobileOffsetClass={
+            activeTab === "lending"
+              ? "bottom-[calc(env(safe-area-inset-bottom)+90px)]"
+              : "bottom-[calc(env(safe-area-inset-bottom)+76px)]"
+          }
         />
       )}
 
+      <FloatingCalculatorButton
+        visible={calculatorFabVisible}
+        onAction={onCalculatorFloatingAction}
+        desktopMode="floating-small"
+        mobileOffsetClass={
+          activeTab === "lending"
+            ? "bottom-[calc(env(safe-area-inset-bottom)+90px)]"
+            : "bottom-[calc(env(safe-area-inset-bottom)+144px)]"
+        }
+      />
+
       <BottomNav activeTab={activeTab} setActiveTab={onTabChange} />
+
+      {activeCalculator && (
+        <CalculatorModal
+          key={`${activeCalculator.type}:${activeCalculator.initialLendingTab ?? "default"}`}
+          isOpen
+          type={activeCalculator.type}
+          initialLendingTab={activeCalculator.initialLendingTab}
+          prefills={calculatorPrefills}
+          onClose={() => {
+            setActiveCalculator(null);
+            setShowInvestingCalculatorActions(false);
+            setShowLendingCalculatorActions(false);
+          }}
+        />
+      )}
 
       <AddExpenseModal
         key={`add-expense-${isAddExpenseOpen ? "open" : "closed"}`}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import ExportButton from "../ExportButton";
 import DownloadSpendingPdfButton from "../DownloadSpendingPdfButton";
 import AddRecurringTemplateModal from "../spending/AddRecurringTemplateModal";
+import BottomSheet from "../forms/BottomSheet";
 import { CurrencyCode, DashboardWindow } from "../shared/types";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
@@ -20,8 +21,12 @@ export default function SettingsPanel() {
   const { formatCurrency } = useCurrency();
   const [isAddRecurringOpen, setIsAddRecurringOpen] = useState(false);
   const [editingRecurringId, setEditingRecurringId] = useState<string | null>(null);
+  const [isIncomeSheetOpen, setIsIncomeSheetOpen] = useState(false);
+  const [salaryInput, setSalaryInput] = useState("");
+  const [otherIncomeInput, setOtherIncomeInput] = useState("");
 
   const currency = useFinanceStore((state) => state.currency);
+  const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const dashboardWindow = useFinanceStore((state) => state.dashboardWindow);
   const spendingCarryForwardEnabled = useFinanceStore((state) => state.spendingCarryForwardEnabled);
   const savingsCarryForwardEnabled = useFinanceStore((state) => state.savingsCarryForwardEnabled);
@@ -35,8 +40,12 @@ export default function SettingsPanel() {
   const setSavingsCarryForwardEnabled = useFinanceStore((state) => state.setSavingsCarryForwardEnabled);
   const updateRecurringTemplate = useFinanceStore((state) => state.updateRecurringTemplate);
   const deleteRecurringTemplate = useFinanceStore((state) => state.deleteRecurringTemplate);
+  const getMonthlyIncome = useFinanceStore((state) => state.getMonthlyIncome);
+  const setMonthlyIncome = useFinanceStore((state) => state.setMonthlyIncome);
 
   const editingTemplate = recurringTemplates.find((template) => template.id === editingRecurringId) ?? null;
+  const monthIncome = getMonthlyIncome(selectedMonth);
+  const monthIncomeTotal = (monthIncome?.salary ?? 0) + (monthIncome?.otherIncome ?? 0);
   const syncedAtLabel = lastSyncedAt
     ? new Date(lastSyncedAt).toLocaleString("en-US", {
         month: "short",
@@ -54,6 +63,22 @@ export default function SettingsPanel() {
         : syncStatus === "error"
           ? "Error"
           : "Idle";
+
+  const openIncomeSheet = () => {
+    setSalaryInput(String(monthIncome?.salary ?? ""));
+    setOtherIncomeInput(String(monthIncome?.otherIncome ?? ""));
+    setIsIncomeSheetOpen(true);
+  };
+
+  const saveIncome = () => {
+    const salary = Number(salaryInput || 0);
+    const other = Number(otherIncomeInput || 0);
+    if (!Number.isFinite(salary) || salary < 0 || !Number.isFinite(other) || other < 0) {
+      return;
+    }
+    setMonthlyIncome(selectedMonth, salary, other);
+    setIsIncomeSheetOpen(false);
+  };
 
   return (
     <section className="px-5 pt-5 pb-4 space-y-4">
@@ -223,6 +248,23 @@ export default function SettingsPanel() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-bold text-[#f0f0ff]">My Income</h4>
+          <button
+            type="button"
+            onClick={openIncomeSheet}
+            className="h-7 px-2.5 rounded-lg border border-white/20 bg-white/[0.08] text-[11px] font-semibold text-[#d0efe9]"
+          >
+            {monthIncome ? "Edit" : "Add"}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-[#6b7280]">{selectedMonth}</p>
+        <p className="mt-1 text-sm font-semibold text-[#f0f0ff]">
+          {monthIncome ? formatCurrency(monthIncomeTotal) : "No income added"}
+        </p>
+      </div>
+
       <AddRecurringTemplateModal
         key={`settings-add-recurring-${isAddRecurringOpen ? "open" : "closed"}`}
         isOpen={isAddRecurringOpen}
@@ -234,6 +276,36 @@ export default function SettingsPanel() {
         initialTemplate={editingTemplate}
         onClose={() => setEditingRecurringId(null)}
       />
+
+      <BottomSheet isOpen={isIncomeSheetOpen} title="My Income" onClose={() => setIsIncomeSheetOpen(false)}>
+        <div className="space-y-3">
+          <label className="block">
+            <p className="text-xs text-[#7d8590] mb-1">Monthly Salary (INR)</p>
+            <input
+              value={salaryInput}
+              onChange={(event) => setSalaryInput(event.target.value)}
+              inputMode="decimal"
+              className="w-full h-10 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
+            />
+          </label>
+          <label className="block">
+            <p className="text-xs text-[#7d8590] mb-1">Other Monthly Income (INR)</p>
+            <input
+              value={otherIncomeInput}
+              onChange={(event) => setOtherIncomeInput(event.target.value)}
+              inputMode="decimal"
+              className="w-full h-10 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={saveIncome}
+            className="h-10 w-full rounded-xl bg-[#00C896] text-[#06221a] text-sm font-semibold"
+          >
+            Save
+          </button>
+        </div>
+      </BottomSheet>
     </section>
   );
 }

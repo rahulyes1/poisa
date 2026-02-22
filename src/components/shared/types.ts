@@ -159,6 +159,18 @@ export interface SpendingTodo {
   defaultAmount: number;
   note?: string;
   active: boolean;
+  dueDay?: number;
+  recurring?: boolean;
 }
 
 export type NewSpendingTodo = Omit<SpendingTodo, "id">;
+
+export interface MonthlyIncomeEntry {
+  salary: number;
+  otherIncome: number;
+}
+
+export interface NetWorthHistoryPoint {
+  month: string;
+  netWorth: number;
+}

@@ -83,6 +83,8 @@ const hasMeaningfulLocalData = (state: FinanceDataSnapshot) => {
     recurringTemplates: base.recurringTemplates,
     spendingTodos: base.spendingTodos,
     spendingTodoDoneMonths: base.spendingTodoDoneMonths,
+    monthlyIncomeByMonth: base.monthlyIncomeByMonth,
+    netWorthHistory: base.netWorthHistory,
   };
 
   return serializeState(state) !== serializeState(baseline);

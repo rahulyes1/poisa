@@ -17,7 +17,7 @@
   --color-vibrant-purple: #8B5CF6;
   --color-vibrant-yellow: #F9F871;
 
-  --font-display: var(--font-inter), sans-serif;
+  --font-display: var(--font-dm-sans), sans-serif;
 }
 
 /* ─── CSS Custom Properties ─────────────────────────────────── */
@@ -188,4 +188,42 @@ body {
   color: #ecfeff;
   background: linear-gradient(135deg, rgba(79, 70, 229, 0.34), rgba(0, 201, 167, 0.28));
   box-shadow: 0 0 16px rgba(79, 70, 229, 0.24);
+}
+
+.font-poisa-ui {
+  font-family: var(--font-dm-sans), sans-serif;
+}
+
+.font-poisa-amount {
+  font-family: var(--font-space-mono), monospace;
+}
+
+.poisa-form-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+.poisa-form-panel {
+  background: #0d1117;
+  border: 1px solid #2d333b;
+  border-radius: 24px;
+}
+
+.poisa-card {
+  background: #161b22;
+  border: 1px solid #2d333b;
+  border-radius: 18px;
+}
+
+.poisa-muted {
+  color: #7d8590;
+}
+
+.poisa-dashed-row {
+  border: 1px dashed #2d333b;
+  border-radius: 14px;
+  background: #161b22;
 }

@@ -8,7 +8,11 @@ import { useCurrency } from "../shared/useCurrency";
 
 interface InvestingOverviewProps {
   onEditGoal: (goal: SavingGoal) => void;
+  onAddGoal: () => void;
+  onAddInvestment: () => void;
   onAddLifeInsurance: () => void;
+  onOpenSipCalculator: () => void;
+  onOpenGoalCalculator: () => void;
   isBudgetOpen: boolean;
   onToggleBudget: () => void;
 }
@@ -16,10 +20,29 @@ interface InvestingOverviewProps {
 type InvestingSegment = "overview" | "insurance" | "goals" | "investments";
 
 const containsEmergency = (value: string) => value.toLowerCase().includes("emergency");
+const toDueLabel = (date: string) => {
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "Due date not set";
+  return `Due ${parsed.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+};
+
+const isDueSoon = (date: string) => {
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return false;
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const due = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  const diff = Math.floor((due.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return diff >= 0 && diff <= 5;
+};
 
 export default function InvestingOverview({
   onEditGoal,
+  onAddGoal,
+  onAddInvestment,
   onAddLifeInsurance,
+  onOpenSipCalculator,
+  onOpenGoalCalculator,
   isBudgetOpen,
   onToggleBudget,
 }: InvestingOverviewProps) {
@@ -118,9 +141,10 @@ export default function InvestingOverview({
   );
 
   return (
-    <section className="px-4 pt-3 pb-4 space-y-4">
+    <section className="px-4 pt-3 pb-4 space-y-[14px]">
       <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="relative">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pr-10 snap-x snap-mandatory">
           {([
             { id: "overview", label: "Overview" },
             { id: "insurance", label: "Insurance" },
@@ -131,83 +155,131 @@ export default function InvestingOverview({
               key={segment.id}
               type="button"
               onClick={() => setActiveSegment(segment.id)}
-              className={`segment-pill-tab ${activeSegment === segment.id ? "segment-pill-tab-active" : ""}`}
+              className={`h-9 min-w-[92px] snap-start rounded-xl px-3 text-[11px] font-semibold uppercase tracking-wide active:scale-95 transition-all ${
+                activeSegment === segment.id
+                  ? "bg-[#00C896] text-[#0D1117]"
+                  : "bg-transparent border border-transparent text-[#7A8599]"
+              }`}
             >
               {segment.label}
             </button>
           ))}
+          </div>
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#111118] to-transparent" />
         </div>
       </div>
 
       {activeSegment === "overview" && (
         <>
-          <div className="glass-card rounded-2xl p-4">
-            <div className="flex items-end justify-between gap-2 mb-2">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.14em] text-white/55 font-semibold">Investing Snapshot</p>
-                <p className="text-2xl font-bold text-white">{formatCurrency(combinedTotal)}</p>
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-xs text-[#9cf4e4] font-semibold">Total Managed</span>
+          <div className="glass-card rounded-2xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-white">Quick Add</h3>
+              <span className="text-[11px] text-white/55">Goals · Investments · Insurance</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={onAddGoal}
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+              >
+                Add Goal
+              </button>
+              <button
+                type="button"
+                onClick={onAddInvestment}
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+              >
+                Add Investment
+              </button>
+              <button
+                type="button"
+                onClick={onAddLifeInsurance}
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+              >
+                Add Insurance
+              </button>
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-[18px]">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] uppercase tracking-[1.2px] text-[#7A8599] font-semibold">Investing Snapshot</p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={onOpenSipCalculator}
+                  className="h-7 w-7 rounded-full border border-[#00C896]/50 bg-[rgba(0,200,150,0.12)] text-[#7af6cd] inline-flex items-center justify-center"
+                  title="SIP calculator"
+                  aria-label="Open SIP calculator"
+                >
+                  <span className="material-symbols-outlined text-[13px]">calculate</span>
+                </button>
                 <button
                   type="button"
                   onClick={onToggleBudget}
-                  className={`h-6 px-2 rounded-full border text-[10px] font-semibold ${
+                  className={`h-7 px-2.5 rounded-full border text-[10px] font-semibold ${
                     isBudgetOpen
-                      ? "border-[#4F46E5]/60 bg-[#4F46E5]/18 text-[#bdfdee]"
-                      : "border-[rgba(255,255,255,0.08)] bg-[#111118] text-white/70"
+                      ? "border-[#00C896]/70 bg-[#00C896]/18 text-[#bdfdee]"
+                      : "border-[rgba(255,255,255,0.12)] bg-transparent text-white/70"
                   }`}
                 >
                   Budget
                 </button>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
-                <p className="text-white/55 uppercase tracking-wide">Goal Savings</p>
-                <p className="text-sm font-semibold text-white mt-0.5">{formatCurrency(totalSaved)}</p>
-              </div>
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
-                <p className="text-white/55 uppercase tracking-wide">Investments</p>
-                <p className="text-sm font-semibold text-white mt-0.5">{formatCurrency(totalInvested)}</p>
-              </div>
-            </div>
-
-            <p className="mt-2 text-[11px] text-white/60">
-              Savings budget: {formatCurrency(savingsBudget)} - Remaining: {formatCurrency(Math.abs(savingsRemaining))} {savingsRemaining < 0 ? "over" : "left"}
-            </p>
+            <p className="text-3xl font-black text-white">{formatCurrency(combinedTotal)}</p>
             <p className="mt-1 text-[11px] text-white/60">
-              {savingsCarryForwardEnabled ? "Carry forward ON: all-time totals" : `Carry forward OFF: last ${dashboardWindow} month(s)`}
+              Savings Budget: {formatCurrency(savingsBudget)} · {formatCurrency(Math.abs(savingsRemaining))} {savingsRemaining < 0 ? "over" : "remaining"}
             </p>
-          </div>
 
-          <div className="glass-card rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-white">Emergency Fund Tracker</h3>
-              <span className="text-xs text-[#6b7280]">Target: {emergencyMeta.targetMonths} months</span>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl border border-[#2A3345] p-3" style={{ borderLeft: "2px solid #00C896" }}>
+                <p className="text-[10px] text-white/55 uppercase tracking-wide">Goal Savings</p>
+                <p className="text-lg font-bold text-white mt-0.5">{formatCurrency(totalSaved)}</p>
+              </div>
+              <div className="rounded-xl border border-[#2A3345] p-3" style={{ borderLeft: "2px solid #00C896" }}>
+                <p className="text-[10px] text-white/55 uppercase tracking-wide">Investments</p>
+                <p className="text-lg font-bold text-white mt-0.5">{formatCurrency(totalInvested)}</p>
+              </div>
             </div>
-
-            {emergencyMeta.emergencyGoal ? (
-              <>
-                <p className="text-xs text-[#6b7280] mb-1">
-                  {emergencyMeta.emergencyGoal.name} - {formatCurrency(emergencyMeta.savedAmount)} saved
-                </p>
-                <p className="text-sm font-semibold text-[#f0f0ff] mb-2">{emergencyMeta.monthsCovered.toFixed(1)} months covered</p>
-                <div className="h-2 rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden">
-                  <div className="h-full rounded-full bg-[#00C9A7]" style={{ width: `${emergencyMeta.progress}%` }} />
-                </div>
-                <p className="text-[11px] text-[#6b7280] mt-2">Baseline expense: {formatCurrency(emergencyMeta.baseline || 0)} / month</p>
-                <p className="text-[11px] text-[#6b7280] mt-1">
-                  {emergencyMeta.monthsCovered >= emergencyMeta.targetMonths ? "On track" : "Below target"}
-                </p>
-              </>
-            ) : (
-              <p className="text-sm text-[#6b7280]">Create a goal and mark it as Emergency Fund to track coverage.</p>
-            )}
           </div>
 
-          <div className="glass-card rounded-2xl p-4 space-y-2.5">
+          <div className="glass-card rounded-2xl p-[18px]">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <span className="mt-0.5 inline-flex size-8 items-center justify-center rounded-lg border border-[#2A3345] bg-[#111118] text-[#7A8599]">
+                  <span className="material-symbols-outlined text-[16px]">shield</span>
+                </span>
+                <div>
+                <p className="text-[11px] uppercase tracking-[1.2px] text-[#7A8599] font-semibold">Emergency Fund</p>
+                <p className="text-sm font-semibold text-white mt-1">Target: {emergencyMeta.targetMonths} months</p>
+                <p className="mt-2 text-[12px] text-[#7A8599]">
+                  {emergencyMeta.emergencyGoal ? `${emergencyMeta.monthsCovered.toFixed(1)} months covered` : "Link a goal to start tracking"}
+                </p>
+                </div>
+              </div>
+              <div className="size-14 rounded-full border-4 border-[#2A3345] relative">
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: `conic-gradient(#00C896 ${Math.min(emergencyMeta.progress, 100)}%, transparent 0)`,
+                    mask: "radial-gradient(circle, transparent 62%, black 63%)",
+                    WebkitMask: "radial-gradient(circle, transparent 62%, black 63%)",
+                  }}
+                />
+                <span className="absolute inset-0 inline-flex items-center justify-center text-[10px] text-[#7A8599]">
+                  {Math.round(emergencyMeta.progress)}%
+                </span>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-end">
+              <button type="button" onClick={onAddGoal} className="text-[12px] font-semibold text-[#00C896]">
+                Set Up -&gt;
+              </button>
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-[18px] space-y-2.5">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Insurance Preview</h3>
               <button
@@ -224,34 +296,48 @@ export default function InvestingOverview({
               </div>
             ) : (
               <div className="space-y-1.5">
-                {insurancePreview.map((item) => (
-                  <article key={item.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
+                {insurancePreview.map((item) => {
+                  const dueSoon = !item.paid && isDueSoon(item.dueDate);
+                  const subtitle = item.planName?.trim() ? item.planName : "Premium - Monthly";
+                  return (
+                  <article key={item.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5" style={{ borderLeft: `2px solid ${dueSoon ? "#F5A623" : "#00C896"}` }}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-xs font-semibold text-white">{item.providerName}</p>
-                        <p className="text-[11px] text-white/60">{item.planName}</p>
+                        <p className="text-[11px] text-white/60">{subtitle}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs font-semibold text-[#9cf4e4]">{formatCurrency(item.monthlyAmount)}</p>
-                        <p className="text-[10px] text-white/45">{item.dueDate}</p>
+                        <p className={`text-[10px] ${dueSoon ? "text-[#F5A623]" : "text-[#00C896]"}`}>{toDueLabel(item.dueDate)}</p>
                       </div>
                     </div>
                   </article>
-                ))}
+                )})}
               </div>
             )}
           </div>
 
-          <div className="glass-card rounded-2xl p-4 space-y-2.5">
+          <div className="glass-card rounded-2xl p-[18px] space-y-2.5">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Goals Preview</h3>
-              <button
-                type="button"
-                onClick={() => setActiveSegment("goals")}
-                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
-              >
-                View All
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={onOpenGoalCalculator}
+                  className="h-6 w-6 rounded-full border border-[#00C896]/50 bg-[rgba(0,200,150,0.12)] text-[#7af6cd] inline-flex items-center justify-center"
+                  title="Goal calculator"
+                  aria-label="Open goal calculator"
+                >
+                  <span className="material-symbols-outlined text-[13px]">calculate</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSegment("goals")}
+                  className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+                >
+                  View All
+                </button>
+              </div>
             </div>
             {goalsPreview.length === 0 ? (
               <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-white/60">
@@ -259,7 +345,9 @@ export default function InvestingOverview({
               </div>
             ) : (
               <div className="space-y-1.5">
-                {goalsPreview.map((goal) => (
+                {goalsPreview.map((goal) => {
+                  const progress = goal.targetAmount > 0 ? Math.min((goal.savedAmount / goal.targetAmount) * 100, 100) : 0;
+                  return (
                   <article key={goal.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -271,8 +359,11 @@ export default function InvestingOverview({
                         <p className="text-[10px] text-white/45">of {formatCurrency(goal.targetAmount)}</p>
                       </div>
                     </div>
+                    <div className="mt-2 h-[3px] rounded-full bg-[#2A3345]">
+                      <div className="h-full rounded-full bg-[#00C896]" style={{ width: `${progress}%` }} />
+                    </div>
                   </article>
-                ))}
+                )})}
               </div>
             )}
           </div>
@@ -380,7 +471,25 @@ export default function InvestingOverview({
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-semibold text-white">Goals</h3>
-            <span className="text-xs text-white/55">{scopedData.goals.length} total</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenGoalCalculator}
+                className="h-7 w-7 rounded-lg border border-[#00C896]/50 bg-[rgba(0,200,150,0.12)] text-[#7af6cd] inline-flex items-center justify-center"
+                title="Goal calculator"
+                aria-label="Open goal calculator"
+              >
+                <span className="material-symbols-outlined text-[14px]">calculate</span>
+              </button>
+              <span className="text-xs text-white/55">{scopedData.goals.length} total</span>
+              <button
+                type="button"
+                onClick={onAddGoal}
+                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+              >
+                Add
+              </button>
+            </div>
           </div>
           <div className="glass-card rounded-xl p-2.5 flex items-center justify-between">
             <p className="text-[10px] uppercase tracking-wide text-white/55">Saved / Target</p>
@@ -408,7 +517,16 @@ export default function InvestingOverview({
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-semibold text-white">Investments</h3>
-            <span className="text-xs text-white/55">{scopedData.investments.length}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/55">{scopedData.investments.length}</span>
+              <button
+                type="button"
+                onClick={onAddInvestment}
+                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+              >
+                Add
+              </button>
+            </div>
           </div>
 
           {scopedData.investments.length === 0 ? (
@@ -448,4 +566,5 @@ export default function InvestingOverview({
     </section>
   );
 }
+
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useRef, useState } from "react";
 import { Expense, RecurringTemplate, SpendingTodo } from "../shared/types";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
 import AddRecurringTemplateModal from "./AddRecurringTemplateModal";
+import BottomSheet from "../forms/BottomSheet";
 
 const toDisplayDate = (date: string) => {
   const current = new Date();
@@ -17,6 +18,25 @@ const toDisplayDate = (date: string) => {
   if (target.getTime() === today.getTime()) return "Today";
   if (target.getTime() === yesterday.getTime()) return "Yesterday";
   return value.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+const toMonthTitle = (month: string) => {
+  const [year, monthNumber] = month.split("-").map(Number);
+  return new Date(year, monthNumber - 1, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const toOrdinal = (value: number) => {
+  const v = Math.abs(Math.round(value));
+  const mod100 = v % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${v}th`;
+  const mod10 = v % 10;
+  if (mod10 === 1) return `${v}st`;
+  if (mod10 === 2) return `${v}nd`;
+  if (mod10 === 3) return `${v}rd`;
+  return `${v}th`;
 };
 
 function getCategoryBorderClass(category: string): string {
@@ -87,14 +107,6 @@ const todoCategoryOptions = [
   "Other",
 ];
 
-const todoQuickPresets: Array<{ title: string; category: string; defaultAmount: number }> = [
-  { title: "Rent", category: "Rent", defaultAmount: 12000 },
-  { title: "Electricity Bill", category: "Utilities", defaultAmount: 1800 },
-  { title: "Life Insurance", category: "Bills & Recharge", defaultAmount: 0 },
-  { title: "SIP", category: "Recurring Expenses", defaultAmount: 0 },
-  { title: "Parents Insurance", category: "Bills & Recharge", defaultAmount: 0 },
-];
-
 interface GroupedExpenses {
   date: string;
   label: string;
@@ -123,6 +135,11 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
   const [todoCustomCategory, setTodoCustomCategory] = useState("");
   const [todoAmount, setTodoAmount] = useState("0");
   const [todoNote, setTodoNote] = useState("");
+  const [todoDueDay, setTodoDueDay] = useState("1");
+  const [todoRecurring, setTodoRecurring] = useState(true);
+  const [showCompletedTodos, setShowCompletedTodos] = useState(false);
+  const [activeTodoActionId, setActiveTodoActionId] = useState<string | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectedMonth = useFinanceStore((state) => state.selectedMonth);
   const expenses = useFinanceStore((state) => state.expenses);
@@ -138,6 +155,7 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
   const updateSpendingTodo = useFinanceStore((state) => state.updateSpendingTodo);
   const deleteSpendingTodo = useFinanceStore((state) => state.deleteSpendingTodo);
   const toggleSpendingTodoDone = useFinanceStore((state) => state.toggleSpendingTodoDone);
+  const resetSpendingTodoForMonth = useFinanceStore((state) => state.resetSpendingTodoForMonth);
 
   const recurring = getRecurringExpenses();
   const recurringMonthlyTotal = recurring.reduce((sum, item) => sum + item.amount, 0);
@@ -185,16 +203,57 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
     [spendingTodos],
   );
 
-  const completedTodoCount = useMemo(
+  const todoRows = useMemo(
     () =>
-      activeTodos.filter((todo) => {
+      activeTodos.map((todo) => {
         const doneMonths = spendingTodoDoneMonths[todo.id] ?? [];
-        return doneMonths.includes(selectedMonth);
-      }).length,
+        return {
+          ...todo,
+          isDone: doneMonths.includes(selectedMonth),
+          dueDay: Math.max(1, Math.min(todo.dueDay ?? 1, 31)),
+        };
+      }),
     [activeTodos, selectedMonth, spendingTodoDoneMonths],
   );
 
-  const applyTodoFormValues = (values: { title: string; category: string; defaultAmount: number; note?: string }) => {
+  const pendingTodos = useMemo(
+    () =>
+      todoRows
+        .filter((todo) => !todo.isDone)
+        .sort((a, b) => (a.dueDay ?? 1) - (b.dueDay ?? 1) || a.title.localeCompare(b.title)),
+    [todoRows],
+  );
+
+  const completedTodos = useMemo(
+    () =>
+      todoRows
+        .filter((todo) => todo.isDone)
+        .sort((a, b) => (a.dueDay ?? 1) - (b.dueDay ?? 1) || a.title.localeCompare(b.title)),
+    [todoRows],
+  );
+
+  const completedTodoCount = completedTodos.length;
+  const totalTodoCount = todoRows.length;
+
+  const todoCommittedTotal = useMemo(
+    () => todoRows.reduce((sum, todo) => sum + Math.max(todo.defaultAmount, 0), 0),
+    [todoRows],
+  );
+  const todoPaidTotal = useMemo(
+    () => completedTodos.reduce((sum, todo) => sum + Math.max(todo.defaultAmount, 0), 0),
+    [completedTodos],
+  );
+  const todoPendingTotal = Math.max(todoCommittedTotal - todoPaidTotal, 0);
+  const todoProgressPct = totalTodoCount > 0 ? (completedTodoCount / totalTodoCount) * 100 : 0;
+
+  const applyTodoFormValues = (values: {
+    title: string;
+    category: string;
+    defaultAmount: number;
+    note?: string;
+    dueDay?: number;
+    recurring?: boolean;
+  }) => {
     setTodoTitle(values.title);
     if (todoCategoryOptions.includes(values.category)) {
       setTodoCategorySelection(values.category);
@@ -205,6 +264,8 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
     }
     setTodoAmount(String(values.defaultAmount));
     setTodoNote(values.note ?? "");
+    setTodoDueDay(String(Math.max(1, Math.min(values.dueDay ?? 1, 31))));
+    setTodoRecurring(values.recurring ?? true);
   };
 
   const startTodoCreate = () => {
@@ -214,17 +275,8 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
       category: todoCategoryOptions[0],
       defaultAmount: 0,
       note: "",
-    });
-    setIsTodoFormOpen(true);
-  };
-
-  const startTodoCreateFromPreset = (preset: { title: string; category: string; defaultAmount: number }) => {
-    setEditingTodo(null);
-    applyTodoFormValues({
-      title: preset.title,
-      category: preset.category,
-      defaultAmount: preset.defaultAmount,
-      note: "",
+      dueDay: 1,
+      recurring: true,
     });
     setIsTodoFormOpen(true);
   };
@@ -236,6 +288,8 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
       category: todo.category,
       defaultAmount: todo.defaultAmount,
       note: todo.note,
+      dueDay: todo.dueDay,
+      recurring: todo.recurring,
     });
     setIsTodoFormOpen(true);
   };
@@ -243,9 +297,18 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
   const onSubmitTodo = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const parsedAmount = Number(todoAmount);
+    const parsedDueDay = Number(todoDueDay);
     const resolvedCategory = (todoCategorySelection === "__custom__" ? todoCustomCategory : todoCategorySelection).trim();
 
-    if (!todoTitle.trim() || !resolvedCategory || !Number.isFinite(parsedAmount) || parsedAmount < 0) {
+    if (
+      !todoTitle.trim() ||
+      !resolvedCategory ||
+      !Number.isFinite(parsedAmount) ||
+      parsedAmount < 0 ||
+      !Number.isFinite(parsedDueDay) ||
+      parsedDueDay < 1 ||
+      parsedDueDay > 31
+    ) {
       return;
     }
 
@@ -256,6 +319,8 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
         category: resolvedCategory,
         defaultAmount: Number(parsedAmount.toFixed(2)),
         note: todoNote.trim(),
+        dueDay: Math.round(parsedDueDay),
+        recurring: todoRecurring,
       });
     } else {
       addSpendingTodo({
@@ -264,12 +329,36 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
         defaultAmount: Number(parsedAmount.toFixed(2)),
         note: todoNote.trim(),
         active: true,
+        dueDay: Math.round(parsedDueDay),
+        recurring: todoRecurring,
       });
     }
 
     setIsTodoFormOpen(false);
     setEditingTodo(null);
   };
+
+  const handleTodoLongPressStart = (todoId: string) => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+    }
+    longPressTimerRef.current = setTimeout(() => {
+      setActiveTodoActionId(todoId);
+    }, 380);
+  };
+
+  const handleTodoLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const nextResetDateLabel = useMemo(() => {
+    const [year, monthNumber] = selectedMonth.split("-").map(Number);
+    const nextMonth = new Date(year, monthNumber, 1);
+    return `${nextMonth.toLocaleDateString("en-US", { month: "long" })} ${toOrdinal(nextMonth.getDate())}`;
+  }, [selectedMonth]);
 
   return (
     <section className="pt-2 pb-3 space-y-3">
@@ -489,11 +578,11 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
 
       {activePanel === "todo" && (
         <div className="px-4">
-          <div className="glass-card rounded-2xl p-4 space-y-2.5">
+          <div className="glass-card rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-[11px] font-bold text-[#F1F5F9] uppercase tracking-wide">Spending To-Do</h3>
-                <p className="text-[10px] text-[#94A3B8] mt-0.5">{completedTodoCount}/{activeTodos.length} done in {selectedMonth}</p>
+                <p className="text-[12px] text-[#94A3B8] mt-0.5">{toMonthTitle(selectedMonth)}</p>
               </div>
               <button
                 type="button"
@@ -504,173 +593,225 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
               </button>
             </div>
 
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
-              {todoQuickPresets.map((preset) => (
-                <button
-                  key={preset.title}
-                  type="button"
-                  onClick={() => startTodoCreateFromPreset(preset)}
-                  className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#94A3B8] whitespace-nowrap active:scale-95 transition-transform"
-                  title={`Use ${preset.title} preset`}
-                  aria-label={`Use ${preset.title} preset`}
-                >
-                  {preset.title}
-                </button>
-              ))}
+            <div className="space-y-1.5">
+              <div className="h-2 rounded-full bg-[#2A3345] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#00C896]"
+                  style={{ width: `${Math.min(todoProgressPct, 100)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-[#7A8599]">
+                {completedTodoCount}/{totalTodoCount} done in {selectedMonth}
+              </p>
             </div>
 
-            {isTodoFormOpen && (
-              <form onSubmit={onSubmitTodo} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5 space-y-2">
-                <input
-                  type="text"
-                  value={todoTitle}
-                  onChange={(event) => setTodoTitle(event.target.value)}
-                  placeholder="Title"
-                  className="glass-input w-full h-9 px-2.5 text-xs text-[#f0f0ff]"
-                  required
-                />
-                <select
-                  value={todoCategorySelection}
-                  onChange={(event) => setTodoCategorySelection(event.target.value)}
-                  className="glass-input w-full h-9 px-2.5 text-xs text-[#f0f0ff] bg-transparent"
-                >
-                  {todoCategoryOptions.map((option) => (
-                    <option key={option} value={option} className="bg-[#111118] text-[#f0f0ff]">
-                      {option}
-                    </option>
-                  ))}
-                  <option value="__custom__" className="bg-[#111118] text-[#f0f0ff]">
-                    Custom Category
-                  </option>
-                </select>
-                {todoCategorySelection === "__custom__" && (
-                  <input
-                    type="text"
-                    value={todoCustomCategory}
-                    onChange={(event) => setTodoCustomCategory(event.target.value)}
-                    placeholder="Custom category"
-                    className="glass-input w-full h-9 px-2.5 text-xs text-[#f0f0ff]"
-                    required
-                  />
-                )}
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={todoAmount}
-                  onChange={(event) => setTodoAmount(event.target.value)}
-                  placeholder="Amount"
-                  className="glass-input w-full h-9 px-2.5 text-xs text-[#f0f0ff]"
-                  required
-                />
-                <input
-                  type="text"
-                  value={todoNote}
-                  onChange={(event) => setTodoNote(event.target.value)}
-                  placeholder="Note (optional)"
-                  className="glass-input w-full h-9 px-2.5 text-xs text-[#f0f0ff]"
-                />
-                <div className="flex items-center justify-end gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsTodoFormOpen(false);
-                      setEditingTodo(null);
-                    }}
-                    className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#94A3B8]"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="h-7 px-2.5 rounded-lg bg-[#00C9A7] text-[#07241f] text-[10px] font-semibold"
-                  >
-                    {editingTodo ? "Save" : "Add"}
-                  </button>
-                </div>
-              </form>
-            )}
+            <div className="rounded-xl border border-[#2A3345] bg-[#111118] p-2.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-[#94A3B8]">Total Committed: <span className="text-[#F1F5F9] font-semibold">{formatCurrency(todoCommittedTotal)}</span></span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 text-[#94A3B8]"><span className="size-1.5 rounded-full bg-[#00C896]" />Paid: {formatCurrency(todoPaidTotal)}</span>
+                  <span className="inline-flex items-center gap-1 text-[#94A3B8]"><span className="size-1.5 rounded-full bg-[#F5A623]" />Pending: {formatCurrency(todoPendingTotal)}</span>
+                </span>
+              </div>
+            </div>
 
-            {spendingTodos.length === 0 ? (
-              <p className="text-[10px] text-[#94A3B8]">No to-do items yet.</p>
+            {todoRows.length === 0 ? (
+              <p className="text-[11px] text-[#94A3B8]">No to-do items yet.</p>
             ) : (
-              <div className="space-y-1.5">
-                {spendingTodos
-                  .slice()
-                  .sort((a, b) => Number(b.active) - Number(a.active) || a.title.localeCompare(b.title))
-                  .map((todo) => {
-                    const doneMonths = spendingTodoDoneMonths[todo.id] ?? [];
-                    const isDone = doneMonths.includes(selectedMonth);
-                    return (
-                      <div key={todo.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 text-left">
-                            <p className={`text-xs font-semibold ${todo.active ? "text-[#F1F5F9]" : "text-[#94A3B8]"}`}>
-                              {todo.title}
-                            </p>
-                            <p className="text-[10px] text-[#94A3B8] mt-0.5">{todo.category}</p>
-                            {todo.defaultAmount > 0 && <p className="text-[10px] text-[#F1F5F9] mt-0.5">{formatCurrency(todo.defaultAmount)}</p>}
-                            {todo.note && <p className="text-[10px] text-[#64748B] mt-0.5">{todo.note}</p>}
-                          </div>
-
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => toggleSpendingTodoDone(todo.id, selectedMonth)}
-                              className={`size-6 rounded-full border inline-flex items-center justify-center active:scale-95 transition-transform ${
-                                isDone
-                                  ? "bg-[#00C9A7]/20 border-[#00C9A7]/40 text-[#00C9A7]"
-                                  : "bg-[#111118] border-[rgba(255,255,255,0.08)] text-[#94A3B8]"
-                              }`}
-                              title={isDone ? "Mark as pending" : "Mark as done"}
-                              aria-label={isDone ? "Mark as pending" : "Mark as done"}
-                            >
-                              <span className="material-symbols-outlined text-[13px]">{isDone ? "check_circle" : "radio_button_unchecked"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => startTodoEdit(todo)}
-                              className="size-6 rounded-full border border-[#4F46E5]/35 bg-[#4F46E5]/10 text-[#73EFD9] inline-flex items-center justify-center active:scale-95 transition-transform"
-                              title="Edit to-do"
-                              aria-label="Edit to-do"
-                            >
-                              <span className="material-symbols-outlined text-[13px]">edit</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateSpendingTodo({
-                                  ...todo,
-                                  active: !todo.active,
-                                })
-                              }
-                              className={`h-6 px-2 rounded-full border text-[9px] font-bold ${
-                                todo.active
-                                  ? "border-[#4F46E5]/35 bg-[#4F46E5]/10 text-[#73EFD9]"
-                                  : "border-[rgba(255,255,255,0.08)] bg-[#111118] text-[#94A3B8]"
-                              }`}
-                            >
-                              {todo.active ? "Active" : "Inactive"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteSpendingTodo(todo.id)}
-                              className="size-6 rounded-full border border-[#F43F5E]/30 bg-[#F43F5E]/10 text-[#F43F5E] inline-flex items-center justify-center active:scale-95 transition-transform"
-                              title="Delete to-do"
-                              aria-label="Delete to-do"
-                            >
-                              <span className="material-symbols-outlined text-[13px]">delete</span>
-                            </button>
-                          </div>
-                        </div>
+              <div className="space-y-2">
+                {pendingTodos.map((todo) => (
+                  <button
+                    key={todo.id}
+                    type="button"
+                    onContextMenu={(event) => {
+                      event.preventDefault();
+                      setActiveTodoActionId(todo.id);
+                    }}
+                    onTouchStart={() => handleTodoLongPressStart(todo.id)}
+                    onTouchEnd={handleTodoLongPressEnd}
+                    onTouchCancel={handleTodoLongPressEnd}
+                    onClick={() => toggleSpendingTodoDone(todo.id, selectedMonth)}
+                    className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-left"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 size-5 rounded-full border border-[#64748B] inline-flex items-center justify-center" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-semibold text-[#F1F5F9] truncate">{todo.title}</p>
+                        <p className="text-[12px] text-[#94A3B8]">{todo.category}</p>
+                        <p className="text-[12px] text-[#00C896] font-semibold">{formatCurrency(todo.defaultAmount)}</p>
+                        {todo.note && <p className="text-[11px] text-[#64748B] mt-0.5">{todo.note}</p>}
                       </div>
-                    );
-                  })}
+                      <div className="text-right">
+                        <span className="inline-flex items-center rounded-full border border-[#F5A623]/45 bg-[#F5A623]/12 px-2 py-0.5 text-[10px] text-[#F5A623]">
+                          Due: {toOrdinal(todo.dueDay ?? 1)}
+                        </span>
+                        {activeTodoActionId === todo.id && (
+                          <div className="mt-1 flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                startTodoEdit(todo);
+                              }}
+                              className="size-5 rounded-full text-[#94A3B8] inline-flex items-center justify-center"
+                              title="Edit to-do"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                deleteSpendingTodo(todo.id);
+                              }}
+                              className="size-5 rounded-full text-[#94A3B8] inline-flex items-center justify-center"
+                              title="Delete to-do"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">delete</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+
+                {completedTodos.length > 0 && (
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowCompletedTodos((value) => !value)}
+                      className="w-full rounded-lg border border-[#2A3345] bg-[#0F172A] px-3 py-1.5 text-left text-[11px] text-[#94A3B8]"
+                    >
+                      Completed ({completedTodos.length}) {showCompletedTodos ? "Hide" : "Show"}
+                    </button>
+
+                    {showCompletedTodos && (
+                      <div className="mt-2 space-y-2">
+                        {completedTodos.map((todo) => (
+                          <button
+                            key={todo.id}
+                            type="button"
+                            onClick={() => toggleSpendingTodoDone(todo.id, selectedMonth)}
+                            className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-left opacity-60"
+                          >
+                            <div className="flex items-start gap-2.5">
+                              <span className="mt-0.5 size-5 rounded-full border border-[#00C9A7] bg-[#00C9A7]/20 text-[#00C9A7] inline-flex items-center justify-center">
+                                <span className="material-symbols-outlined text-[12px]">check</span>
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[15px] font-semibold text-[#F1F5F9] line-through truncate">{todo.title}</p>
+                                <p className="text-[12px] text-[#94A3B8]">{todo.category}</p>
+                                <p className="text-[12px] text-[#94A3B8] line-through">{formatCurrency(todo.defaultAmount)}</p>
+                              </div>
+                              <span className="inline-flex items-center rounded-full border border-[#00C896]/45 bg-[#00C896]/12 px-2 py-0.5 text-[10px] text-[#00C896]">
+                                Due: {toOrdinal(todo.dueDay ?? 1)}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
+
+            <div className="flex items-center justify-between rounded-xl border border-[#2A3345] bg-[#111118] px-3 py-2 text-[12px]">
+              <p className="text-[#7A8599] inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">autorenew</span>Resets on {nextResetDateLabel}</p>
+              <button
+                type="button"
+                onClick={() => resetSpendingTodoForMonth(selectedMonth)}
+                className="text-[#00C896] font-semibold"
+              >
+                Reset Now
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <BottomSheet isOpen={isTodoFormOpen} title={editingTodo ? "Edit To-Do" : "Add To-Do"} onClose={() => {
+        setIsTodoFormOpen(false);
+        setEditingTodo(null);
+      }}>
+        <form onSubmit={onSubmitTodo} className="space-y-2.5">
+          <input
+            type="text"
+            value={todoTitle}
+            onChange={(event) => setTodoTitle(event.target.value)}
+            placeholder="Name"
+            className="glass-input w-full h-10 px-2.5 text-xs text-[#f0f0ff]"
+            required
+          />
+          <select
+            value={todoCategorySelection}
+            onChange={(event) => setTodoCategorySelection(event.target.value)}
+            className="glass-input w-full h-10 px-2.5 text-xs text-[#f0f0ff] bg-transparent"
+          >
+            {todoCategoryOptions.map((option) => (
+              <option key={option} value={option} className="bg-[#111118] text-[#f0f0ff]">
+                {option}
+              </option>
+            ))}
+            <option value="__custom__" className="bg-[#111118] text-[#f0f0ff]">
+              Custom Category
+            </option>
+          </select>
+          {todoCategorySelection === "__custom__" && (
+            <input
+              type="text"
+              value={todoCustomCategory}
+              onChange={(event) => setTodoCustomCategory(event.target.value)}
+              placeholder="Custom category"
+              className="glass-input w-full h-10 px-2.5 text-xs text-[#f0f0ff]"
+              required
+            />
+          )}
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={todoAmount}
+            onChange={(event) => setTodoAmount(event.target.value)}
+            placeholder="Amount (optional)"
+            className="glass-input w-full h-10 px-2.5 text-xs text-[#f0f0ff]"
+          />
+          <input
+            type="number"
+            min="1"
+            max="31"
+            step="1"
+            value={todoDueDay}
+            onChange={(event) => setTodoDueDay(event.target.value)}
+            placeholder="Due day (1-31)"
+            className="glass-input w-full h-10 px-2.5 text-xs text-[#f0f0ff]"
+            required
+          />
+          <input
+            type="text"
+            value={todoNote}
+            onChange={(event) => setTodoNote(event.target.value)}
+            placeholder="Note (optional)"
+            className="glass-input w-full h-10 px-2.5 text-xs text-[#f0f0ff]"
+          />
+          <label className="flex items-center justify-between rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] px-3 py-2">
+            <span className="text-xs text-[#94A3B8]">Recurring</span>
+            <input
+              type="checkbox"
+              checked={todoRecurring}
+              onChange={(event) => setTodoRecurring(event.target.checked)}
+              className="size-4 border border-white/20 bg-transparent"
+            />
+          </label>
+          <button
+            type="submit"
+            className="h-10 w-full rounded-xl bg-[#00C9A7] text-[#07241f] text-xs font-semibold"
+          >
+            {editingTodo ? "Save" : "Add"}
+          </button>
+        </form>
+      </BottomSheet>
 
       <AddRecurringTemplateModal
         key={`add-recurring-${isAddRecurringOpen ? "open" : "closed"}`}
@@ -686,4 +827,5 @@ export default function TransactionList({ query, onEditExpense }: TransactionLis
     </section>
   );
 }
+
 
