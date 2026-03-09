@@ -874,9 +874,11 @@ export const useFinanceStore = create<FinanceStoreState>()(
           };
         }),
       updateLoan: (loan) =>
-        set((state) => ({
-          loans: state.loans.map((existing) => (existing.id === loan.id ? loan : existing)),
-        })),
+        set((state) => {
+          const clampedRepaid = Math.min(loan.repaidAmount, loan.amount);
+          const updated = { ...loan, repaidAmount: clampedRepaid, repaid: clampedRepaid >= loan.amount };
+          return { loans: state.loans.map((existing) => (existing.id === loan.id ? updated : existing)) };
+        }),
       deleteLoan: (id) =>
         set((state) => ({
           loans: state.loans.filter((loan) => loan.id !== id),

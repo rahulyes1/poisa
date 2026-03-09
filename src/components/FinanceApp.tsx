@@ -326,6 +326,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
                 <SpendingDashboard
                   isBudgetOpen={showSpendingBudgetSetter}
                   onToggleBudget={() => setShowSpendingBudgetSetter((value) => !value)}
+                  onAddExpense={() => setIsAddExpenseOpen(true)}
                   onOpenBurnRateCalculator={() => setActiveCalculator({ type: "budget_burn" })}
                   onOpenCalculator={onOpenCalculatorFromHub}
                 />

@@ -427,9 +427,12 @@ export default function LendingOverview({
               </button>
             </div>
           </div>
-          <p className="px-1 text-sm text-white/50">
-            Mark Paid syncs to Spending only when EMI amount is set; otherwise it updates loan status only.
-          </p>
+          <div className="flex items-start gap-2 rounded-xl border border-[rgba(56,189,248,0.2)] bg-[rgba(56,189,248,0.07)] px-3 py-2">
+            <span className="material-symbols-outlined text-[15px] text-[#38BDF8] shrink-0 mt-0.5">info</span>
+            <p className="text-xs text-[#94A3B8] leading-relaxed">
+              <span className="font-semibold text-[#38BDF8]">Mark Paid</span> auto-adds to your Spending tab only when an EMI amount is set on the loan. Without EMI, it only updates the loan status.
+            </p>
+          </div>
 
           {sortedPersonalLoans.length === 0 ? (
             <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-6 text-center">

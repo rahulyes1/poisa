@@ -9,6 +9,7 @@ import { Expense } from "../shared/types";
 interface SpendingDashboardProps {
   isBudgetOpen: boolean;
   onToggleBudget: () => void;
+  onAddExpense: () => void;
   onOpenBurnRateCalculator: () => void;
   onOpenCalculator: (item: CalculatorHubItem) => void;
 }
@@ -53,6 +54,7 @@ const toDisplayDate = (date: string) => {
 export default function SpendingDashboard({
   isBudgetOpen,
   onToggleBudget,
+  onAddExpense,
   onOpenBurnRateCalculator,
   onOpenCalculator,
 }: SpendingDashboardProps) {
@@ -60,6 +62,7 @@ export default function SpendingDashboard({
   const [isIncomeSheetOpen, setIsIncomeSheetOpen] = useState(false);
   const [incomeSalaryInput, setIncomeSalaryInput] = useState("");
   const [incomeOtherInput, setIncomeOtherInput] = useState("");
+  const [incomeError, setIncomeError] = useState("");
   const [activeCalc, setActiveCalc] = useState("burn");
   const [animatedSpent, setAnimatedSpent] = useState(0);
   const [animatedPct, setAnimatedPct] = useState(0);
@@ -223,8 +226,10 @@ export default function SpendingDashboard({
     const salary = parseMoneyInput(incomeSalaryInput);
     const other = parseMoneyInput(incomeOtherInput);
     if (!Number.isFinite(salary) || salary < 0 || !Number.isFinite(other) || other < 0) {
+      setIncomeError("Please enter a valid amount");
       return;
     }
+    setIncomeError("");
     setMonthlyIncome(selectedMonth, salary, other);
     setIsIncomeSheetOpen(false);
   };
@@ -365,12 +370,16 @@ export default function SpendingDashboard({
               <button
                 type="button"
                 onClick={openIncomeSheet}
+                title={monthlyIncomeTotal > 0 ? "Edit your income for this month" : "Add your income for this month"}
+                aria-label={monthlyIncomeTotal > 0 ? "Edit income" : "Add income"}
                 className={`poisa-income-orb poisa-pressable ${incomeFlash ? "poisa-income-orb-flash" : ""}`}
               >
-                <span className="material-symbols-outlined relative z-10 text-[26px]">add</span>
+                <span className="material-symbols-outlined relative z-10 text-[26px]">
+                  {monthlyIncomeTotal > 0 ? "edit" : "add"}
+                </span>
               </button>
               <p className="mt-1 text-[11px] leading-tight text-[#aab1c9]">
-                Add
+                {monthlyIncomeTotal > 0 ? "Edit" : "Add"}
                 <br />
                 Income
               </p>
@@ -418,8 +427,15 @@ export default function SpendingDashboard({
           </div>
 
           {categorySummaries.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#2A3345] bg-[#0D1117] px-3 py-6 text-center text-sm text-[#7A8599]">
-              No category spending this month.
+            <div className="rounded-xl border border-dashed border-[#2A3345] bg-[#0D1117] px-3 py-6 text-center space-y-3">
+              <p className="text-sm text-[#7A8599]">No expenses this month yet.</p>
+              <button
+                type="button"
+                onClick={onAddExpense}
+                className="h-9 px-4 rounded-xl bg-[#00e5a0]/10 border border-[#00e5a0]/30 text-[#00e5a0] text-sm font-semibold"
+              >
+                + Add your first expense
+              </button>
             </div>
           ) : (
             <>
@@ -505,6 +521,8 @@ export default function SpendingDashboard({
               <button
                 key={chip.id}
                 type="button"
+                title={chip.desc}
+                aria-label={`${chip.name} calculator — ${chip.desc}`}
                 onClick={() => {
                   setActiveCalc(chip.id);
                   chip.run();
@@ -557,7 +575,7 @@ export default function SpendingDashboard({
                   min="0"
                   step="0.01"
                   value={incomeSalaryInput}
-                  onChange={(event) => setIncomeSalaryInput(event.target.value)}
+                  onChange={(event) => { setIncomeSalaryInput(event.target.value); setIncomeError(""); }}
                   inputMode="decimal"
                   placeholder="e.g. 50000"
                   className="w-full h-11 rounded-xl border border-[#2d333b] bg-[#161B22] px-3 text-[#e6edf3] outline-none focus:border-[#00C896]"
@@ -570,12 +588,15 @@ export default function SpendingDashboard({
                   min="0"
                   step="0.01"
                   value={incomeOtherInput}
-                  onChange={(event) => setIncomeOtherInput(event.target.value)}
+                  onChange={(event) => { setIncomeOtherInput(event.target.value); setIncomeError(""); }}
                   inputMode="decimal"
                   placeholder="optional"
                   className="w-full h-11 rounded-xl border border-[#2d333b] bg-[#161B22] px-3 text-[#e6edf3] outline-none focus:border-[#00C896]"
                 />
               </label>
+              {incomeError && (
+                <p className="text-xs text-[#ff6b6b] -mt-1">{incomeError}</p>
+              )}
               <button
                 type="button"
                 onClick={saveIncome}

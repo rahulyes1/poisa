@@ -317,6 +317,18 @@ body {
   animation: poisa-badge-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .poisa-danger-pulse {
+    animation: none;
+  }
+  .poisa-income-orb::before {
+    animation: none;
+  }
+  .poisa-skeleton {
+    animation: none;
+  }
+}
+
 @keyframes poisa-shimmer {
   0% { transform: translateX(-110%); }
   100% { transform: translateX(130%); }
