@@ -49,7 +49,7 @@ export default function FloatingCard({
         <button
           type="button"
           onClick={onAction}
-          className="poisa-fab poisa-pressable h-10 px-4 rounded-xl text-white text-sm font-semibold flex items-center gap-2"
+          className="poisa-fab poisa-pressable h-10 px-4 rounded-xl text-sm font-semibold flex items-center gap-2"
         >
           <span className={`material-symbols-outlined text-[18px] poisa-fab-icon ${icon === "add" ? "poisa-fab-icon-add" : ""}`}>{icon}</span>
           <span>{buttonLabel}</span>

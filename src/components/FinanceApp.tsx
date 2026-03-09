@@ -286,11 +286,11 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
   ]);
 
   return (
-    <div className="bg-[#0F172A] font-display text-[#F1F5F9] antialiased min-h-[100dvh] overflow-hidden flex flex-col relative">
+    <div className="bg-[#0D1117] font-display text-[#F1F5F9] antialiased min-h-[100dvh] overflow-hidden flex flex-col relative">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -left-20 size-64 rounded-full bg-[#4F46E5]/14 blur-[90px]" />
+        <div className="absolute -top-24 -left-20 size-64 rounded-full bg-[#00C896]/14 blur-[90px]" />
         <div className="absolute top-1/3 -right-24 size-72 rounded-full bg-[#00C9A7]/12 blur-[110px]" />
-        <div className="absolute bottom-0 left-1/4 size-64 rounded-full bg-[#4F46E5]/10 blur-[96px]" />
+        <div className="absolute bottom-0 left-1/4 size-64 rounded-full bg-[#38BDF8]/10 blur-[96px]" />
         <div className="app-texture absolute inset-0" />
       </div>
 
@@ -379,7 +379,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
       </main>
 
       {showInvestingActions && activeTab === "investing" && (
-        <div className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+146px)] z-40 flex flex-col gap-2">
+        <div className="fixed right-[calc(1rem+3.5rem+0.625rem)] bottom-[calc(env(safe-area-inset-bottom)+146px)] z-40 flex flex-col items-start gap-2">
           <button
             type="button"
             onClick={() => {
@@ -388,7 +388,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowLendingCalculatorActions(false);
               setIsAddGoalOpen(true);
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#111118]/95 text-[#d8fff5] text-sm font-semibold backdrop-blur-[12px]"
           >
             Add Goal
           </button>
@@ -400,7 +400,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowLendingCalculatorActions(false);
               setIsAddInvestmentOpen(true);
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#111118]/95 text-[#d8fff5] text-sm font-semibold backdrop-blur-[12px]"
           >
             Add Investment
           </button>
@@ -412,7 +412,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowLendingCalculatorActions(false);
               setIsAddLifeInsuranceOpen(true);
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#111118]/95 text-[#d8fff5] text-sm font-semibold backdrop-blur-[12px]"
           >
             Add Insurance
           </button>
@@ -420,7 +420,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
       )}
 
       {showLendingActions && activeTab === "lending" && (
-        <div className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+146px)] z-40 flex flex-col gap-2">
+        <div className="fixed right-[calc(1rem+3.5rem+0.625rem)] bottom-[calc(env(safe-area-inset-bottom)+146px)] z-40 flex flex-col items-start gap-2">
           <button
             type="button"
             onClick={() => {
@@ -429,7 +429,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowLendingCalculatorActions(false);
               setIsAddLendOpen(true);
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#111118]/95 text-[#d8fff5] text-sm font-semibold backdrop-blur-[12px]"
           >
             Add Money Lent
           </button>
@@ -441,7 +441,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowLendingCalculatorActions(false);
               setIsAddMoneyTookOpen(true);
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#111118]/95 text-[#d8fff5] text-sm font-semibold backdrop-blur-[12px]"
           >
             Add Money I Took
           </button>
@@ -453,7 +453,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowLendingCalculatorActions(false);
               setIsAddPersonalLoanOpen(true);
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118]/95 text-[#d8fff5] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#111118]/95 text-[#d8fff5] text-sm font-semibold backdrop-blur-[12px]"
           >
             Add Loan / EMI
           </button>
@@ -461,14 +461,14 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
       )}
 
       {showInvestingCalculatorActions && activeTab === "investing" && (
-        <div className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+214px)] z-40 flex flex-col gap-2">
+        <div className="fixed right-[calc(1rem+3.5rem+0.625rem)] bottom-[calc(env(safe-area-inset-bottom)+214px)] z-40 flex flex-col items-start gap-2">
           <button
             type="button"
             onClick={() => {
               setShowInvestingCalculatorActions(false);
               setActiveCalculator({ type: "sip" });
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#0d1117]/95 text-[#7af6cd] text-sm font-semibold backdrop-blur-[12px]"
           >
             SIP Calculator
           </button>
@@ -478,7 +478,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowInvestingCalculatorActions(false);
               setActiveCalculator({ type: "goal" });
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#0d1117]/95 text-[#7af6cd] text-sm font-semibold backdrop-blur-[12px]"
           >
             Goal Calculator
           </button>
@@ -486,14 +486,14 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
       )}
 
       {showLendingCalculatorActions && activeTab === "lending" && (
-        <div className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+214px)] z-40 flex flex-col gap-2">
+        <div className="fixed right-[calc(1rem+3.5rem+0.625rem)] bottom-[calc(env(safe-area-inset-bottom)+214px)] z-40 flex flex-col items-start gap-2">
           <button
             type="button"
             onClick={() => {
               setShowLendingCalculatorActions(false);
               setActiveCalculator({ type: "lending", initialLendingTab: "emi" });
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#0d1117]/95 text-[#7af6cd] text-sm font-semibold backdrop-blur-[12px]"
           >
             EMI Calculator
           </button>
@@ -503,7 +503,7 @@ function FinanceAppShell({ user, onSignIn, onSignOut, authConfigured, isSigningI
               setShowLendingCalculatorActions(false);
               setActiveCalculator({ type: "lending", initialLendingTab: "affordability" });
             }}
-            className="h-9 px-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0d1117]/95 text-[#7af6cd] text-xs font-semibold backdrop-blur-[12px]"
+            className="h-11 min-w-[190px] px-4 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[#0d1117]/95 text-[#7af6cd] text-sm font-semibold backdrop-blur-[12px]"
           >
             Affordability Calculator
           </button>

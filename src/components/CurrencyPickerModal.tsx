@@ -46,14 +46,14 @@ export default function CurrencyPickerModal({ isOpen, onSelect }: CurrencyPicker
               type="button"
               onClick={() => onSelect(option.code)}
               className="group rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left
-                         hover:border-[#4F46E5]/60 hover:bg-[#4F46E5]/10
+                         hover:border-[#00C896]/60 hover:bg-[#00C896]/10
                          active:scale-95 transition-all duration-150"
               style={{ borderRadius: "14px" }}
             >
               <p className="text-2xl mb-1">{option.flag}</p>
               <p
                 className="text-2xl font-black leading-none mb-1.5"
-                style={{ color: "#818CF8" }}
+                style={{ color: "#00C896" }}
               >
                 {option.symbol}
               </p>

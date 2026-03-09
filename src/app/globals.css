@@ -4,17 +4,16 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Updated primary to Indigo */
-  --color-primary: #4F46E5;
-  --color-success: #10B981;
+  --color-primary: #00C896;
+  --color-success: #00C896;
   --color-warning: #F59E0B;
-  --color-danger: #F43F5E;
+  --color-danger: #FF6B6B;
 
   /* Keep vibrant accents for charts/categories */
-  --color-vibrant-orange: #F59E0B;
-  --color-vibrant-pink: #F43F5E;
-  --color-vibrant-teal: #10B981;
-  --color-vibrant-purple: #8B5CF6;
+  --color-vibrant-orange: #F5A623;
+  --color-vibrant-pink: #FF6B6B;
+  --color-vibrant-teal: #00C896;
+  --color-vibrant-purple: #38BDF8;
   --color-vibrant-yellow: #F9F871;
 
   --font-display: var(--font-dm-sans), sans-serif;
@@ -28,17 +27,17 @@
   --app-fab-h: 56px;
 
   /* Color system – dark (always-dark design) */
-  --clr-bg: #0F172A;
-  --clr-bg-elevated: #1E293B;
-  --clr-card: #1E293B;
-  --clr-card-border: rgba(255, 255, 255, 0.08);
+  --clr-bg: #0D1117;
+  --clr-bg-elevated: #141A24;
+  --clr-card: #161B22;
+  --clr-card-border: #2A3345;
   --clr-text-primary: #F1F5F9;
   --clr-text-secondary: #94A3B8;
   --clr-text-muted: #64748B;
 
-  --clr-primary: #4F46E5;
-  --clr-primary-light: #818CF8;
-  --clr-primary-glow: rgba(79, 70, 229, 0.25);
+  --clr-primary: #00C896;
+  --clr-primary-light: #00e5a0;
+  --clr-primary-glow: rgba(0, 200, 150, 0.30);
 
   --clr-success: #10B981;
   --clr-warning: #F59E0B;
@@ -71,25 +70,25 @@ body {
   margin: 0;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 12% 12%, rgba(79, 70, 229, 0.22), transparent 40%),
-    radial-gradient(circle at 84% 16%, rgba(129, 140, 248, 0.18), transparent 42%),
-    radial-gradient(circle at 60% 90%, rgba(79, 70, 229, 0.10), transparent 46%),
-    #0F172A;
+    radial-gradient(circle at 12% 12%, rgba(0, 200, 150, 0.22), transparent 40%),
+    radial-gradient(circle at 84% 16%, rgba(56, 189, 248, 0.16), transparent 42%),
+    radial-gradient(circle at 60% 90%, rgba(0, 200, 150, 0.10), transparent 46%),
+    #0D1117;
   color: #F1F5F9;
 }
 
 /* ─── Glass Card ────────────────────────────────────────────── */
 .glass-card {
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid #2A3345;
   background: linear-gradient(
     160deg,
-    rgba(30, 41, 59, 0.85) 0%,
-    rgba(15, 23, 42, 0.70) 100%
+    rgba(22, 27, 34, 0.98) 0%,
+    rgba(13, 17, 23, 0.96) 100%
   );
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.25),
-    0 1px 0 rgba(255, 255, 255, 0.06) inset;
-  backdrop-filter: blur(24px);
+    0 8px 18px rgba(0, 0, 0, 0.32),
+    0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  backdrop-filter: blur(20px);
 }
 
 /* ─── Glass Input ───────────────────────────────────────────── */
@@ -106,8 +105,8 @@ body {
 }
 
 .glass-input:focus {
-  border-color: rgba(79, 70, 229, 0.60);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  border-color: rgba(0, 200, 150, 0.60);
+  box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.12);
 }
 
 /* ─── Texture overlay ───────────────────────────────────────── */
@@ -184,10 +183,10 @@ body {
 }
 
 .segment-pill-tab-active {
-  border-color: rgba(129, 140, 248, 0.55);
-  color: #ecfeff;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.34), rgba(0, 201, 167, 0.28));
-  box-shadow: 0 0 16px rgba(79, 70, 229, 0.24);
+  border-color: rgba(0, 200, 150, 0.55);
+  color: #041711;
+  background: linear-gradient(135deg, rgba(0, 229, 160, 0.85), rgba(0, 200, 150, 0.82));
+  box-shadow: 0 0 16px rgba(0, 200, 150, 0.24);
 }
 
 .font-poisa-ui {
@@ -195,7 +194,7 @@ body {
 }
 
 .font-poisa-amount {
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-dm-sans), sans-serif;
 }
 
 .poisa-form-overlay {
@@ -229,7 +228,7 @@ body {
 }
 
 .font-poisa-heading {
-  font-family: var(--font-syne), var(--font-dm-sans), sans-serif;
+  font-family: var(--font-dm-sans), sans-serif;
 }
 
 .font-poisa-body {
@@ -356,12 +355,12 @@ body {
 
 .poisa-fab {
   position: relative;
-  background: linear-gradient(145deg, #7b6fff, #6c63ff 52%, #5648f2);
-  border: 1px solid rgba(124, 111, 255, 0.48);
-  color: #f5f7ff;
+  background: linear-gradient(145deg, #00e5a0, #00c896 52%, #00b486);
+  border: 1px solid rgba(0, 200, 150, 0.48);
+  color: #06221a;
   box-shadow:
-    0 12px 30px rgba(108, 99, 255, 0.45),
-    0 0 20px rgba(108, 99, 255, 0.35);
+    0 12px 30px rgba(0, 200, 150, 0.38),
+    0 0 20px rgba(0, 200, 150, 0.28);
 }
 
 .poisa-fab::before {
@@ -369,7 +368,7 @@ body {
   position: absolute;
   inset: -2px;
   border-radius: 9999px;
-  border: 1px solid rgba(124, 111, 255, 0.5);
+  border: 1px solid rgba(0, 200, 150, 0.5);
   animation: poisa-fab-ring 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
 }

@@ -86,7 +86,7 @@ export default function LendingOverview({
   return (
     <section className="px-5 pt-4 pb-4 space-y-[14px]">
       <div className="flex items-center justify-between px-1">
-        <p className="text-xs uppercase tracking-wide text-[#7d8590]">Lending</p>
+        <p className="text-sm uppercase tracking-wide text-[#7d8590]">Lending</p>
         <button
           type="button"
           onClick={onOpenLendingCalculator}
@@ -111,7 +111,7 @@ export default function LendingOverview({
               key={segment.id}
               type="button"
               onClick={() => setActiveSegment(segment.id)}
-              className={`h-9 min-w-[92px] snap-start rounded-xl px-3 text-[11px] font-semibold uppercase tracking-wide active:scale-95 transition-all ${
+              className={`h-9 min-w-[92px] snap-start rounded-xl px-3 text-sm font-semibold uppercase tracking-wide active:scale-95 transition-all ${
                 activeSegment === segment.id
                   ? "bg-[#00C896] text-[#0D1117]"
                   : "bg-transparent border border-transparent text-[#7A8599]"
@@ -130,27 +130,27 @@ export default function LendingOverview({
           <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold text-white">Quick Add</h3>
-              <span className="text-[11px] text-white/55">Lent | Owed | Loan/EMI</span>
+              <span className="text-sm text-white/55">Lent | Owed | Loan/EMI</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={onAddMoneyLent}
-                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-sm font-semibold text-[#c7dfdb]"
               >
                 Money Lent
               </button>
               <button
                 type="button"
                 onClick={onAddMoneyOwed}
-                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-sm font-semibold text-[#c7dfdb]"
               >
                 Money I Took
               </button>
               <button
                 type="button"
                 onClick={onAddLoanEmi}
-                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] text-sm font-semibold text-[#c7dfdb]"
               >
                 Loan / EMI
               </button>
@@ -158,14 +158,14 @@ export default function LendingOverview({
           </div>
 
           {dueSoonCount > 0 && (
-            <div className="rounded-xl border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] px-3 py-2 text-[#FF8C42] text-xs font-semibold flex items-center gap-1.5">
+            <div className="rounded-xl border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] px-3 py-2 text-[#FF8C42] text-sm font-semibold flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[14px]">notification_important</span>
               EMI due soon: {dueSoonCount}
             </div>
           )}
 
           {(moneyTookDueSoonCount > 0 || moneyTookOverdueCount > 0) && (
-            <div className="rounded-xl border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.15)] px-3 py-2 text-[#C7D2FE] text-xs font-semibold flex items-center gap-1.5">
+            <div className="rounded-xl border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.15)] px-3 py-2 text-[#C7D2FE] text-sm font-semibold flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[14px]">schedule</span>
               Money I Took alerts: {moneyTookOverdueCount} overdue, {moneyTookDueSoonCount} due soon
             </div>
@@ -174,33 +174,33 @@ export default function LendingOverview({
           <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-4">
             <div className="flex items-end justify-between mb-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">Lending Snapshot</p>
+                <p className="text-sm font-semibold uppercase tracking-wide text-[#64748B]">Lending Snapshot</p>
                 <p className="text-2xl font-bold text-[#f0f0ff]">{formatCurrency(outstanding)}</p>
               </div>
               {pendingCount > 0 ? (
                 <p className="text-sm font-medium text-[#FF8C42]">{pendingCount} pending</p>
               ) : (
-                <p className="text-xs font-medium text-[#00C896] inline-flex items-center gap-1">
+                <p className="text-sm font-medium text-[#00C896] inline-flex items-center gap-1">
                   <span className="material-symbols-outlined text-[12px]">check</span>
                   All clear
                 </p>
               )}
             </div>
-            <div className="grid grid-cols-3 text-xs rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26]">
+            <div className="grid grid-cols-3 text-sm rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26]">
               <div className="p-3">
-                <p className="text-[#94A3B8] uppercase tracking-wide text-[10px]">Money Lent</p>
+                <p className="text-[#94A3B8] uppercase tracking-wide text-sm">Money Lent</p>
                 <p className="text-base font-semibold text-[#00C896] mt-0.5">{formatCurrency(outstanding)}</p>
-                <p className="text-[11px] text-[#94A3B8] mt-1">{outstanding > 0 ? "Active receivable" : "Fully repaid"}</p>
+                <p className="text-sm text-[#94A3B8] mt-1">{outstanding > 0 ? "Active receivable" : "Fully repaid"}</p>
               </div>
               <div className="border-x border-[#2A3345] p-3">
-                <p className="text-[#94A3B8] uppercase tracking-wide text-[10px]">Money I Took</p>
+                <p className="text-[#94A3B8] uppercase tracking-wide text-sm">Money I Took</p>
                 <p className="text-base font-semibold text-[#f0f0ff] mt-0.5">{formatCurrency(moneyTookOutstanding)}</p>
-                <p className="text-[11px] text-[#94A3B8] mt-1">{moneyTookOutstanding > 0 ? "Borrowed outstanding" : `${formatCurrency(0)} borrowed`}</p>
+                <p className="text-sm text-[#94A3B8] mt-1">{moneyTookOutstanding > 0 ? "Borrowed outstanding" : `${formatCurrency(0)} borrowed`}</p>
               </div>
               <div className="p-3">
-                <p className="text-[#94A3B8] uppercase tracking-wide text-[10px]">Liabilities</p>
+                <p className="text-[#94A3B8] uppercase tracking-wide text-sm">Liabilities</p>
                 <p className="text-base font-semibold text-[#FF8C42] mt-0.5">{formatCurrency(personalOutstanding)}</p>
-                <p className="text-[11px] text-[#94A3B8] mt-1">{formatCurrency(monthlyEmiDue)}/mo EMI</p>
+                <p className="text-sm text-[#94A3B8] mt-1">{formatCurrency(monthlyEmiDue)}/mo EMI</p>
               </div>
             </div>
           </div>
@@ -211,13 +211,13 @@ export default function LendingOverview({
               <button
                 type="button"
                 onClick={() => setActiveSegment("money_lent")}
-                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 View All
               </button>
             </div>
             {sortedLoans.slice(0, 3).length === 0 ? (
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-[11px] text-[#94A3B8]">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-sm text-[#94A3B8]">
                 No entries yet.
               </div>
             ) : (
@@ -238,12 +238,12 @@ export default function LendingOverview({
                   <article key={loan.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-2.5" style={{ borderLeft: `2px solid ${borderColor}`, opacity: loan.repaid ? 0.6 : 1 }}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs font-semibold text-[#f0f0ff]">{loan.personName}</p>
-                        {loan.reason && loan.reason.toLowerCase() !== "loan" && <p className="text-[11px] text-[#94A3B8]">{loan.reason}</p>}
+                        <p className="text-sm font-semibold text-[#f0f0ff]">{loan.personName}</p>
+                        {loan.reason && loan.reason.toLowerCase() !== "loan" && <p className="text-sm text-[#94A3B8]">{loan.reason}</p>}
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-[#f0f0ff]">{formatCurrency(Math.max(loan.amount - loan.repaidAmount, 0))}</p>
-                        <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClass}`}>{status}</p>
+                        <p className="text-sm font-semibold text-[#f0f0ff]">{formatCurrency(Math.max(loan.amount - loan.repaidAmount, 0))}</p>
+                        <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-sm font-semibold ${statusClass}`}>{status}</p>
                       </div>
                     </div>
                   </article>
@@ -258,13 +258,13 @@ export default function LendingOverview({
               <button
                 type="button"
                 onClick={() => setActiveSegment("money_took")}
-                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 View All
               </button>
             </div>
             {sortedMoneyTook.slice(0, 3).length === 0 ? (
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-[11px] text-[#94A3B8]">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-sm text-[#94A3B8]">
                 No entries yet.
               </div>
             ) : (
@@ -284,12 +284,12 @@ export default function LendingOverview({
                     <article key={entry.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-2.5" style={{ borderLeft: `2px solid ${borderColor}`, opacity: status === "Repaid" ? 0.6 : 1 }}>
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-xs font-semibold text-[#f0f0ff]">{entry.lenderName}</p>
-                          {entry.note && <p className="text-[11px] text-[#94A3B8]">{entry.note}</p>}
+                          <p className="text-sm font-semibold text-[#f0f0ff]">{entry.lenderName}</p>
+                          {entry.note && <p className="text-sm text-[#94A3B8]">{entry.note}</p>}
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-semibold text-[#D7D8FF]">{formatCurrency(outstandingAmount)}</p>
-                          <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusClass}`}>{status}</p>
+                          <p className="text-sm font-semibold text-[#D7D8FF]">{formatCurrency(outstandingAmount)}</p>
+                          <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-sm font-semibold ${statusClass}`}>{status}</p>
                         </div>
                       </div>
                     </article>
@@ -305,13 +305,13 @@ export default function LendingOverview({
               <button
                 type="button"
                 onClick={() => setActiveSegment("my_loans")}
-                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 View All
               </button>
             </div>
             {sortedPersonalLoans.slice(0, 3).length === 0 ? (
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-[11px] text-[#94A3B8]">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-3 text-sm text-[#94A3B8]">
                 No entries yet.
               </div>
             ) : (
@@ -320,12 +320,12 @@ export default function LendingOverview({
                   <article key={loan.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] p-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs font-semibold text-[#f0f0ff]">{loan.lenderName}</p>
-                        <p className="text-[11px] text-[#94A3B8]">{loan.customTypeLabel || loan.loanType.replace("_", " ")}</p>
+                        <p className="text-sm font-semibold text-[#f0f0ff]">{loan.lenderName}</p>
+                        <p className="text-sm text-[#94A3B8]">{loan.customTypeLabel || loan.loanType.replace("_", " ")}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-[#FF8C42]">{formatCurrency(loan.emiAmount ?? 0)}</p>
-                        <p className="text-[10px] text-[#94A3B8]">{loan.closed ? "Closed" : "Active"}</p>
+                        <p className="text-sm font-semibold text-[#FF8C42]">{formatCurrency(loan.emiAmount ?? 0)}</p>
+                        <p className="text-sm text-[#94A3B8]">{loan.closed ? "Closed" : "Active"}</p>
                       </div>
                     </div>
                   </article>
@@ -341,11 +341,11 @@ export default function LendingOverview({
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-semibold text-white">Money Lent</h3>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white/55">{sortedLoans.length}</span>
+              <span className="text-sm text-white/55">{sortedLoans.length}</span>
               <button
                 type="button"
                 onClick={onAddMoneyLent}
-                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add
               </button>
@@ -355,7 +355,7 @@ export default function LendingOverview({
           {sortedLoans.length === 0 ? (
             <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-6 text-center">
               <p className="text-sm font-medium text-[#94A3B8]">No lent entries yet.</p>
-              <p className="text-xs text-[#94A3B8] mt-1">Use Lend to Someone to track receivables.</p>
+              <p className="text-sm text-[#94A3B8] mt-1">Use Lend to Someone to track receivables.</p>
             </div>
           ) : (
             <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-4 space-y-3">
@@ -372,17 +372,17 @@ export default function LendingOverview({
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-semibold text-white">Money I Took</h3>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white/55">{sortedMoneyTook.length}</span>
+              <span className="text-sm text-white/55">{sortedMoneyTook.length}</span>
               <button
                 type="button"
                 onClick={onAddMoneyOwed}
-                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add
               </button>
             </div>
           </div>
-          <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-[#94A3B8] flex flex-wrap gap-3">
+          <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-sm text-[#94A3B8] flex flex-wrap gap-3">
             <span>Total borrowed: {formatCurrency(moneyTookBorrowed)}</span>
             <span>Outstanding: {formatCurrency(moneyTookOutstanding)}</span>
             <span>Due soon: {moneyTookDueSoonCount}</span>
@@ -391,7 +391,7 @@ export default function LendingOverview({
           {sortedMoneyTook.length === 0 ? (
             <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-6 text-center">
               <p className="text-sm font-medium text-[#94A3B8]">No money-took entries yet.</p>
-              <p className="text-xs text-[#94A3B8] mt-1">Use Add Money I Took to track amounts you borrowed.</p>
+              <p className="text-sm text-[#94A3B8] mt-1">Use Add Money I Took to track amounts you borrowed.</p>
             </div>
           ) : (
             <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-4 space-y-3">
@@ -417,24 +417,24 @@ export default function LendingOverview({
               >
                 <span className="material-symbols-outlined text-[14px]">calculate</span>
               </button>
-              <span className="text-xs text-white/55">{sortedPersonalLoans.length}</span>
+              <span className="text-sm text-white/55">{sortedPersonalLoans.length}</span>
               <button
                 type="button"
                 onClick={onAddLoanEmi}
-                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add
               </button>
             </div>
           </div>
-          <p className="px-1 text-[11px] text-white/50">
+          <p className="px-1 text-sm text-white/50">
             Mark Paid syncs to Spending only when EMI amount is set; otherwise it updates loan status only.
           </p>
 
           {sortedPersonalLoans.length === 0 ? (
             <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-6 text-center">
               <p className="text-sm font-medium text-[#94A3B8]">No personal loans yet.</p>
-              <p className="text-xs text-[#94A3B8] mt-1">Use Add My Loan to track EMI dues.</p>
+              <p className="text-sm text-[#94A3B8] mt-1">Use Add My Loan to track EMI dues.</p>
             </div>
           ) : (
             <div className="bg-[#111118] rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-[0_0_0_1px_rgba(30,37,45,0.6),0_4px_24px_rgba(0,0,0,0.4)] p-4 space-y-3">

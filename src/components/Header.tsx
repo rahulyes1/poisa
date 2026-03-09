@@ -105,13 +105,13 @@ export default function Header({
         }`}
         style={activeTab === "spending" ? { animationDelay: "0ms" } : undefined}
       >
-        <div className="flex items-center justify-between h-8">
+        <div className="flex items-center justify-between min-h-9">
           {/* Poisa Logo */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span
               className="text-xl font-black tracking-tight"
               style={{
-                background: "linear-gradient(135deg, #818CF8 0%, #4F46E5 60%, #6D28D9 100%)",
+                background: "linear-gradient(135deg, #38BDF8 0%, #00C896 58%, #00e5a0 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -120,8 +120,8 @@ export default function Header({
               Poisa
             </span>
             {isSignedIn ? (
-              <span className="h-6 px-2 rounded-full border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.16)] inline-flex items-center gap-1 text-[10px] font-semibold text-[#c7d2fe] max-w-[140px]">
-                <span className="material-symbols-outlined text-[12px]">verified_user</span>
+              <span className="h-7 px-2.5 rounded-full border border-[rgba(0,200,150,0.45)] bg-[rgba(0,200,150,0.16)] inline-flex items-center gap-1 text-[11px] font-semibold text-[#bdf6e7] max-w-[160px]">
+                <span className="material-symbols-outlined text-[13px]">verified_user</span>
                 <span className="truncate">{userName || userEmail || "Signed in"}</span>
               </span>
             ) : (
@@ -134,7 +134,7 @@ export default function Header({
                   void onSignIn?.();
                 }}
                 disabled={!authConfigured}
-                className="h-6 px-2 rounded-full border border-[rgba(79,70,229,0.45)] bg-[rgba(79,70,229,0.16)] inline-flex items-center gap-1 text-[10px] font-semibold text-[#c7d2fe] disabled:opacity-45 disabled:cursor-not-allowed"
+                className="h-7 px-2.5 rounded-full border border-[rgba(0,200,150,0.45)] bg-[rgba(0,200,150,0.16)] inline-flex items-center gap-1 text-[11px] font-semibold text-[#bdf6e7] disabled:opacity-45 disabled:cursor-not-allowed"
                 title={
                   authConfigured
                     ? isSigningIn
@@ -144,7 +144,7 @@ export default function Header({
                 }
                 aria-busy={isSigningIn}
               >
-                <span className="material-symbols-outlined text-[12px]">
+                <span className="material-symbols-outlined text-[13px]">
                   {isSigningIn ? "hourglass_top" : "login"}
                 </span>
                 <span>{isSigningIn ? "Signing in..." : "Sign In"}</span>
@@ -154,19 +154,19 @@ export default function Header({
               <button
                 type="button"
                 onClick={() => setShowSearch((value) => !value)}
-                className="h-6 w-6 rounded-full border border-white/20 bg-white/[0.08] text-white/80 inline-flex items-center justify-center active:scale-95 transition-transform"
+                className="h-7 w-7 rounded-full border border-white/20 bg-white/[0.08] text-white/80 inline-flex items-center justify-center active:scale-95 transition-transform"
                 title="Search transactions"
               >
-                <span className="material-symbols-outlined text-[14px]">search</span>
+                <span className="material-symbols-outlined text-[15px]">search</span>
               </button>
             )}
           </div>
 
-          <div className="relative flex items-center gap-1.5">
+          <div className="relative flex items-center gap-2">
             <button
               type="button"
               onClick={() => setShowCurrencyMenu((value) => !value)}
-              className="h-6 min-w-8 px-1.5 rounded-full border border-white/20 bg-white/[0.08] text-[10px] font-semibold text-white active:scale-95 transition-transform"
+              className="h-7 min-w-9 px-2 rounded-full border border-white/20 bg-white/[0.08] text-[11px] font-semibold text-white active:scale-95 transition-transform"
             >
               {currencySymbol}
             </button>
@@ -182,7 +182,7 @@ export default function Header({
                       setShowCurrencyMenu(false);
                     }}
                     className={`w-full px-3 py-2 text-left text-xs font-semibold transition-colors active:scale-95 ${
-                      currency === option ? "bg-[#4F46E5]/26 text-[#c7d2fe]" : "text-white/90 hover:bg-white/[0.08]"
+                      currency === option ? "bg-[#00C896]/20 text-[#bdf6e7]" : "text-white/90 hover:bg-white/[0.08]"
                     }`}
                   >
                     {getCurrencySymbol(option)} {option}
@@ -194,14 +194,14 @@ export default function Header({
             <button
               type="button"
               onClick={() => setActiveTab("settings")}
-              className={`h-6 w-6 rounded-full border transition-colors active:scale-95 ${
+              className={`h-7 w-7 rounded-full border transition-colors active:scale-95 ${
                 activeTab === "settings"
-                  ? "border-[#4F46E5]/70 bg-[#4F46E5]/20 text-[#c7d2fe]"
+                  ? "border-[#00C896]/70 bg-[#00C896]/20 text-[#bdf6e7]"
                   : "border-white/20 bg-white/[0.08] text-white/80"
               }`}
               title="Settings"
             >
-              <span className="material-symbols-outlined text-[13px] leading-none">settings</span>
+              <span className="material-symbols-outlined text-[15px] leading-none">settings</span>
             </button>
 
             {isSignedIn && onSignOut && (
@@ -209,7 +209,7 @@ export default function Header({
                 <button
                   type="button"
                   onClick={() => setShowUserMenu((value) => !value)}
-                  className="h-6 w-6 rounded-full border border-white/20 bg-white/[0.08] overflow-hidden inline-flex items-center justify-center active:scale-95 transition-transform"
+                  className="h-7 w-7 rounded-full border border-white/20 bg-white/[0.08] overflow-hidden inline-flex items-center justify-center active:scale-95 transition-transform"
                   title="Account"
                 >
                   {userPhotoURL ? (
@@ -321,7 +321,7 @@ export default function Header({
               <button
                 type="button"
                 onClick={applyMonthPicker}
-                className="h-8 px-3 rounded-lg bg-[#4F46E5] text-white text-xs font-semibold active:scale-95 transition-transform"
+                className="h-8 px-3 rounded-lg bg-[#00C896] text-[#06221a] text-xs font-semibold active:scale-95 transition-transform"
               >
                 Apply
               </button>

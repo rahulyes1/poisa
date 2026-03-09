@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { EXPENSE_CATEGORIES } from "../forms/data/formData";
 import { useFinanceStore } from "../shared/store";
 import { Expense } from "../shared/types";
 
@@ -10,31 +11,10 @@ interface EditExpenseModalProps {
   onClose: () => void;
 }
 
-const PRESET_CATEGORIES = [
-  "Food",
-  "Transport",
-  "Groceries",
-  "Bills",
-  "Shopping",
-  "Entertainment",
-  "Health",
-  "Travel",
-  "Education",
-  "Other",
-];
-
-const iconByCategory: Record<string, string> = {
-  Food: "restaurant",
-  Transport: "directions_car",
-  Groceries: "local_grocery_store",
-  Bills: "receipt_long",
-  Shopping: "shopping_bag",
-  Entertainment: "movie",
-  Health: "medical_services",
-  Travel: "flight",
-  Education: "school",
-  Other: "category",
-};
+const iconByCategory = EXPENSE_CATEGORIES.reduce<Record<string, string>>((acc, item) => {
+  acc[item.label] = item.icon;
+  return acc;
+}, {});
 
 const resolveIcon = (category: string) => iconByCategory[category] ?? "receipt_long";
 
@@ -42,16 +22,20 @@ export default function EditExpenseModal({ isOpen, item, onClose }: EditExpenseM
   const updateExpense = useFinanceStore((state) => state.updateExpense);
   const expenses = useFinanceStore((state) => state.expenses);
 
+  const presetLabels = EXPENSE_CATEGORIES.map((c) => c.label);
   const existingCategories = useMemo(
-    () => Array.from(new Set(expenses.map((expense) => expense.category))).filter(Boolean),
+    () =>
+      Array.from(new Set(expenses.map((expense) => expense.category)))
+        .filter(Boolean)
+        .filter((cat) => !presetLabels.includes(cat)),
     [expenses],
   );
   const categoryOptions = useMemo(
-    () => Array.from(new Set([...PRESET_CATEGORIES, ...existingCategories])),
+    () => [...presetLabels, ...existingCategories],
     [existingCategories],
   );
 
-  const initialCategory = item?.category ?? "Other";
+  const initialCategory = item?.category ?? "Food";
   const isCustomInitial = initialCategory && !categoryOptions.includes(initialCategory);
 
   const [date, setDate] = useState(item?.date ?? "");

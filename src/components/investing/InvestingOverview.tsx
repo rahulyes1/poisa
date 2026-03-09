@@ -155,7 +155,7 @@ export default function InvestingOverview({
               key={segment.id}
               type="button"
               onClick={() => setActiveSegment(segment.id)}
-              className={`h-9 min-w-[92px] snap-start rounded-xl px-3 text-[11px] font-semibold uppercase tracking-wide active:scale-95 transition-all ${
+              className={`h-9 min-w-[92px] snap-start rounded-xl px-3 text-sm font-semibold uppercase tracking-wide active:scale-95 transition-all ${
                 activeSegment === segment.id
                   ? "bg-[#00C896] text-[#0D1117]"
                   : "bg-transparent border border-transparent text-[#7A8599]"
@@ -174,27 +174,27 @@ export default function InvestingOverview({
           <div className="glass-card rounded-2xl p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold text-white">Quick Add</h3>
-              <span className="text-[11px] text-white/55">Goals · Investments · Insurance</span>
+              <span className="text-sm text-white/55">Goals · Investments · Insurance</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={onAddGoal}
-                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add Goal
               </button>
               <button
                 type="button"
                 onClick={onAddInvestment}
-                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add Investment
               </button>
               <button
                 type="button"
                 onClick={onAddLifeInsurance}
-                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-9 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add Insurance
               </button>
@@ -203,7 +203,7 @@ export default function InvestingOverview({
 
           <div className="glass-card rounded-2xl p-[18px]">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[11px] uppercase tracking-[1.2px] text-[#7A8599] font-semibold">Investing Snapshot</p>
+              <p className="text-sm uppercase tracking-[1.2px] text-[#7A8599] font-semibold">Investing Snapshot</p>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
@@ -217,7 +217,7 @@ export default function InvestingOverview({
                 <button
                   type="button"
                   onClick={onToggleBudget}
-                  className={`h-7 px-2.5 rounded-full border text-[10px] font-semibold ${
+                  className={`h-7 px-2.5 rounded-full border text-sm font-semibold ${
                     isBudgetOpen
                       ? "border-[#00C896]/70 bg-[#00C896]/18 text-[#bdfdee]"
                       : "border-[rgba(255,255,255,0.12)] bg-transparent text-white/70"
@@ -228,17 +228,17 @@ export default function InvestingOverview({
               </div>
             </div>
             <p className="text-3xl font-black text-white">{formatCurrency(combinedTotal)}</p>
-            <p className="mt-1 text-[11px] text-white/60">
+            <p className="mt-1 text-sm text-white/60">
               Savings Budget: {formatCurrency(savingsBudget)} · {formatCurrency(Math.abs(savingsRemaining))} {savingsRemaining < 0 ? "over" : "remaining"}
             </p>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
               <div className="rounded-xl border border-[#2A3345] p-3" style={{ borderLeft: "2px solid #00C896" }}>
-                <p className="text-[10px] text-white/55 uppercase tracking-wide">Goal Savings</p>
+                <p className="text-sm text-white/55 uppercase tracking-wide">Goal Savings</p>
                 <p className="text-lg font-bold text-white mt-0.5">{formatCurrency(totalSaved)}</p>
               </div>
               <div className="rounded-xl border border-[#2A3345] p-3" style={{ borderLeft: "2px solid #00C896" }}>
-                <p className="text-[10px] text-white/55 uppercase tracking-wide">Investments</p>
+                <p className="text-sm text-white/55 uppercase tracking-wide">Investments</p>
                 <p className="text-lg font-bold text-white mt-0.5">{formatCurrency(totalInvested)}</p>
               </div>
             </div>
@@ -251,7 +251,7 @@ export default function InvestingOverview({
                   <span className="material-symbols-outlined text-[16px]">shield</span>
                 </span>
                 <div>
-                <p className="text-[11px] uppercase tracking-[1.2px] text-[#7A8599] font-semibold">Emergency Fund</p>
+                <p className="text-sm uppercase tracking-[1.2px] text-[#7A8599] font-semibold">Emergency Fund</p>
                 <p className="text-sm font-semibold text-white mt-1">Target: {emergencyMeta.targetMonths} months</p>
                 <p className="mt-2 text-[12px] text-[#7A8599]">
                   {emergencyMeta.emergencyGoal ? `${emergencyMeta.monthsCovered.toFixed(1)} months covered` : "Link a goal to start tracking"}
@@ -267,7 +267,7 @@ export default function InvestingOverview({
                     WebkitMask: "radial-gradient(circle, transparent 62%, black 63%)",
                   }}
                 />
-                <span className="absolute inset-0 inline-flex items-center justify-center text-[10px] text-[#7A8599]">
+                <span className="absolute inset-0 inline-flex items-center justify-center text-sm text-[#7A8599]">
                   {Math.round(emergencyMeta.progress)}%
                 </span>
               </div>
@@ -285,13 +285,13 @@ export default function InvestingOverview({
               <button
                 type="button"
                 onClick={() => setActiveSegment("insurance")}
-                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 View All
               </button>
             </div>
             {insurancePreview.length === 0 ? (
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-white/60">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-sm text-white/60">
                 No entries yet.
               </div>
             ) : (
@@ -303,12 +303,12 @@ export default function InvestingOverview({
                   <article key={item.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5" style={{ borderLeft: `2px solid ${dueSoon ? "#F5A623" : "#00C896"}` }}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs font-semibold text-white">{item.providerName}</p>
-                        <p className="text-[11px] text-white/60">{subtitle}</p>
+                        <p className="text-sm font-semibold text-white">{item.providerName}</p>
+                        <p className="text-sm text-white/60">{subtitle}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-[#9cf4e4]">{formatCurrency(item.monthlyAmount)}</p>
-                        <p className={`text-[10px] ${dueSoon ? "text-[#F5A623]" : "text-[#00C896]"}`}>{toDueLabel(item.dueDate)}</p>
+                        <p className="text-sm font-semibold text-[#9cf4e4]">{formatCurrency(item.monthlyAmount)}</p>
+                        <p className={`text-sm ${dueSoon ? "text-[#F5A623]" : "text-[#00C896]"}`}>{toDueLabel(item.dueDate)}</p>
                       </div>
                     </div>
                   </article>
@@ -333,14 +333,14 @@ export default function InvestingOverview({
                 <button
                   type="button"
                   onClick={() => setActiveSegment("goals")}
-                  className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+                  className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
                 >
                   View All
                 </button>
               </div>
             </div>
             {goalsPreview.length === 0 ? (
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-white/60">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-sm text-white/60">
                 No entries yet.
               </div>
             ) : (
@@ -351,12 +351,12 @@ export default function InvestingOverview({
                   <article key={goal.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs font-semibold text-white">{goal.name}</p>
-                        <p className="text-[11px] text-white/60">{goal.category}</p>
+                        <p className="text-sm font-semibold text-white">{goal.name}</p>
+                        <p className="text-sm text-white/60">{goal.category}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-[#f0f0ff]">{formatCurrency(goal.savedAmount)}</p>
-                        <p className="text-[10px] text-white/45">of {formatCurrency(goal.targetAmount)}</p>
+                        <p className="text-sm font-semibold text-[#f0f0ff]">{formatCurrency(goal.savedAmount)}</p>
+                        <p className="text-sm text-white/45">of {formatCurrency(goal.targetAmount)}</p>
                       </div>
                     </div>
                     <div className="mt-2 h-[3px] rounded-full bg-[#2A3345]">
@@ -374,13 +374,13 @@ export default function InvestingOverview({
               <button
                 type="button"
                 onClick={() => setActiveSegment("investments")}
-                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[10px] font-semibold text-[#c7dfdb]"
+                className="h-6 px-2 rounded-full border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 View All
               </button>
             </div>
             {investmentsPreview.length === 0 ? (
-              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-[11px] text-white/60">
+              <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-3 text-sm text-white/60">
                 No entries yet.
               </div>
             ) : (
@@ -389,12 +389,12 @@ export default function InvestingOverview({
                   <article key={item.id} className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#111118] p-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs font-semibold text-white">{item.title}</p>
-                        <p className="text-[11px] text-white/60">{item.category}</p>
+                        <p className="text-sm font-semibold text-white">{item.title}</p>
+                        <p className="text-sm text-white/60">{item.category}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
-                        <p className="text-[10px] text-white/45">{item.date}</p>
+                        <p className="text-sm font-semibold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
+                        <p className="text-sm text-white/45">{item.date}</p>
                       </div>
                     </div>
                   </article>
@@ -412,7 +412,7 @@ export default function InvestingOverview({
             <button
               type="button"
               onClick={onAddLifeInsurance}
-              className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+              className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
             >
               Add
             </button>
@@ -421,7 +421,7 @@ export default function InvestingOverview({
           {sortedInsurances.length === 0 ? (
             <div className="glass-card rounded-2xl p-6 text-center">
               <p className="text-sm text-white/80">No life insurance entries yet.</p>
-              <p className="text-xs text-white/60 mt-1">Add your monthly premium and EMI date.</p>
+              <p className="text-sm text-white/60 mt-1">Add your monthly premium and EMI date.</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -432,8 +432,8 @@ export default function InvestingOverview({
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h4 className="text-sm font-semibold text-white">{item.providerName}</h4>
-                        <p className="text-xs text-white/65">{item.planName}</p>
-                        <p className="text-[11px] text-white/45 mt-1">Due: {item.dueDate}</p>
+                        <p className="text-sm text-white/65">{item.planName}</p>
+                        <p className="text-sm text-white/45 mt-1">Due: {item.dueDate}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.monthlyAmount)}</p>
@@ -441,7 +441,7 @@ export default function InvestingOverview({
                           <button
                             type="button"
                             onClick={() => toggleLifeInsurancePaid(item.id)}
-                            className={`h-7 px-2.5 rounded-lg text-[11px] font-semibold ${
+                            className={`h-7 px-2.5 rounded-lg text-sm font-semibold ${
                               isPaidForMonth ? "bg-[rgba(0,201,167,0.2)] text-[#00C9A7]" : "bg-[rgba(255,140,66,0.2)] text-[#FF8C42]"
                             }`}
                           >
@@ -458,7 +458,7 @@ export default function InvestingOverview({
                         </div>
                       </div>
                     </div>
-                    {item.note && <p className="text-xs text-white/65 mt-2 whitespace-normal break-words">{item.note}</p>}
+                    {item.note && <p className="text-sm text-white/65 mt-2 whitespace-normal break-words">{item.note}</p>}
                   </article>
                 );
               })}
@@ -481,19 +481,19 @@ export default function InvestingOverview({
               >
                 <span className="material-symbols-outlined text-[14px]">calculate</span>
               </button>
-              <span className="text-xs text-white/55">{scopedData.goals.length} total</span>
+              <span className="text-sm text-white/55">{scopedData.goals.length} total</span>
               <button
                 type="button"
                 onClick={onAddGoal}
-                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add
               </button>
             </div>
           </div>
           <div className="glass-card rounded-xl p-2.5 flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-wide text-white/55">Saved / Target</p>
-            <p className="text-xs font-semibold text-[#f0f0ff]">
+            <p className="text-sm uppercase tracking-wide text-white/55">Saved / Target</p>
+            <p className="text-sm font-semibold text-[#f0f0ff]">
               {formatCurrency(totalSaved)} / {formatCurrency(totalGoalTarget)}
             </p>
           </div>
@@ -501,7 +501,7 @@ export default function InvestingOverview({
           {scopedData.goals.length === 0 ? (
             <div className="glass-card rounded-2xl p-6 text-center">
               <p className="text-sm text-white/80">No goals yet.</p>
-              <p className="text-xs text-white/60 mt-1">Use the add button to create your first savings goal.</p>
+              <p className="text-sm text-white/60 mt-1">Use the add button to create your first savings goal.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5">
@@ -518,11 +518,11 @@ export default function InvestingOverview({
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-semibold text-white">Investments</h3>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white/55">{scopedData.investments.length}</span>
+              <span className="text-sm text-white/55">{scopedData.investments.length}</span>
               <button
                 type="button"
                 onClick={onAddInvestment}
-                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-[11px] font-semibold text-[#c7dfdb]"
+                className="h-7 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#111118] text-sm font-semibold text-[#c7dfdb]"
               >
                 Add
               </button>
@@ -532,7 +532,7 @@ export default function InvestingOverview({
           {scopedData.investments.length === 0 ? (
             <div className="glass-card rounded-2xl p-6 text-center">
               <p className="text-sm text-white/80">No investments yet.</p>
-              <p className="text-xs text-white/60 mt-1">Use the add button to add your first investment.</p>
+              <p className="text-sm text-white/60 mt-1">Use the add button to add your first investment.</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -541,8 +541,8 @@ export default function InvestingOverview({
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="text-sm font-semibold text-white">{item.title}</h4>
-                      <p className="text-xs text-white/65">{item.category}</p>
-                      <p className="text-[11px] text-white/45 mt-1">{item.date}</p>
+                      <p className="text-sm text-white/65">{item.category}</p>
+                      <p className="text-sm text-white/45 mt-1">{item.date}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <p className="text-sm font-bold text-[#9cf4e4]">{formatCurrency(item.amount)}</p>
@@ -556,7 +556,7 @@ export default function InvestingOverview({
                       </button>
                     </div>
                   </div>
-                  {item.note && <p className="text-xs text-white/65 mt-2 truncate">{item.note}</p>}
+                  {item.note && <p className="text-sm text-white/65 mt-2 truncate">{item.note}</p>}
                 </article>
               ))}
             </div>

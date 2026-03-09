@@ -4,7 +4,7 @@ import { useState } from "react";
 import ExportButton from "../ExportButton";
 import DownloadSpendingPdfButton from "../DownloadSpendingPdfButton";
 import AddRecurringTemplateModal from "../spending/AddRecurringTemplateModal";
-import BottomSheet from "../forms/BottomSheet";
+import usePwaInstall from "../pwa/usePwaInstall";
 import { CurrencyCode, DashboardWindow } from "../shared/types";
 import { useFinanceStore } from "../shared/store";
 import { useCurrency } from "../shared/useCurrency";
@@ -26,6 +26,7 @@ const parseMoneyInput = (value: string) => {
 
 export default function SettingsPanel() {
   const { formatCurrency } = useCurrency();
+  const { canInstall, isInstalled, isIos, isInstalling, install } = usePwaInstall();
   const [isAddRecurringOpen, setIsAddRecurringOpen] = useState(false);
   const [editingRecurringId, setEditingRecurringId] = useState<string | null>(null);
   const [isIncomeSheetOpen, setIsIncomeSheetOpen] = useState(false);
@@ -253,6 +254,49 @@ export default function SettingsPanel() {
           <ExportButton />
           <DownloadSpendingPdfButton />
         </div>
+        <div className="mt-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a26] px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-[#f0f0ff]">Install App</p>
+              <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                {isInstalled
+                  ? "Poisa is installed on this device."
+                  : isIos
+                    ? "On Safari: Share -> Add to Home Screen."
+                    : canInstall
+                      ? "Install Poisa for app-like experience."
+                      : "Install becomes available when browser marks app ready."}
+              </p>
+            </div>
+            {!isInstalled && !isIos && (
+              <button
+                type="button"
+                onClick={() => {
+                  void install();
+                }}
+                disabled={!canInstall || isInstalling}
+                className={`h-9 px-3 rounded-lg text-xs font-semibold transition-colors ${
+                  canInstall && !isInstalling
+                    ? "bg-[#00C896] text-[#06221a]"
+                    : "border border-[rgba(255,255,255,0.14)] bg-transparent text-[#8CA0B3]"
+                }`}
+              >
+                {isInstalling ? "Installing..." : "Install App"}
+              </button>
+            )}
+            {isInstalled && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(0,200,150,0.45)] bg-[rgba(0,200,150,0.15)] px-2.5 py-1 text-[11px] font-semibold text-[#bdf6e7]">
+                <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                Installed
+              </span>
+            )}
+          </div>
+          {isIos && !isInstalled && (
+            <p className="mt-2 text-[11px] text-[#7A8599]">
+              Open in Safari, tap the share icon, then choose <span className="text-[#cde3df]">Add to Home Screen</span>.
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)] p-4">
@@ -284,43 +328,64 @@ export default function SettingsPanel() {
         onClose={() => setEditingRecurringId(null)}
       />
 
-      <BottomSheet isOpen={isIncomeSheetOpen} title="My Income" onClose={() => setIsIncomeSheetOpen(false)}>
-        <div className="space-y-3">
-          <label className="block">
-            <p className="text-xs text-[#7d8590] mb-1">Monthly Salary (INR)</p>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={salaryInput}
-              onChange={(event) => setSalaryInput(event.target.value)}
-              inputMode="decimal"
-              placeholder="e.g. 50000"
-              className="w-full h-10 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
-            />
-          </label>
-          <label className="block">
-            <p className="text-xs text-[#7d8590] mb-1">Other Monthly Income (INR)</p>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={otherIncomeInput}
-              onChange={(event) => setOtherIncomeInput(event.target.value)}
-              inputMode="decimal"
-              placeholder="optional"
-              className="w-full h-10 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
-            />
-          </label>
-          <button
-            type="button"
-            onClick={saveIncome}
-            className="h-10 w-full rounded-xl bg-[#00C896] text-[#06221a] text-sm font-semibold"
+      {isIncomeSheetOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] flex items-center justify-center p-4"
+          onClick={() => setIsIncomeSheetOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-[#2A3345] bg-[#161B22] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
+            onClick={(event) => event.stopPropagation()}
           >
-            Save
-          </button>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#f3f5ff]">My Income</h3>
+              <button
+                type="button"
+                onClick={() => setIsIncomeSheetOpen(false)}
+                className="size-7 rounded-full border border-white/15 bg-white/[0.06] text-white/80 inline-flex items-center justify-center"
+                aria-label="Close income popup"
+              >
+                <span className="material-symbols-outlined text-[15px]">close</span>
+              </button>
+            </div>
+            <div className="space-y-3">
+              <label className="block">
+                <p className="text-xs text-[#7d8590] mb-1">Monthly Salary (INR)</p>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={salaryInput}
+                  onChange={(event) => setSalaryInput(event.target.value)}
+                  inputMode="decimal"
+                  placeholder="e.g. 50000"
+                  className="w-full h-11 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
+                />
+              </label>
+              <label className="block">
+                <p className="text-xs text-[#7d8590] mb-1">Other Monthly Income (INR)</p>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={otherIncomeInput}
+                  onChange={(event) => setOtherIncomeInput(event.target.value)}
+                  inputMode="decimal"
+                  placeholder="optional"
+                  className="w-full h-11 rounded-xl border border-[#2d333b] bg-[#161b22] px-3 text-sm text-[#e6edf3] outline-none focus:border-[#00e5a0]"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={saveIncome}
+                className="h-11 w-full rounded-xl bg-[#00C896] text-[#06221a] text-sm font-semibold"
+              >
+                Save
+              </button>
+            </div>
+          </div>
         </div>
-      </BottomSheet>
+      )}
     </section>
   );
 }

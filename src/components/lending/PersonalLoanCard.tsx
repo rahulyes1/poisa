@@ -101,8 +101,8 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h4 className="font-semibold text-[#f0f0ff] truncate">{loan.lenderName}</h4>
-          <p className="text-xs text-[#8ba09c]">{label}</p>
-          <p className="text-[11px] text-[#6b7280] mt-0.5">Started: {loan.startDate}</p>
+          <p className="text-sm text-[#8ba09c]">{label}</p>
+          <p className="text-sm text-[#6b7280] mt-0.5">Started: {loan.startDate}</p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button
@@ -122,7 +122,7 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+      <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
         <div className="rounded-lg border border-[rgba(255,255,255,0.12)] bg-white/[0.04] px-2.5 py-2">
           <p className="text-[#6b7280] uppercase tracking-wide">Outstanding</p>
           <p className="text-sm font-semibold text-[#f0f0ff] mt-0.5">{formatCurrency(outstanding)}</p>
@@ -135,14 +135,14 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
         </div>
       </div>
 
-      <div className="mt-2 flex items-start justify-between gap-2 text-xs">
+      <div className="mt-2 flex items-start justify-between gap-2 text-sm">
         <div className="min-w-0">
           <p className="text-[#7f9591]">
             {loan.nextEmiDate ? `EMI Date: ${loan.nextEmiDate}` : "EMI Date: Not set"}
           </p>
-          <p className="text-[10px] text-white/55 mt-0.5">Status for {selectedMonth}</p>
+          <p className="text-[11px] text-white/55 mt-0.5">Status for {selectedMonth}</p>
           {!isClosed && (
-            <p className="text-[10px] text-[#7f9591] mt-0.5">
+            <p className="text-[11px] text-[#7f9591] mt-0.5">
               {hasConfiguredEmi
                 ? "Mark Paid adds EMI expense in Spending."
                 : "Mark Paid updates loan status only (no Spending entry)."}
@@ -156,7 +156,7 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
                 type="button"
                 onClick={() => markPersonalLoanEmiPaid(loan.id)}
                 disabled={isPaidForMonth || !canMarkPaid}
-                className={`h-7 px-2.5 rounded-lg text-[10px] font-semibold uppercase tracking-wide ${
+                className={`h-7 px-2.5 rounded-lg text-[11px] font-semibold uppercase tracking-wide ${
                   isPaidForMonth
                     ? "bg-[rgba(0,201,167,0.2)] text-[#00C9A7] cursor-default"
                     : "bg-[rgba(0,201,167,0.2)] text-[#00C9A7]"
@@ -168,7 +168,7 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
                 <button
                   type="button"
                   onClick={() => unmarkPersonalLoanEmiPaid(loan.id)}
-                  className="h-7 px-2 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[10px] font-semibold uppercase tracking-wide text-[#FF8C42]"
+                  className="h-7 px-2 rounded-lg border border-[rgba(255,140,66,0.35)] bg-[rgba(255,140,66,0.12)] text-[11px] font-semibold uppercase tracking-wide text-[#FF8C42]"
                 >
                   Undo
                 </button>
@@ -176,40 +176,40 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
             </div>
           )}
           {isClosed ? (
-            <span className="px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] font-semibold uppercase tracking-wide text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] font-semibold uppercase tracking-wide text-[11px]">
               Closed
             </span>
           ) : isOverdue ? (
-            <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold uppercase tracking-wide text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold uppercase tracking-wide text-[11px]">
               Overdue
             </span>
           ) : isDueSoon ? (
-            <span className="px-2 py-0.5 rounded-full bg-[rgba(255,140,66,0.15)] text-[#FF8C42] font-semibold uppercase tracking-wide text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-[rgba(255,140,66,0.15)] text-[#FF8C42] font-semibold uppercase tracking-wide text-[11px]">
               Due Soon
             </span>
           ) : (
-            <span className="px-2 py-0.5 rounded-full bg-white/10 text-[#a6b8b4] font-semibold uppercase tracking-wide text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/10 text-[#a6b8b4] font-semibold uppercase tracking-wide text-[11px]">
               Active
             </span>
           )}
         </div>
       </div>
 
-      {loan.note && <p className="mt-2 text-xs text-[#6b7280] whitespace-normal break-words">{loan.note}</p>}
+      {loan.note && <p className="mt-2 text-sm text-[#6b7280] whitespace-normal break-words">{loan.note}</p>}
 
       {!isClosed && (
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => setShowPaymentInput((value) => !value)}
-            className="h-8 px-3 rounded-lg bg-[rgba(0,201,167,0.2)] text-[#00C9A7] text-xs font-semibold"
+            className="h-8 px-3 rounded-lg bg-[rgba(0,201,167,0.2)] text-[#00C9A7] text-sm font-semibold"
           >
             + Payment
           </button>
           <button
             type="button"
             onClick={() => closePersonalLoan(loan.id)}
-            className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-[#c0d6d2]"
+            className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-sm font-semibold text-[#c0d6d2]"
           >
             Close Loan
           </button>
@@ -231,7 +231,7 @@ export default function PersonalLoanCard({ loan, onEditPersonalLoan }: PersonalL
             type="date"
             value={paymentDate}
             onChange={(event) => setPaymentDate(event.target.value)}
-            className="glass-input h-9 px-2 text-xs text-[#f0f0ff] w-[132px]"
+            className="glass-input h-9 px-2 text-sm text-[#f0f0ff] w-[132px]"
           />
           <button
             type="button"

@@ -59,7 +59,7 @@ export default function FeaturePosterModal({ isOpen, onSkip, onGetStarted }: Fea
           {featureCards.map((item) => (
             <article key={item.title} className="rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[#1a1a26] p-3.5">
               <div className="flex items-start gap-2.5">
-                <div className="size-8 rounded-xl bg-[rgba(79,70,229,0.24)] text-[#C7D2FE] inline-flex items-center justify-center shrink-0">
+                <div className="size-8 rounded-xl bg-[rgba(0,200,150,0.24)] text-[#bdf6e7] inline-flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-[17px]">{item.icon}</span>
                 </div>
                 <div>
@@ -82,7 +82,7 @@ export default function FeaturePosterModal({ isOpen, onSkip, onGetStarted }: Fea
           <button
             type="button"
             onClick={onGetStarted}
-            className="h-9 px-4 rounded-xl bg-[#4F46E5] text-white text-xs font-semibold"
+            className="h-9 px-4 rounded-xl bg-[#00C896] text-[#06221a] text-xs font-semibold"
           >
             Get Started
           </button>

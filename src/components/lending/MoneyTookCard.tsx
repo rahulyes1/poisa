@@ -64,11 +64,11 @@ export default function MoneyTookCard({ entry, onEdit }: MoneyTookCardProps) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h4 className="font-semibold text-[#f0f0ff] truncate">{entry.lenderName}</h4>
-          <p className="text-xs text-[#7f9591] mt-0.5">
+          <p className="text-sm text-[#7f9591] mt-0.5">
             Due: {entry.dueDate || "Not set"}
           </p>
           {entry.emiAmount && (
-            <p className="text-xs text-[#8ba09c] mt-0.5">EMI: {formatCurrency(entry.emiAmount)}</p>
+            <p className="text-sm text-[#8ba09c] mt-0.5">EMI: {formatCurrency(entry.emiAmount)}</p>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -89,7 +89,7 @@ export default function MoneyTookCard({ entry, onEdit }: MoneyTookCardProps) {
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+      <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
         <div className="rounded-lg border border-[rgba(255,255,255,0.12)] bg-white/[0.04] px-2.5 py-2">
           <p className="text-[#6b7280] uppercase tracking-wide">Borrowed</p>
           <p className="text-sm font-semibold text-[#f0f0ff] mt-0.5">{formatCurrency(entry.amount)}</p>
@@ -102,19 +102,19 @@ export default function MoneyTookCard({ entry, onEdit }: MoneyTookCardProps) {
 
       <div className="mt-2 flex items-center justify-between gap-2">
         {isClosed ? (
-          <span className="px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] font-semibold uppercase tracking-wide text-[10px]">
+          <span className="px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] font-semibold uppercase tracking-wide text-[11px]">
             Closed
           </span>
         ) : isOverdue ? (
-          <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold uppercase tracking-wide text-[10px]">
+          <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold uppercase tracking-wide text-[11px]">
             Overdue
           </span>
         ) : isDueSoon ? (
-          <span className="px-2 py-0.5 rounded-full bg-[rgba(255,140,66,0.15)] text-[#FF8C42] font-semibold uppercase tracking-wide text-[10px]">
+          <span className="px-2 py-0.5 rounded-full bg-[rgba(255,140,66,0.15)] text-[#FF8C42] font-semibold uppercase tracking-wide text-[11px]">
             Due Soon
           </span>
         ) : (
-          <span className="px-2 py-0.5 rounded-full bg-white/10 text-[#a6b8b4] font-semibold uppercase tracking-wide text-[10px]">
+          <span className="px-2 py-0.5 rounded-full bg-white/10 text-[#a6b8b4] font-semibold uppercase tracking-wide text-[11px]">
             Active
           </span>
         )}
@@ -123,14 +123,14 @@ export default function MoneyTookCard({ entry, onEdit }: MoneyTookCardProps) {
           <button
             type="button"
             onClick={() => setShowPaymentInput((value) => !value)}
-            className="h-8 px-3 rounded-lg bg-[rgba(0,201,167,0.2)] text-[#00C9A7] text-xs font-semibold"
+            className="h-8 px-3 rounded-lg bg-[rgba(0,201,167,0.2)] text-[#00C9A7] text-sm font-semibold"
           >
             + Payment
           </button>
         )}
       </div>
 
-      {entry.note && <p className="mt-2 text-xs text-[#6b7280] whitespace-normal break-words">{entry.note}</p>}
+      {entry.note && <p className="mt-2 text-sm text-[#6b7280] whitespace-normal break-words">{entry.note}</p>}
 
       {showPaymentInput && !isClosed && (
         <div className="mt-3 flex items-center gap-2">
@@ -147,7 +147,7 @@ export default function MoneyTookCard({ entry, onEdit }: MoneyTookCardProps) {
             type="date"
             value={paymentDate}
             onChange={(event) => setPaymentDate(event.target.value)}
-            className="glass-input h-9 px-2 text-xs text-[#f0f0ff] w-[132px]"
+            className="glass-input h-9 px-2 text-sm text-[#f0f0ff] w-[132px]"
           />
           <button
             type="button"
@@ -169,13 +169,13 @@ export default function MoneyTookCard({ entry, onEdit }: MoneyTookCardProps) {
 
       {entry.payments.length > 0 && (
         <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-white/55 mb-1">Recent Payments</p>
+          <p className="text-[11px] uppercase tracking-wide text-white/55 mb-1">Recent Payments</p>
           <div className="space-y-1">
             {[...entry.payments]
               .sort((a, b) => b.date.localeCompare(a.date))
               .slice(0, 3)
               .map((payment) => (
-                <div key={payment.id} className="flex items-center justify-between text-[11px]">
+                <div key={payment.id} className="flex items-center justify-between text-sm">
                   <span className="text-white/60">{payment.date}</span>
                   <span className="text-white/85 font-semibold">{formatCurrency(payment.amount)}</span>
                 </div>

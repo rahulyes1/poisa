@@ -42,12 +42,22 @@ const toOrdinal = (value: number) => {
 function getCategoryAccentColor(category: string): string {
   const key = category.toLowerCase().trim();
   if (key.includes("fuel") || key.includes("petrol") || key.includes("diesel")) return "#ff5b5b";
+  if (key.includes("alcohol") || key.includes("liquor") || key.includes("bar")) return "#ff5b5b";
   if (
     key.includes("bill") ||
     key.includes("rent") ||
     key.includes("electric") ||
     key.includes("utilit") ||
-    key.includes("recharge")
+    key.includes("recharge") ||
+    key.includes("lpg") ||
+    key.includes("gas") ||
+    key.includes("water") ||
+    key.includes("society") ||
+    key.includes("maintenance") ||
+    key.includes("broadband") ||
+    key.includes("wifi") ||
+    key.includes("dth") ||
+    key.includes("ott")
   ) {
     return "#ffb347";
   }
@@ -56,20 +66,73 @@ function getCategoryAccentColor(category: string): string {
     key.includes("eat") ||
     key.includes("dining") ||
     key.includes("restaurant") ||
-    key.includes("grocer")
+    key.includes("grocer") ||
+    key.includes("kirana") ||
+    key.includes("street food") ||
+    key.includes("dhaba") ||
+    key.includes("tapri") ||
+    key.includes("chai") ||
+    key.includes("coffee") ||
+    key.includes("snack")
   ) {
     return "#00e5a0";
   }
-  return "#6c63ff";
+  if (
+    key.includes("pooja") ||
+    key.includes("temple") ||
+    key.includes("mandir") ||
+    key.includes("house help") ||
+    key.includes("maid") ||
+    key.includes("laundry") ||
+    key.includes("dhobi") ||
+    key.includes("function") ||
+    key.includes("event") ||
+    key.includes("wedding") ||
+    key.includes("parlour") ||
+    key.includes("salon")
+  ) {
+    return "#8B5CF6";
+  }
+  return "#38BDF8";
 }
 
 function getCategoryEmoji(category: string): string {
   const key = category.toLowerCase().trim();
-  if (key.includes("fuel") || key.includes("petrol") || key.includes("diesel")) return "\u26FD";
-  if (key.includes("bill") || key.includes("rent") || key.includes("electric") || key.includes("utilit")) return "\uD83E\uDDFE";
-  if (key.includes("grocer")) return "\uD83D\uDED2";
-  if (key.includes("food") || key.includes("eat") || key.includes("dining") || key.includes("restaurant")) return "\uD83C\uDF5C";
-  return "\uD83E\uDDE9";
+  if (key.includes("fuel") || key.includes("petrol") || key.includes("diesel")) return "⛽";
+  if (key.includes("alcohol") || key.includes("liquor") || key.includes("bar")) return "🍺";
+  if (key.includes("bill") || key.includes("rent")) return "🧾";
+  if (key.includes("electric")) return "🔌";
+  if (key.includes("lpg") || key.includes("gas cylinder")) return "🛢️";
+  if (key.includes("water bill") || key.includes("water")) return "💧";
+  if (key.includes("society") || key.includes("maintenance")) return "🏢";
+  if (key.includes("broadband") || key.includes("wifi")) return "📡";
+  if (key.includes("dth") || key.includes("ott")) return "📺";
+  if (key.includes("utilit") || key.includes("recharge")) return "📱";
+  if (key.includes("grocer")) return "🛒";
+  if (key.includes("kirana")) return "🏪";
+  if (key.includes("street food") || key.includes("dhaba") || key.includes("tapri")) return "🥙";
+  if (key.includes("chai") || key.includes("coffee") || key.includes("cafe")) return "🍵";
+  if (key.includes("snack")) return "🍰";
+  if (key.includes("food") || key.includes("eat") || key.includes("dining") || key.includes("restaurant")) return "🍛";
+  if (key.includes("auto") || key.includes("rickshaw") || key.includes("cab")) return "🛺";
+  if (key.includes("bus") || key.includes("train") || key.includes("metro")) return "🚌";
+  if (key.includes("transport")) return "🚕";
+  if (key.includes("pooja") || key.includes("temple") || key.includes("mandir")) return "🪔";
+  if (key.includes("house help") || key.includes("maid") || key.includes("cook")) return "👩‍🍳";
+  if (key.includes("laundry") || key.includes("dhobi")) return "🧺";
+  if (key.includes("function") || key.includes("event") || key.includes("wedding")) return "🎊";
+  if (key.includes("parlour") || key.includes("salon")) return "💅";
+  if (key.includes("health") || key.includes("medicine") || key.includes("doctor")) return "💊";
+  if (key.includes("travel") || key.includes("flight")) return "✈️";
+  if (key.includes("shop") || key.includes("shopping")) return "🛍️";
+  if (key.includes("education") || key.includes("school") || key.includes("college")) return "🎓";
+  if (key.includes("fitness") || key.includes("gym")) return "🏋️";
+  if (key.includes("gift")) return "🎁";
+  if (key.includes("wellness") || key.includes("yoga")) return "🧘";
+  if (key.includes("pet")) return "🐶";
+  if (key.includes("family")) return "👨‍👩‍👧";
+  if (key.includes("fun") || key.includes("movie") || key.includes("entertainment")) return "🎬";
+  return "🧩";
 }
 
 type TransactionFilter = "All" | "Bills" | "Eating out" | "Fuel" | "Groceries" | "Other";
@@ -80,30 +143,39 @@ const matchesTransactionFilter = (expense: Expense, filter: TransactionFilter) =
   if (filter === "All") return true;
   const key = expense.category.toLowerCase();
 
-  if (filter === "Bills") {
-    return (
-      key.includes("bill") ||
-      key.includes("rent") ||
-      key.includes("electric") ||
-      key.includes("utilit") ||
-      key.includes("recharge")
-    );
-  }
-  if (filter === "Eating out") {
-    return key.includes("food") || key.includes("eat") || key.includes("dining") || key.includes("restaurant");
-  }
-  if (filter === "Fuel") {
-    return key.includes("fuel") || key.includes("petrol") || key.includes("diesel");
-  }
-  if (filter === "Groceries") {
-    return key.includes("grocer");
-  }
-
   const isBills =
-    key.includes("bill") || key.includes("rent") || key.includes("electric") || key.includes("utilit") || key.includes("recharge");
-  const isFood = key.includes("food") || key.includes("eat") || key.includes("dining") || key.includes("restaurant");
+    key.includes("bill") ||
+    key.includes("rent") ||
+    key.includes("electric") ||
+    key.includes("utilit") ||
+    key.includes("recharge") ||
+    key.includes("lpg") ||
+    key.includes("gas") ||
+    key.includes("water") ||
+    key.includes("society") ||
+    key.includes("maintenance") ||
+    key.includes("broadband") ||
+    key.includes("wifi") ||
+    key.includes("dth") ||
+    key.includes("ott");
+  const isFood =
+    key.includes("food") ||
+    key.includes("eat") ||
+    key.includes("dining") ||
+    key.includes("restaurant") ||
+    key.includes("street food") ||
+    key.includes("dhaba") ||
+    key.includes("chai") ||
+    key.includes("coffee") ||
+    key.includes("cafe") ||
+    key.includes("snack");
   const isFuel = key.includes("fuel") || key.includes("petrol") || key.includes("diesel");
-  const isGroceries = key.includes("grocer");
+  const isGroceries = key.includes("grocer") || key.includes("kirana");
+
+  if (filter === "Bills") return isBills;
+  if (filter === "Eating out") return isFood;
+  if (filter === "Fuel") return isFuel;
+  if (filter === "Groceries") return isGroceries;
   return !(isBills || isFood || isFuel || isGroceries);
 };
 
@@ -506,7 +578,7 @@ export default function TransactionList({ query }: TransactionListProps) {
       <div className="poisa-fade-up px-4" style={{ animationDelay: "260ms" }}>
         <div className="relative rounded-2xl border border-[#2b2f46] bg-[#161826] p-1">
           <div
-            className="absolute inset-y-1 left-1 rounded-xl bg-[#6c63ff]"
+            className="absolute inset-y-1 left-1 rounded-xl bg-[#00C896]"
             style={{
               width: "calc((100% - 8px) / 3)",
               transform: `translateX(${(["transactions", "recurring", "todo"] as SpendingPanel[]).indexOf(activePanel) * 100}%)`,
@@ -525,7 +597,7 @@ export default function TransactionList({ query }: TransactionListProps) {
                 onClick={() => setActivePanel(panel.key)}
                 className="poisa-pressable h-8 rounded-xl text-[11px] font-semibold uppercase tracking-wide"
                 style={{
-                  color: activePanel === panel.key ? "#ffffff" : "#8c92ab",
+                  color: activePanel === panel.key ? "#06221a" : "#8c92ab",
                   transition: "color 180ms cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
               >
@@ -652,7 +724,7 @@ export default function TransactionList({ query }: TransactionListProps) {
                         <button
                           type="button"
                           onClick={() => setEditingTemplate(template)}
-                          className="h-6 rounded-full border border-[#4F46E5]/40 bg-[#4F46E5]/10 text-[9px] font-bold text-[#73EFD9] active:scale-95 transition-transform"
+                          className="h-6 rounded-full border border-[#00C896]/40 bg-[#00C896]/10 text-[9px] font-bold text-[#73EFD9] active:scale-95 transition-transform"
                         >
                           Edit
                         </button>
@@ -674,10 +746,10 @@ export default function TransactionList({ query }: TransactionListProps) {
               <button
                 type="button"
                 onClick={() => setIsAddRecurringOpen(true)}
-                className="shrink-0 w-[96px] min-h-[76px] rounded-xl border border-dashed border-[rgba(255,255,255,0.08)] bg-[#111118] p-2 inline-flex flex-col items-center justify-center text-center active:scale-95 transition-transform hover:border-[#4F46E5]/70"
+                className="shrink-0 w-[96px] min-h-[76px] rounded-xl border border-dashed border-[rgba(255,255,255,0.08)] bg-[#111118] p-2 inline-flex flex-col items-center justify-center text-center active:scale-95 transition-transform hover:border-[#00C896]/70"
               >
-                <span className="material-symbols-outlined text-[16px] text-[#4F46E5]">add</span>
-                <span className="text-[10px] font-semibold text-[#4F46E5] mt-1">Custom</span>
+                <span className="material-symbols-outlined text-[16px] text-[#00C896]">add</span>
+                <span className="text-[10px] font-semibold text-[#00C896] mt-1">Custom</span>
               </button>
             </div>
 
@@ -711,7 +783,7 @@ export default function TransactionList({ query }: TransactionListProps) {
               <button
                 type="button"
                 onClick={startTodoCreate}
-                className="h-7 px-2.5 rounded-lg border border-[#4F46E5]/45 bg-[#4F46E5]/12 text-[11px] font-semibold text-[#83F3DF]"
+                className="h-7 px-2.5 rounded-lg border border-[#00C896]/45 bg-[#00C896]/12 text-[11px] font-semibold text-[#83F3DF]"
               >
                 Add
               </button>

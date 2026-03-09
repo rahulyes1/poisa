@@ -257,7 +257,7 @@ export default function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProp
               type="text"
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              placeholder="Add a note (optional)"
+              placeholder="e.g. Swiggy lunch, auto to metro, chai tapri..."
               className="w-full bg-transparent border-0 outline-none text-sm text-[#e6edf3] placeholder:text-[#7d8590]"
             />
           </label>

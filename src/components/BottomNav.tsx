@@ -49,7 +49,7 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
       style={{
         backgroundColor: "rgba(13,15,26,0.92)",
         backdropFilter: "blur(22px)",
-        borderTop: `1px solid ${isScrolling ? "rgba(108,99,255,0.28)" : "rgba(255,255,255,0.08)"}`,
+        borderTop: `1px solid ${isScrolling ? "rgba(0,200,150,0.28)" : "rgba(255,255,255,0.08)"}`,
       }}
     >
       <div className="grid grid-cols-4 items-end gap-1">
@@ -66,7 +66,7 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
               <span
                 className="material-symbols-outlined text-[20px] leading-none relative z-10 transition-colors"
                 style={{
-                  color: isActive ? "#4F46E5" : "#64748B",
+                  color: isActive ? "#00C896" : "#64748B",
                   fontVariationSettings: isActive
                     ? "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 20"
                     : "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20",
@@ -78,7 +78,7 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
               <span
                 className="text-[9px] leading-none tracking-wide relative z-10 transition-colors"
                 style={{
-                  color: isActive ? "#4F46E5" : "#64748B",
+                  color: isActive ? "#00C896" : "#64748B",
                   fontWeight: isActive ? 700 : 400,
                 }}
               >

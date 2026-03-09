@@ -67,8 +67,8 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <h4 className="font-semibold text-[#f0f0ff] truncate">{loan.personName}</h4>
-              {showReason && <p className="text-xs font-medium text-[#8ba09c] truncate">{loan.reason}</p>}
-              {loan.dueDate && <p className="text-xs text-[#7f9591] mt-0.5">Due: {toDueLabel(loan.dueDate)}</p>}
+              {showReason && <p className="text-sm font-medium text-[#8ba09c] truncate">{loan.reason}</p>}
+              {loan.dueDate && <p className="text-sm text-[#7f9591] mt-0.5">Due: {toDueLabel(loan.dueDate)}</p>}
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -93,15 +93,15 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
           </div>
 
           <div className="mt-1 flex items-center justify-between gap-2">
-            <p className="text-xs text-[#89a09c]">
+            <p className="text-sm text-[#89a09c]">
               {formatCurrency(loan.repaidAmount)} of {formatCurrency(loan.amount)} repaid
             </p>
             {loan.repaid ? (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] uppercase tracking-wide">Paid</span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[rgba(0,201,167,0.15)] text-[#00C9A7] uppercase tracking-wide">Paid</span>
             ) : isOverdue ? (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 uppercase tracking-wide">Overdue</span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 uppercase tracking-wide">Overdue</span>
             ) : (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[rgba(255,140,66,0.15)] text-[#FF8C42] uppercase tracking-wide">Pending</span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[rgba(255,140,66,0.15)] text-[#FF8C42] uppercase tracking-wide">Pending</span>
             )}
           </div>
 
@@ -116,7 +116,7 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
             <button
               type="button"
               onClick={() => toggleLoanRepaid(loan.id)}
-              className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-[#c0d6d2]"
+              className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-sm font-semibold text-[#c0d6d2]"
             >
               Mark Paid
             </button>
@@ -129,14 +129,14 @@ export default function PersonCard({ loan, onEditLoan }: PersonCardProps) {
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-xs font-semibold text-[#c0d6d2] inline-flex items-center gap-1"
+                className="h-8 px-3 rounded-lg border border-white/20 bg-white/[0.08] text-sm font-semibold text-[#c0d6d2] inline-flex items-center gap-1"
               >
                 <span className="material-symbols-outlined text-[14px]">send</span>
                 Remind
               </button>
             )}
 
-            {copied && <span className="text-xs text-[#00C9A7]">Copied!</span>}
+            {copied && <span className="text-sm text-[#00C9A7]">Copied!</span>}
           </div>
 
           {showRepayInput && !loan.repaid && (
